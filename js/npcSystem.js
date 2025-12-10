@@ -105,7 +105,22 @@ const NPCSystem = {
     },
 
     setInitialTarget(npc) {
-        // First, go browse at a table
+        // BUY customers go to shelves OR display tables to browse and pick items
+        if (npc.intent === this.INTENT.BUY && typeof InventorySystem !== 'undefined') {
+            // Combine shelf and display table spots
+            const shelfSpots = this.getShelfBrowseSpots();
+            const tableSpots = this.getDisplayTableBrowseSpots();
+            const allBrowseSpots = [...shelfSpots, ...tableSpots];
+
+            if (allBrowseSpots.length > 0) {
+                npc.targetSpot = allBrowseSpots[Math.floor(Math.random() * allBrowseSpots.length)];
+                npc.browsingShelf = npc.targetSpot.type === 'shelf';
+                npc.browsingTable = npc.targetSpot.type === 'table';
+                return;
+            }
+        }
+
+        // SERVICE or fallback: go browse at tables then to counter
         if (this.positions.browseSpots && this.positions.browseSpots.length > 0) {
             const availableSpots = this.positions.browseSpots.filter(spot =>
                 !this.npcs.some(other =>
@@ -118,13 +133,74 @@ const NPCSystem = {
 
             if (availableSpots.length > 0) {
                 npc.targetSpot = availableSpots[Math.floor(Math.random() * availableSpots.length)];
+                return;
             }
         }
 
         // Fallback: go directly to counter
-        if (!npc.targetSpot) {
-            this.setCounterTarget(npc);
+        this.setCounterTarget(npc);
+    },
+
+    // Get spots adjacent to shelves where NPCs can stand and browse
+    getShelfBrowseSpots() {
+        const spots = [];
+        if (!ShopMap.map) return spots;
+
+        const T = ShopGenerator.TILES;
+        const width = ShopMap.gridWidth;
+        const height = ShopMap.gridHeight;
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                if (ShopMap.map[y][x] === T.SHELF) {
+                    // Check adjacent floor tiles
+                    const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+                    for (const [dx, dy] of dirs) {
+                        const nx = x + dx;
+                        const ny = y + dy;
+                        if (nx > 0 && nx < width - 1 && ny > 0 && ny < height - 1) {
+                            const adjTile = ShopMap.map[ny][nx];
+                            if (adjTile === T.FLOOR) {
+                                spots.push({ x: nx, y: ny, shelfX: x, shelfY: y, type: 'shelf' });
+                            }
+                        }
+                    }
+                }
+            }
         }
+
+        return spots;
+    },
+
+    // Get spots adjacent to display tables where NPCs can stand and browse
+    getDisplayTableBrowseSpots() {
+        const spots = [];
+        if (!ShopMap.map) return spots;
+
+        const T = ShopGenerator.TILES;
+        const width = ShopMap.gridWidth;
+        const height = ShopMap.gridHeight;
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                if (ShopMap.map[y][x] === T.TABLE) {
+                    // Check adjacent floor tiles
+                    const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+                    for (const [dx, dy] of dirs) {
+                        const nx = x + dx;
+                        const ny = y + dy;
+                        if (nx > 0 && nx < width - 1 && ny > 0 && ny < height - 1) {
+                            const adjTile = ShopMap.map[ny][nx];
+                            if (adjTile === T.FLOOR) {
+                                spots.push({ x: nx, y: ny, tableX: x, tableY: y, type: 'table' });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return spots;
     },
 
     setCounterTarget(npc) {
@@ -237,7 +313,14 @@ const NPCSystem = {
             case this.STATE.BROWSING:
                 npc.browseTime += deltaTime;
                 if (npc.browseTime >= npc.maxBrowseTime) {
-                    this.setCounterTarget(npc);
+                    // If browsing shelf, try to pick an item
+                    if (npc.browsingShelf && npc.targetSpot?.shelfX !== undefined) {
+                        this.pickItemFromShelf(npc);
+                    } else if (npc.browsingTable && npc.targetSpot?.tableX !== undefined) {
+                        this.pickItemFromDisplayTable(npc);
+                    } else {
+                        this.setCounterTarget(npc);
+                    }
                 }
                 break;
 
@@ -408,6 +491,135 @@ const NPCSystem = {
             npc.state === this.STATE.WAITING &&
             npc.intent === this.INTENT.BUY
         );
+    },
+
+    // Pick item from shelf after browsing
+    pickItemFromShelf(npc) {
+        const shelfKey = `${npc.targetSpot.shelfX},${npc.targetSpot.shelfY}`;
+        const shelf = InventorySystem.shelves[shelfKey];
+
+        if (shelf && shelf.items.length > 0) {
+            // Check prices - customer has a max they'll pay
+            const item = InventorySystem.getItem(shelf.items[0].itemId);
+            const shelfPrice = shelf.items[0].price;
+            const marketPrice = item?.marketPrice || shelfPrice;
+
+            // Customer tolerance: random 5-35% over market (varies per customer)
+            const tolerance = 0.05 + Math.random() * 0.30;
+            const maxWillPay = marketPrice * (1 + tolerance);
+
+            if (shelfPrice <= maxWillPay) {
+                // They'll buy it - store selected item and go to POS
+                npc.selectedItem = {
+                    shelfKey: shelfKey,
+                    itemId: shelf.items[0].itemId,
+                    price: shelfPrice,
+                    name: item?.name || 'Item'
+                };
+                npc.browsingShelf = false;
+                npc.intentRevealed = true;
+                this.setCounterTarget(npc);
+                console.log(`[NPC] ${npc.data.name} picked ${npc.selectedItem.name} at $${shelfPrice}`);
+            } else {
+                // Too expensive - leave annoyed or browse elsewhere
+                console.log(`[NPC] ${npc.data.name} thinks $${shelfPrice} is too expensive for ${item?.name}`);
+                if (Math.random() < 0.5) {
+                    // Try another shelf
+                    const otherSpots = this.getShelfBrowseSpots().filter(s =>
+                        s.shelfX !== npc.targetSpot.shelfX || s.shelfY !== npc.targetSpot.shelfY
+                    );
+                    if (otherSpots.length > 0) {
+                        npc.targetSpot = otherSpots[Math.floor(Math.random() * otherSpots.length)];
+                        npc.browseTime = 0;
+                        npc.state = this.STATE.ENTERING;  // Go to new spot
+                        return;
+                    }
+                }
+                // Leave without buying
+                npc.state = this.STATE.LEAVING;
+                npc.targetSpot = this.positions.door;
+            }
+        } else {
+            // Empty shelf - try another or leave
+            const otherSpots = this.getShelfBrowseSpots().filter(s =>
+                s.shelfX !== npc.targetSpot.shelfX || s.shelfY !== npc.targetSpot.shelfY
+            );
+            if (otherSpots.length > 0 && Math.random() < 0.7) {
+                npc.targetSpot = otherSpots[Math.floor(Math.random() * otherSpots.length)];
+                npc.browseTime = 0;
+                npc.state = this.STATE.ENTERING;
+            } else {
+                // Leave - nothing to buy
+                npc.state = this.STATE.LEAVING;
+                npc.targetSpot = this.positions.door;
+                console.log(`[NPC] ${npc.data.name} leaving - shelves empty`);
+            }
+        }
+    },
+
+    // Pick item from display table after browsing
+    pickItemFromDisplayTable(npc) {
+        const tableKey = `${npc.targetSpot.tableX},${npc.targetSpot.tableY}`;
+        const table = InventorySystem.displayTables[tableKey];
+
+        if (table && table.item && table.item.quantity > 0) {
+            const item = InventorySystem.getItem(table.item.itemId);
+            const tablePrice = table.item.price;
+            const marketPrice = item?.marketPrice || tablePrice;
+
+            // Customer tolerance: random 5-35% over market (varies per customer)
+            const tolerance = 0.05 + Math.random() * 0.30;
+            const maxWillPay = marketPrice * (1 + tolerance);
+
+            if (tablePrice <= maxWillPay) {
+                // They'll buy it
+                npc.selectedItem = {
+                    tableKey: tableKey,
+                    itemId: table.item.itemId,
+                    price: tablePrice,
+                    name: item?.name || 'Item',
+                    fromTable: true
+                };
+                npc.browsingTable = false;
+                npc.intentRevealed = true;
+                this.setCounterTarget(npc);
+                console.log(`[NPC] ${npc.data.name} picked ${npc.selectedItem.name} from display at $${tablePrice}`);
+            } else {
+                // Too expensive
+                console.log(`[NPC] ${npc.data.name} thinks $${tablePrice} is too expensive for ${item?.name}`);
+                this.tryOtherBrowseSpot(npc);
+            }
+        } else {
+            // Empty table - try elsewhere
+            this.tryOtherBrowseSpot(npc);
+        }
+    },
+
+    // Try to find another browse spot (shelf or table)
+    tryOtherBrowseSpot(npc) {
+        const shelfSpots = this.getShelfBrowseSpots();
+        const tableSpots = this.getDisplayTableBrowseSpots();
+        const currentX = npc.targetSpot?.shelfX ?? npc.targetSpot?.tableX;
+        const currentY = npc.targetSpot?.shelfY ?? npc.targetSpot?.tableY;
+
+        const otherSpots = [...shelfSpots, ...tableSpots].filter(s => {
+            const sx = s.shelfX ?? s.tableX;
+            const sy = s.shelfY ?? s.tableY;
+            return sx !== currentX || sy !== currentY;
+        });
+
+        if (otherSpots.length > 0 && Math.random() < 0.6) {
+            npc.targetSpot = otherSpots[Math.floor(Math.random() * otherSpots.length)];
+            npc.browsingShelf = npc.targetSpot.type === 'shelf';
+            npc.browsingTable = npc.targetSpot.type === 'table';
+            npc.browseTime = 0;
+            npc.state = this.STATE.ENTERING;
+        } else {
+            // Leave without buying
+            npc.state = this.STATE.LEAVING;
+            npc.targetSpot = this.positions.door;
+            console.log(`[NPC] ${npc.data.name} leaving - nothing interesting`);
+        }
     },
 
     // Serve an NPC (called when player interacts)

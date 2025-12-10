@@ -68,6 +68,15 @@ const ShopMap = {
         // Initialize NPC system
         NPCSystem.init(this, this.keyPositions);
 
+        // Initialize inventory system with shelves
+        if (typeof InventorySystem !== 'undefined') {
+            InventorySystem.initShelves(this.map);
+            // Give starter inventory if none exists
+            if (InventorySystem.backstock.length === 0) {
+                InventorySystem.giveStarterInventory();
+            }
+        }
+
         this.bindEvents();
         this.startRenderLoop();
     },
@@ -133,6 +142,18 @@ const ShopMap = {
         // If service interface is active, pass click to it
         if (typeof ServiceInterface !== 'undefined' && ServiceInterface.active) {
             ServiceInterface.handleClick(x, y);
+            return;
+        }
+
+        // If shelf interface is active, pass click to it
+        if (typeof ShelfInterface !== 'undefined' && ShelfInterface.active) {
+            ShelfInterface.handleClick(x, y);
+            return;
+        }
+
+        // If display table interface is active, pass click to it
+        if (typeof DisplayTableInterface !== 'undefined' && DisplayTableInterface.active) {
+            DisplayTableInterface.handleClick(x, y);
             return;
         }
 
@@ -243,7 +264,19 @@ const ShopMap = {
                 info = { name: 'SALES QUEUE', desc: 'Customers wait here to buy.', color: this.colors.posWait };
                 break;
             case T.TABLE:
-                info = { name: 'DISPLAY TABLE', desc: 'Customers browse here before approaching.', color: this.colors.table };
+                const tableKey = `${x},${y}`;
+                const tableDisplay = typeof InventorySystem !== 'undefined' ?
+                    InventorySystem.getDisplayTableDisplay(tableKey) : { empty: true };
+                const tableDesc = tableDisplay.empty ?
+                    'Empty display - click STOCK to showcase an item' :
+                    `${tableDisplay.itemData?.name || 'Item'} x${tableDisplay.count} @ $${tableDisplay.item.price}`;
+                info = {
+                    name: 'DISPLAY TABLE',
+                    desc: tableDesc,
+                    color: this.colors.table,
+                    isDisplayTable: true,
+                    tableKey: tableKey
+                };
                 break;
             case T.WORKBENCH:
                 info = { name: 'WORKBENCH', desc: 'Repair devices here. Employee only.', color: this.colors.workbench };
@@ -252,7 +285,19 @@ const ShopMap = {
                 info = { name: 'ENTRANCE', desc: 'Customers enter and exit here.', color: this.colors.door };
                 break;
             case T.SHELF:
-                info = { name: 'SHELF', desc: 'Display items for sale.', color: this.colors.shelf };
+                const shelfKey = `${x},${y}`;
+                const shelfDisplay = typeof InventorySystem !== 'undefined' ?
+                    InventorySystem.getShelfDisplay(shelfKey) : { empty: true };
+                const shelfDesc = shelfDisplay.empty ?
+                    'Empty shelf - click STOCK to add items' :
+                    `${shelfDisplay.count} items stocked`;
+                info = {
+                    name: 'SHELF',
+                    desc: shelfDesc,
+                    color: this.colors.shelf,
+                    isShelf: true,
+                    shelfKey: shelfKey
+                };
                 break;
             case T.WALL:
                 info = { name: 'WALL', desc: '', color: this.colors.wall };
@@ -268,6 +313,14 @@ const ShopMap = {
                 return;
         }
 
+        // Add STOCK button for shelves and display tables
+        let stockButton = '';
+        if (info.isShelf) {
+            stockButton = `<button class="interact-btn" onclick="ShopMap.openShelfInterface('${info.shelfKey}')">STOCK</button>`;
+        } else if (info.isDisplayTable) {
+            stockButton = `<button class="interact-btn" onclick="ShopMap.openDisplayTableInterface('${info.tableKey}')">STOCK</button>`;
+        }
+
         panel.innerHTML = `
             <div class="map-info-tile">
                 <div class="tile-icon" style="background:${info.color};"></div>
@@ -275,8 +328,21 @@ const ShopMap = {
                     <div class="tile-info-name">${info.name}</div>
                     <div class="tile-info-desc">${info.desc}</div>
                 </div>
+                ${stockButton}
             </div>
         `;
+    },
+
+    openShelfInterface(shelfKey) {
+        if (typeof ShelfInterface !== 'undefined') {
+            ShelfInterface.openShelf(shelfKey);
+        }
+    },
+
+    openDisplayTableInterface(tableKey) {
+        if (typeof DisplayTableInterface !== 'undefined') {
+            DisplayTableInterface.openTable(tableKey);
+        }
     },
 
     clearInfoPanel() {
@@ -334,6 +400,18 @@ const ShopMap = {
             return;
         }
 
+        // If shelf interface is active, render that instead
+        if (typeof ShelfInterface !== 'undefined' && ShelfInterface.active) {
+            ShelfInterface.render();
+            return;
+        }
+
+        // If display table interface is active, render that instead
+        if (typeof DisplayTableInterface !== 'undefined' && DisplayTableInterface.active) {
+            DisplayTableInterface.render();
+            return;
+        }
+
         const ctx = this.ctx;
         const T = this.TILES;
 
@@ -374,6 +452,12 @@ const ShopMap = {
                         break;
                     case T.TABLE:
                         color = this.colors.table;
+                        // Show inventory status
+                        if (typeof InventorySystem !== 'undefined') {
+                            const tblKey = `${x},${y}`;
+                            const tblDisplay = InventorySystem.getDisplayTableDisplay(tblKey);
+                            label = tblDisplay.label;  // 'E' for empty or count
+                        }
                         break;
                     case T.WORKBENCH:
                         color = this.colors.workbench;
@@ -383,6 +467,12 @@ const ShopMap = {
                         break;
                     case T.SHELF:
                         color = this.colors.shelf;
+                        // Show inventory status
+                        if (typeof InventorySystem !== 'undefined') {
+                            const shelfKey = `${x},${y}`;
+                            const display = InventorySystem.getShelfDisplay(shelfKey);
+                            label = display.label;  // 'E' for empty or count
+                        }
                         break;
                 }
 

@@ -134,16 +134,34 @@ const Shop = {
         this.currentNPC = npc;
         this.interactionState = 'register';
 
-        // Generate what they want to buy
-        const wantsToBuy = DialogueSystem.getSaleRequest();
-        this.currentSale = wantsToBuy;
+        // Check if customer picked something from shelf or display table
+        let itemName, price;
+        if (npc.selectedItem) {
+            // Customer picked from shelf or display table
+            itemName = npc.selectedItem.name;
+            price = npc.selectedItem.price;
+
+            // Remove item from inventory
+            if (npc.selectedItem.fromTable) {
+                InventorySystem.purchaseFromDisplayTable(npc.selectedItem.tableKey);
+            } else {
+                InventorySystem.purchaseFromShelf(npc.selectedItem.shelfKey, npc.selectedItem.itemId);
+            }
+        } else {
+            // Fallback: generate random item (shouldn't happen with new flow)
+            const wantsToBuy = DialogueSystem.getSaleRequest();
+            itemName = wantsToBuy.item;
+            price = wantsToBuy.price;
+        }
+
+        this.currentSale = { item: itemName, price: price };
 
         // Convert price to cents for register
-        const priceInCents = wantsToBuy.price * 100;
+        const priceInCents = price * 100;
 
         // Go straight to register - no dialogue needed
         RegisterSystem.startTransaction(
-            wantsToBuy.item,
+            itemName,
             priceInCents,
             (result) => this.handleRegisterComplete(result)
         );
