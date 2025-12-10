@@ -386,16 +386,42 @@ const ShelfInterface = {
         ctx.fillStyle = '#1a1a2e';
         ctx.fillRect(L.actions.x, L.actions.y, L.actions.width, L.actions.height);
 
-        // Close button
+        // Close button with better design
         const closeBtn = { x: L.actions.x + L.actions.width - 100, y: L.actions.y + 5, width: 90, height: 30, action: 'close' };
         this.buttons.push(closeBtn);
 
-        ctx.fillStyle = '#e74c3c';
+        // Button background with gradient effect
+        const gradient = ctx.createLinearGradient(closeBtn.x, closeBtn.y, closeBtn.x, closeBtn.y + closeBtn.height);
+        gradient.addColorStop(0, '#e74c3c');
+        gradient.addColorStop(1, '#c0392b');
+        ctx.fillStyle = gradient;
         ctx.fillRect(closeBtn.x, closeBtn.y, closeBtn.width, closeBtn.height);
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 12px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('CLOSE', closeBtn.x + closeBtn.width / 2, closeBtn.y + 20);
+
+        // Button border
+        ctx.strokeStyle = '#a93226';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(closeBtn.x, closeBtn.y, closeBtn.width, closeBtn.height);
+
+        // X icon instead of text
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const centerX = closeBtn.x + closeBtn.width / 2;
+        const centerY = closeBtn.y + closeBtn.height / 2;
+        const offset = 8;
+        ctx.moveTo(centerX - offset, centerY - offset);
+        ctx.lineTo(centerX + offset, centerY + offset);
+        ctx.moveTo(centerX + offset, centerY - offset);
+        ctx.lineTo(centerX - offset, centerY + offset);
+        ctx.stroke();
+
+        // Subtle shadow effect
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 1;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
 
         // Info text
         ctx.fillStyle = '#666';

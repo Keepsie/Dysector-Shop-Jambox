@@ -235,7 +235,8 @@
         "Random tech stuff I keep forgetting to buy."
       ]
     }
-  },
+  }
+}
 
   "upsell": {
     "accept": [
@@ -307,5 +308,6 @@
       "Sold out. Anything else I can help with?",
       "Not available today. Sorry about that."
     ]
-  }
-}
+  },
+
+  

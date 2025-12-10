@@ -77,15 +77,29 @@ const Shop = {
         this.addText('', 'narrator');
         this.addText(`<span class="customer-name">${npc.data.name}</span> approaches with a <span class="item-highlight">${npc.data.device.fullName}</span>.`, 'narrator');
 
-        // Build job data for service interface
-        const problemDesc = DialogueSystem.getProblemDescription(npc.data.problem.id, npc.data.device.typeName);
+        // Check if we should use a special scenario (15% chance)
+        let problemDesc;
+        let specialScenario = null;
+
+        if (DialogueSystem.shouldUseSpecialScenario()) {
+            specialScenario = DialogueSystem.getRandomSpecialScenario();
+            // Override the problem description with special scenario dialogue
+            problemDesc = DialogueSystem.getSpecialScenarioDescription(specialScenario, npc.data.device.typeName);
+
+            // Store special scenario on npc data for later use
+            npc.data.specialScenario = specialScenario;
+        } else {
+            problemDesc = DialogueSystem.getProblemDescription(npc.data.problem.id, npc.data.device.typeName);
+        }
+
         const job = {
             device: npc.data.device.fullName,
             deviceGrade: npc.data.device.grade,
             problemType: npc.data.problem.name,
             problem: npc.data.problem,
             problemDesc: problemDesc,
-            urgency: npc.data.urgency
+            urgency: npc.data.urgency,
+            specialScenario: specialScenario
         };
 
         // Start service interface on canvas
@@ -700,8 +714,10 @@ const Shop = {
         this.customerSpawnTimer = setInterval(() => {
             if (!GameState.shopOpen || GameState.timePaused) return;
 
-            // Don't spawn if map is full
-            if (typeof ShopMap !== 'undefined' && ShopMap.customers.length >= ShopMap.maxCustomers) return;
+            // Don't spawn if map is full (if it has customer management)
+            if (typeof ShopMap !== 'undefined' && ShopMap.customers &&
+                typeof ShopMap.maxCustomers !== 'undefined' &&
+                ShopMap.customers.length >= ShopMap.maxCustomers) return;
 
             // Random chance of customer (higher early, lower late)
             const hourProgress = (GameState.currentHour - GameState.businessHoursStart) /
@@ -717,8 +733,12 @@ const Shop = {
 
     spawnCustomerOnMap() {
         const customerData = generateCustomer();
-        if (typeof ShopMap !== 'undefined') {
-            ShopMap.spawnCustomer(customerData);
+        if (typeof ShopMap !== 'undefined' && typeof ShopMap.addCustomer === 'function') {
+            ShopMap.addCustomer(customerData);
+            this.addText('The door chimes. A customer walks in.', 'narrator');
+        } else {
+            // Customer generation without map spawning for now
+            console.log('[SHOP] Customer generated (no map spawn):', customerData.name);
             this.addText('The door chimes. A customer walks in.', 'narrator');
         }
     },
@@ -882,7 +902,13 @@ const Shop = {
         const deadlineDayName = GameState.dayNames[(deadlineDay - 1) % 7];
 
         // Get urgency-specific dialogue from the system
-        const urgencyLine = DialogueSystem.getUrgencyInitial(c.urgency.id);
+        let urgencyLine;
+        if (c.specialScenario) {
+            // Use special scenario urgency dialogue
+            urgencyLine = DialogueSystem.getSpecialScenarioUrgency(c.specialScenario);
+        } else {
+            urgencyLine = DialogueSystem.getUrgencyInitial(c.urgency.id);
+        }
         this.addText(`"${urgencyLine}" They mention ${deadlineDayName} as their preferred deadline.`, 'customer');
 
         this.addText(`[QUOTE] Repair price: <span class="money-highlight">${formatMoney(c.repairPrice)}</span>`, 'system');

@@ -311,6 +311,40 @@ const DialogueSystem = {
         else if (hour >= 18) timeOfDay = 'evening';
 
         return this.random(this.data.outcomes.time_of_day[timeOfDay]);
+    },
+
+    // ========================================
+    // SPECIAL SCENARIO DIALOGUE
+    // ========================================
+
+    getSpecialScenarioDescription(scenarioType, deviceName) {
+        if (!this.loaded) return `Something's wrong with my ${deviceName}.`;
+
+        const scenario = this.data.service.special_scenarios[scenarioType];
+        if (!scenario || !scenario.descriptions) return `My ${deviceName} has issues.`;
+
+        const text = this.random(scenario.descriptions);
+        return this.format(text, { device: deviceName });
+    },
+
+    getSpecialScenarioUrgency(scenarioType) {
+        if (!this.loaded) return "This is really important to me.";
+
+        const scenario = this.data.service.special_scenarios[scenarioType];
+        if (!scenario || !scenario.urgency_lines) return "I need this fixed soon.";
+
+        return this.random(scenario.urgency_lines);
+    },
+
+    // Check if should use special scenario (15% chance)
+    shouldUseSpecialScenario() {
+        return Math.random() < 0.15;
+    },
+
+    // Get random special scenario type
+    getRandomSpecialScenario() {
+        const scenarios = ['student_emergency', 'weird_technical', 'conspiracy_theorist', 'overly_dramatic', 'senile_confused'];
+        return this.random(scenarios);
     }
 };
 

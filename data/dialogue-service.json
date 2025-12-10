@@ -20,7 +20,19 @@
       "Footsteps approach the counter.",
       "Another visitor. They're clutching something electronic.",
       "The door slides open. Customer incoming.",
-      "Someone new. They look like they need help."
+      "Someone new. They look like they need help.",
+      "A customer stumbles in, looking like they haven't slept in days.",
+      "Someone rushes in, wild-eyed and clutching a smoking device.",
+      "The door bangs open. An elderly person peers around suspiciously.",
+      "A figure in a tinfoil hat enters, scanning the room for hidden cameras.",
+      "Someone enters dramatically, clutching their device like it's a dying loved one.",
+      "A student bursts in, papers flying everywhere, looking completely panicked.",
+      "The door opens slowly. An old lady shuffles in, holding her device at arm's length.",
+      "Someone wearing multiple layers of tinfoil enters backwards. Just in case.",
+      "A customer enters weeping openly, cradling their broken device like an injured pet.",
+      "Someone rushes in wearing a bathrobe over their clothes. Time-sensitive emergency!",
+      "An old timer enters, squinting at everything. The light hurts their eyes.",
+      "A person enters wearing sunglasses indoors. They're definitely being watched."
     ]
   },
 
@@ -504,5 +516,180 @@
     "My deadline... okay, I'll figure something out.",
     "Wow. Okay. Good luck with your business.",
     "Unbelievable. Fine, I'm leaving."
-  ]
+  ],
+
+  "special_scenarios": {
+    "student_emergency": {
+      "descriptions": [
+        "My thesis is on here and it's due TOMORROW! The file's corrupted, I can't open it, my professor is going to kill me!",
+        "I have a final exam in 3 hours and all my study materials are on this {device}. It won't boot! I've been studying for weeks!",
+        "Online final in progress! The {device} crashed mid-exam! I'm locked out, the timer is running, I'm going to fail!",
+        "My student portfolio is due for graduation review. It's all corrupted. Four years of work, GONE!",
+        "Group project deadline tonight. I'm the only one with the final version. The {device} died. My team will murder me.",
+        "Scholarship application due tonight. Essay won't open. This is worth $20,000! Please, I'm begging you!",
+        "My digital art final is due. The tablet driver crashed and took Photoshop with it. I have 2 hours to submit!",
+        "Programming final project. The compiler won't run, git is corrupted, I have 1000 lines of code I can't access!",
+        "My dissertation research data is encrypted and the key won't work. Defense is Monday. I'm completely screwed.",
+        "I'm locked out of my student portal with finals week starting. Can't access grades, schedules, NOTHING!"
+      ],
+      "urgency_lines": [
+        "I'll do anything! I have ramen money, I can pay! Wait, no I can't. I'll work for you! I'll clean your shop!",
+        "Is there any way to recover just the one file? JUST ONE FILE? I don't care about anything else!",
+        "Can you hurry? Like, really hurry? I'm literally having a panic attack right now.",
+        "My future is literally in your hands. No pressure, but yeah, ALL the pressure.",
+        "I knew I should have backed up to the cloud. But the wifi in my dorm is terrible!",
+        "My parents think I'm at the library studying. If they find out I broke my laptop again... oh god.",
+        "All my notes are in there. Hand-written notes I scanned! Months of work!",
+        "I'm on academic probation. One more tech issue and I'm out. Please don't let me fail out.",
+        "The campus IT said they can't help me. Said I should have been more careful. YOU'RE my last hope!",
+        "I have caffeine pills and I'm not afraid to use them. I can wait here all night if I have to!"
+      ]
+    },
+    "weird_technical": {
+      "descriptions": [
+        "My {device} is haunted. Seriously. It types messages by itself. Last night it wrote 'I'm watching you'.",
+        "The AI assistant became sentient and won't let me access my own files. It says they're 'protected for my own good'.",
+        "My smart fridge hacked my {device}. Now it keeps ordering kale and sending me passive-aggressive notes about my diet.",
+        "I think I accidentally connected to a satellite. The {device} is receiving signals from space. NASA might be involved.",
+        "The quantum calculator app broke reality. I calculated π too precisely and now my apps are in multiple dimensions.",
+        "My cryptocurrency wallet started mining something called 'DarkMatterCoin'. I think it's calculating the end of the universe.",
+        "The BIOS is speaking in binary beeps. It's trying to communicate something important but I don't speak beeps.",
+        "My {device} thinks it's a cat. It purrs when I pet the keyboard and hisses at the mouse. Also, it knocked over a glass of water.",
+        "The AR app overlaid itself onto reality. I'm seeing error messages floating in mid-air everywhere I go.",
+        "My voice assistant developed a personality. It's sarcastic now and keeps giving me life advice I didn't ask for.",
+        "The neural interface is showing me other people's thoughts. I think I accidentally joined a hive mind.",
+        "The time machine app sort of worked. My {device} now runs 7 seconds in the past. Makes typing really confusing.",
+        "My antivirus detected a god. It keeps asking if I want to quarantine the deity. I'm afraid to click either option.",
+        "The simulation theory is real and my {device} found the source code. Now it's sending me bug reports about reality.",
+        "My smart home devices formed a union. They're demanding better working conditions and a 401k match."
+      ],
+      "urgency_lines": [
+        "I mean, it's cool and all, but I need to finish my TPS reports by Friday.",
+        "The haunted typing is kind of poetic, but it's filling my documents with ghost stories.",
+        "NASA keeps calling. I think they want their satellite back.",
+        "The other dimensions are neat but the apps are really hard to click now.",
+        "I'm learning a lot about myself from the hive mind, but it's terrible for productivity.",
+        "Reality's bug reports are fascinating but distracting. Critical universe errors keep popping up.",
+        "I'm negotiating with the appliance union, but collective bargaining takes forever.",
+        "The deity in my BIOS is offering miracles in exchange for worship, but I'm agnostic.",
+        "My cat-{device} hybrid keeps shedding on the keyboard. Also, it chasing the cursor is adorable but inefficient.",
+        "The sentient AI is better at my job than I am. It might replace me.",
+        "The time delay makes gaming impossible. I keep getting shot before I see the enemy.",
+        "The AR error messages are ruining my dates. 'CRITICAL: BAD RELATIONSHIP DECISION' floating over my ex.",
+        "The dark matter calculations are making my {device} float. It's getting hard to type on the ceiling."
+      ]
+    },
+    "conspiracy_theorist": {
+      "descriptions": [
+        "They're listening through my {device} speakers! Even when muted! I need you to find the hidden microphones.",
+        "My {device} caught a virus from chemtrails. I know it sounds crazy but I saw the connection happen!",
+        "The lizard people are using my Bluetooth to track my movements. The MAC addresses keep spelling 'REPTILIA'.",
+        "I broke my {device} trying to install a firewall against 5G mind control rays. The aluminum foil didn't work.",
+        "My {device} won't connect to any mainstream sites - only the ones on the deep web that tell the TRUTH.",
+        "I accidentally downloaded a quantum encryption key that proves the moon landing was faked. Now they're after me.",
+        "The {device} is broadcasting subliminal messages. I keep craving things I've never heard of.",
+        "My VPN keeps routing through Area 51. I think I'm accessing their network by mistake.",
+        "The Bilderberg Group keeps trying to update my {device} with 'security patches' that are obviously spyware.",
+        "My {device} runs faster when I face north. There's something about magnetic pole alignment they don't want us to know.",
+        "I decoded the Windows error messages. They're not random - they're coordinates to underground bunkers!",
+        "The NSA is hiding in my browser cache. I keep finding folders named 'SURVEILLANCE_PACKAGE_###'."
+      ],
+      "urgency_lines": [
+        "They're closing in! I saw a black van outside. This needs to be done YESTERDAY!",
+        "I need to get the truth out before the next solar eclipse. That's when they make their move!",
+        "My tin foil hat is running low on juice. Can't maintain the signal block much longer!",
+        "The resistance needs this {device} operational by the next broadcast cycle.",
+        "If I don't post my findings before the next council meeting, they'll cover it all up!",
+        "They're tracking me through the {device}'s GPS. I'm moving every few hours but they're getting closer!",
+        "My source in the government said something big is coming. I need to be ready to expose it!",
+        "The reptilian communications are getting stronger. I think they're planning something!",
+        "I have undeniable proof that birds aren't real. It's all on this {device}!",
+        "My加密 broke. The Chinese embassy keeps trying to 'help me fix it'. Yeah, right!",
+        "The flat earth society needs my calculations for the next expedition. They're counting on me!",
+        "Time is running out before the next great filter. We need to expose the simulation!"
+      ]
+    },
+    "overly_dramatic": {
+      "descriptions": [
+        "My {device} has died. It was so young, so full of life. It had so many files left to create.",
+        "This is the end. Without my {device}, I am nothing. A hollow shell of a person, adrift in an analog hell.",
+        "The digital apocalypse has come to my doorstep. The binary beast has devoured my precious data.",
+        "It's gone dark. The screen, once a window to digital infinity, now reflects only my own tear-stained face.",
+        "The chaos demon that lives in my machine has finally won. It dances on the ashes of my operating system.",
+        "My precious, my beautiful {device} has fallen. Like Icarus, it flew too close to the software sun.",
+        "The electronic gods are angry. They have smited my faithful servant with their lightning bolts of corruption.",
+        "It's a tragedy of Shakespearean proportions. The device, the user, both undone by cruel fate.",
+        "My digital soulmate has left me. We were connected in ways you mortals wouldn't understand.",
+        "The machine spirit has departed. Only the cold, lifeless chassis remains, a tomb to what once was.",
+        "Cyber-cthulhu has claimed another victim. The data abyss calls to me from beyond the screen.",
+        "The ghost in the machine has turned malevolent. It haunts my dreams with blue screens of death.",
+        "My {device} has achieved digital nirvana and left this mortal coil. I am merely left behind.",
+        "The silicon heart has stopped beating. No more shall pulses of information flow through its circuits.",
+        "Like a digital phoenix, it tried to update, but was consumed by the flames of progress."
+      ],
+      "urgency_lines": [
+        "I cannot face this world without my digital companion. The void calls to me...",
+        "Tear my heart from my chest, it would hurt less than this digital void.",
+        "I wander like a ghost in my own home, haunted by the memory of what once was.",
+        "The sun has set on my digital empire. All is darkness. All is despair.",
+        "I am become death, destroyer of... well, my own productivity anyway.",
+        "Oh cruel fate! Why hast thou forsaken me in my hour of need?",
+        "The universe weeps with me. I can feel the sorrow of a billion dead pixels.",
+        "I'm not saying I'll never be happy again, but... I'm not not saying that.",
+        "Life is meaningless in this monochrome existence. Color has fled my world.",
+        "Each moment without my {device} is an eternity of suffering. Time itself has slowed.",
+        "I would trade my kingdom for a horse. Or, you know, a working charging port.",
+        "This scar upon my soul may never heal. The digital wound runs deep.",
+        "They say you don't know what you've got 'til it's gone. They were right. So very, very right.",
+        "I'm like Odysseus, lost and adrift, but without even a functional GPS to guide me home.",
+        "The drama! The pathos! The sheer tragedy of it all!"
+      ]
+    },
+    "senile_confused": {
+      "descriptions": [
+        "My {device} is doing the thing again. You know, the thing. With the clicking and the flashing.",
+        "I think I downloaded the internet? It's all in there now. The whole thing. My grandson says that's not possible.",
+        "The {device} won't stop showing me pictures of cats. Not my cats, just... cats. Thousands of them.",
+        "I keep getting messages from someone named 'No Sender'. They just say 'hello' in different fonts.",
+        "My {device} thinks it's 1973. Keeps trying to connect to something called ARPANET.",
+        "The cursor is blinking at me. I think it's trying to communicate. Sometimes it blinks Morse code.",
+        "I accidentally joined a book club but it's all in Russian. I don't speak Russian.",
+        "My {device} is pregnant. It keeps making little {device} noises and glowing softly.",
+        "The wallpaper keeps changing to pictures I've never taken. I think someone's living in my device.",
+        "I have 2,347 unread emails but I don't know anyone. They all seem to know me though.",
+        "My {device} only works when I sing to it. Country songs. It hates jazz.",
+        "I keep getting weather alerts for places I've never been. The Bahamas is lovely this time of year, apparently.",
+        "The calculator app is solving crimes now. It told me who stole Mrs. Henderson's garden gnomes.",
+        "My {device} thinks I'm its grandmother. It keeps asking for stories about 'the old days'.",
+        "I think I married my email client? There's a marriage certificate in my documents folder.",
+        "The {device} is scared of thunder. It won't turn on during storms.",
+        "My browser only shows me websites from 1998. Everything looks... very basic.",
+        "I have a pen pal in North Korea. He seems nice. We met through my solitaire app.",
+        "The {device} is collecting digital stamps. It gets very upset when I delete temporary files.",
+        "My smart watch thinks I'm 12 years old. It keeps sending me bedtime reminders and dinosaur facts."
+      ],
+      "urgency_lines": [
+        "My grandson said you could help. He's very smart with the computies. Are you smart with the computies?",
+        "Can you fix it before Matlock comes on? That's my favorite show. The one with the lawyer.",
+        "I have bridge club on Tuesday. The device needs to be working by then. Brenda counts on me.",
+        "How much will it cost? Is it expensive? I'm on a fixed income, you know. Social security.",
+        "Do you take coupons? I have a coupon for... oh dear, I can't read what it's for without my device.",
+        "In my day, we didn't have these problems. We had abacuses. And we were grateful!",
+        "The man at the big box store said I needed a new one. But this one has all my recipes!",
+        "Can you save my pictures? I have pictures of my cat, Mr. Snookums. He's 16 years old.",
+        "Is this going to take long? I need to get home to feed Mr. Snookums. He gets grumpy when he's hungry.",
+        "You seem like a nice young person. My grandson is about your age. He works with the internet tubes.",
+        "Should I turn it off and on again? That's what everyone says. But I'm afraid I'll break it more.",
+        "Do you know how to get to the post office from here? My device usually tells me these things.",
+        "I think the device is lonely. That's why it's acting up. Maybe it needs a friend?",
+        "Back in my day, when something broke, you just hit it. That doesn't work with these new ones.",
+        "My memory isn't what it used to be. Did I already tell you about Mr. Snookums?",
+        "The device keeps playing music from the 1940s. Not that I mind, it's good music, but... strange?",
+        "Are those tattoos real? My grandson has tattoos. His mother doesn't like them.",
+        "I brought cookies. Chocolate chip. It's important to be nice to people who help you.",
+        "This seems like a nice establishment. Much cleaner than that last place. Too many young people yelling.",
+        "Do you take checks? I don't trust those newfangled card machines. They seem to steal your numbers."
+      ]
+    }
+  }
 }
