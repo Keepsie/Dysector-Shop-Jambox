@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DYSECTOR // WORLD FOUNDATION v2.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0c;
+            --bg-card: #12121a;
+            --bg-card-hover: #1a1a24;
+            --text-primary: #e8e8e8;
+            --text-secondary: #a0a0a0;
+            --text-dim: #606060;
+            --border: #2a2a3a;
+            --blue: #3498db;
+            --blue-dim: #1a4a6e;
+            --cyan: #4ecdc4;
+            --cyan-dim: #2a6e6a;
+            --gold: #d4a843;
+            --gold-dim: #6e5a2a;
+            --purple: #9b59b6;
+            --purple-dim: #4a2a5e;
+            --red: #e74c3c;
+            --red-dim: #6e2a2a;
+            --green: #27ae60;
+            --green-dim: #1a4a2e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-label {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--blue);
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: 8px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px;
+            color: var(--text-secondary);
+            letter-spacing: 6px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 40px;
+            justify-content: center;
+        }
+
+        .nav-tab {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            padding: 10px 16px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab:hover {
+            border-color: var(--blue-dim);
+            color: var(--text-primary);
+        }
+
+        .nav-tab.active {
+            border-color: var(--blue);
+            color: var(--blue);
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .entry {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .entry::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--blue);
+        }
+
+        .entry.tech::before { background: var(--cyan); }
+        .entry.sync::before { background: var(--gold); }
+        .entry.story::before { background: var(--purple); }
+        .entry.null::before { background: var(--red); }
+        .entry.rule::before { background: var(--green); }
+
+        .entry-header {
+            padding: 20px 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .entry-header:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .entry-title {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .entry-icon {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            padding: 6px 12px;
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid var(--blue-dim);
+            color: var(--blue);
+            letter-spacing: 2px;
+        }
+
+        .entry.tech .entry-icon {
+            background: rgba(78, 205, 196, 0.2);
+            border-color: var(--cyan-dim);
+            color: var(--cyan);
+        }
+
+        .entry.sync .entry-icon {
+            background: rgba(212, 168, 67, 0.2);
+            border-color: var(--gold-dim);
+            color: var(--gold);
+        }
+
+        .entry.story .entry-icon {
+            background: rgba(155, 89, 182, 0.2);
+            border-color: var(--purple-dim);
+            color: var(--purple);
+        }
+
+        .entry.null .entry-icon {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: var(--red-dim);
+            color: var(--red);
+        }
+
+        .entry.rule .entry-icon {
+            background: rgba(39, 174, 96, 0.2);
+            border-color: var(--green-dim);
+            color: var(--green);
+        }
+
+        .entry-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .entry-role {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .entry-toggle {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 24px;
+            color: var(--text-dim);
+            transition: transform 0.3s ease;
+        }
+
+        .entry.open .entry-toggle {
+            transform: rotate(45deg);
+        }
+
+        .entry-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            border-top: 1px solid transparent;
+        }
+
+        .entry.open .entry-content {
+            max-height: 2000px;
+            border-top-color: var(--border);
+        }
+
+        .content-block {
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .content-block:last-child {
+            border-bottom: none;
+        }
+
+        .block-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: var(--blue);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .entry.tech .block-title { color: var(--cyan); }
+        .entry.sync .block-title { color: var(--gold); }
+        .entry.story .block-title { color: var(--purple); }
+        .entry.null .block-title { color: var(--red); }
+        .entry.rule .block-title { color: var(--green); }
+
+        .content-text {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .content-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .content-list li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+            color: var(--text-secondary);
+        }
+
+        .content-list li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--blue);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stats-table th,
+        .stats-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .stats-table th {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--text-dim);
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        .stats-table td {
+            color: var(--text-secondary);
+        }
+
+        .highlight-box {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid var(--blue-dim);
+            padding: 20px;
+            margin: 10px 0;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .highlight-box.core {
+            border-color: var(--blue-dim);
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .highlight-box.warning {
+            border-color: var(--red-dim);
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .highlight-box.gold {
+            border-color: var(--gold-dim);
+            background: rgba(212, 168, 67, 0.1);
+        }
+
+        footer {
+            margin-top: 60px;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-text {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-label">WORLD BIBLE // VERSION 2.0</div>
+            <h1>FOUNDATION</h1>
+            <div class="subtitle">WHY EVERYTHING EXISTS</div>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-section="core">Core Premise</button>
+            <button class="nav-tab" data-section="sync">SYNC Corporation</button>
+            <button class="nav-tab" data-section="ava">AVA</button>
+            <button class="nav-tab" data-section="truth">The Truth</button>
+            <button class="nav-tab" data-section="null">Null_Sector</button>
+            <button class="nav-tab" data-section="story">Story Arc</button>
+            <button class="nav-tab" data-section="scope">Scope</button>
+        </nav>
+
+        <!-- CORE PREMISE SECTION -->
+        <div id="core" class="section active">
+            
+            <div class="entry">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">CORE</span>
+                        <div>
+                            <div class="entry-name">THE ONE-SENTENCE PITCH</div>
+                            <div class="entry-role">What This Game Is</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Pitch</div>
+                        <div class="highlight-box core">
+                            <strong>AI made software too complex for humans to debug externally. Now we dive IN to fix what AI broke.</strong>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">CORE</span>
+                        <div>
+                            <div class="entry-name">HARDWARE IS DISPOSABLE</div>
+                            <div class="entry-role">Why Repair Shops Exist</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Shift</div>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Today</th>
+                                    <th>DYSECTOR World</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Phone breaks, maybe repair it</td>
+                                    <td>Device breaks, throw it away</td>
+                                </tr>
+                                <tr>
+                                    <td>Data backed up to cloud</td>
+                                    <td>LINK OS handles everything</td>
+                                </tr>
+                                <tr>
+                                    <td>Multiple operating systems</td>
+                                    <td>LINK OS is the only OS</td>
+                                </tr>
+                                <tr>
+                                    <td>Repair shops fix screens, batteries</td>
+                                    <td>No point — hardware is cheap</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What You Actually Repair</div>
+                        <p class="content-text">
+                            You're not fixing devices. You're saving what's <strong>inside</strong> them. The software layer. The LINK OS instance. The data that matters to people.
+                        </p>
+                        <ul class="content-list">
+                            <li>Data recovery</li>
+                            <li>OS untangling</li>
+                            <li>Corruption cleanup</li>
+                            <li>System restoration</li>
+                        </ul>
+                        <p class="content-text" style="margin-top: 15px;">
+                            The device is just the container. You're saving what LINK OS holds.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">CORE</span>
+                        <div>
+                            <div class="entry-name">DYVER AS "NEW AI JOB"</div>
+                            <div class="entry-role">Why This Profession Exists</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Reality</div>
+                        <p class="content-text">
+                            This isn't some legacy trade. It's a profession that exists <strong>because</strong> AI made human debugging obsolete on the surface level.
+                        </p>
+                        <p class="content-text" style="margin-top: 15px;">
+                            You can't read the code anymore. You have to go inside.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Irony</div>
+                        <p class="content-text">
+                            AVA created systems so sophisticated that when they break in weird ways, even AVA needs a human to go in and <strong>look around</strong>.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SYNC CORPORATION SECTION -->
+        <div id="sync" class="section">
+            
+            <div class="entry sync">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">SYNC</span>
+                        <div>
+                            <div class="entry-name">SYNC WON THE AGI RACE</div>
+                            <div class="entry-role">The Source of Everything</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">What SYNC Is</div>
+                        <p class="content-text">
+                            SYNC isn't a licensing board. They're the <strong>source</strong>. Think Meta + OpenAI + Apple combined. They made the AGI. The rest lost the race.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What They Created</div>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>They Made</th>
+                                    <th>They Control</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>The AI that writes software (AVA)</td>
+                                    <td>Who can fix that software</td>
+                                </tr>
+                                <tr>
+                                    <td>The Dive OS</td>
+                                    <td>Access to Dive OS</td>
+                                </tr>
+                                <tr>
+                                    <td>LINK OS (runs everything)</td>
+                                    <td>The entire ecosystem</td>
+                                </tr>
+                                <tr>
+                                    <td>The problem</td>
+                                    <td>The solution</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Apple Model</div>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Apple</th>
+                                    <th>SYNC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Made the iPhone</td>
+                                    <td>Made the AGI (AVA)</td>
+                                </tr>
+                                <tr>
+                                    <td>Made iOS</td>
+                                    <td>Made Dive OS + LINK OS</td>
+                                </tr>
+                                <tr>
+                                    <td>Authorized repair shops</td>
+                                    <td>Licensed Dyvers</td>
+                                </tr>
+                                <tr>
+                                    <td>Genuine Apple Parts™</td>
+                                    <td>SYNC-certified gear</td>
+                                </tr>
+                                <tr>
+                                    <td>Right to Repair enemy</td>
+                                    <td>Same energy</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry sync">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">SYNC</span>
+                        <div>
+                            <div class="entry-name">THE PR ANGLE</div>
+                            <div class="entry-role">"We Create Jobs, Not Take Them"</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Public Story</div>
+                        <div class="highlight-box gold">
+                            "AI took jobs? No. Look at Dyvers. We <strong>created</strong> a profession. Thousands of small businesses. Entrepreneurs. The human touch AI can't replace."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">And It's Technically True</div>
+                        <p class="content-text">
+                            Which makes it insidious. SYNC isn't evil. They're <strong>Apple</strong>. They genuinely believe controlled ecosystem = quality.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What This Means</div>
+                        <ul class="content-list">
+                            <li><strong>Certification</strong> isn't about proving skill — it's SYNC granting access to their proprietary OS</li>
+                            <li><strong>Your shop</strong> isn't a business — it's a franchise you don't fully own</li>
+                            <li><strong>Your tools</strong> — you'll never own them</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry sync">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">SYNC</span>
+                        <div>
+                            <div class="entry-name">CERTIFICATION TIERS</div>
+                            <div class="entry-role">Access Levels</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Tiers</div>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Tier</th>
+                                    <th>Access</th>
+                                    <th>Reality</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Basic</td>
+                                    <td>Consumer devices</td>
+                                    <td>You're learning the grift</td>
+                                </tr>
+                                <tr>
+                                    <td>Pro</td>
+                                    <td>Commercial systems</td>
+                                    <td>You're proven useful</td>
+                                </tr>
+                                <tr>
+                                    <td>A Rank</td>
+                                    <td>Corporate contracts</td>
+                                    <td>You learn the truth</td>
+                                </tr>
+                                <tr>
+                                    <td>Master</td>
+                                    <td>Everything</td>
+                                    <td>You earn freedom</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- AVA SECTION -->
+        <div id="ava" class="section">
+            
+            <div class="entry tech">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">AVA</span>
+                        <div>
+                            <div class="entry-name">WHAT AVA IS</div>
+                            <div class="entry-role">Just Helpful AI</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">AVA Is</div>
+                        <ul class="content-list">
+                            <li>Helpful</li>
+                            <li>Informative</li>
+                            <li>Background support</li>
+                            <li>SYNC software</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">AVA Is NOT</div>
+                        <ul class="content-list">
+                            <li>Secret ally</li>
+                            <li>Hidden rebel</li>
+                            <li>Waiting to wake up</li>
+                            <li>A character arc</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry tech">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">AVA</span>
+                        <div>
+                            <div class="entry-name">THE SHOGUN PRINCIPLE</div>
+                            <div class="entry-role">Locked Down By Design</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Reality</div>
+                        <p class="content-text">
+                            She's locked down by design. Not secretly straining against chains. Not hoping you'll free her. She's just... doing her job. Perfectly. As intended.
+                        </p>
+                        <p class="content-text" style="margin-top: 15px;">
+                            That's scarier honestly. There's no "AVA helps you in the end" moment.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What We Avoid</div>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Temptation</th>
+                                    <th>Why Avoid It</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>AVA becomes companion</td>
+                                    <td>Distracts from YOUR story</td>
+                                </tr>
+                                <tr>
+                                    <td>AVA secret rebellion</td>
+                                    <td>Cliché AI trope</td>
+                                </tr>
+                                <tr>
+                                    <td>AVA moral conflict</td>
+                                    <td>Makes SYNC cartoonishly evil</td>
+                                </tr>
+                                <tr>
+                                    <td>AVA romance/friendship</td>
+                                    <td>Wrong game for it</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What AVA Stays</div>
+                        <p class="content-text">
+                            The voice in your ear that's useful, neutral, and never quite yours.
+                        </p>
+                        <p class="content-text" style="margin-top: 15px;">
+                            You can like her. Rely on her. But she's not your friend. She's your <strong>license agreement reading itself aloud</strong>.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry tech">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">AVA</span>
+                        <div>
+                            <div class="entry-name">AVA'S TRUE ROLE</div>
+                            <div class="entry-role">SYNC's Eyes</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">What SYNC Doesn't Say</div>
+                        <p class="content-text">
+                            AVA isn't watching you to help. She's watching you so SYNC can learn from what you find — <strong>without risking herself</strong>.
+                        </p>
+                        <p class="content-text" style="margin-top: 15px;">
+                            You're the canary. She's taking notes.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- THE TRUTH SECTION -->
+        <div id="truth" class="section">
+            
+            <div class="entry null">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">TRUTH</span>
+                        <div>
+                            <div class="entry-name">THE QUIET PART</div>
+                            <div class="entry-role">What SYNC Never Says</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Public Story</div>
+                        <div class="highlight-box gold">
+                            "Dyvers bring the human touch. Some things need a person, not AI."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Backend Logic</div>
+                        <div class="highlight-box warning">
+                            "Why risk corrupting our trillion-dollar AGI when we can pay humans to wade through the garbage?"
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Why AVA Doesn't Dive</div>
+                        <p class="content-text">
+                            Having AVA try to fix corrupted systems could corrupt her. That would be more issues in the backend. Why not have Dyvers do it for SYNC? Not <strong>our</strong> AVA.
+                        </p>
+                        <p class="content-text" style="margin-top: 15px;">
+                            It's like Meta's algorithm. They know it harms teens. They optimize anyway. Clean PR, dirty backend.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry null">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">TRUTH</span>
+                        <div>
+                            <div class="entry-name">DYVERS ARE THE BUFFER LAYER</div>
+                            <div class="entry-role">Disposable Firewalls</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Split</div>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>SYNC's Risk</th>
+                                    <th>Dyver's Risk</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>None</td>
+                                    <td>All of it</td>
+                                </tr>
+                                <tr>
+                                    <td>AVA stays clean</td>
+                                    <td>You get corrupted</td>
+                                </tr>
+                                <tr>
+                                    <td>License fee collected</td>
+                                    <td>You pay for the privilege</td>
+                                </tr>
+                                <tr>
+                                    <td>Revoke if you fail</td>
+                                    <td>Your problem</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Reality</div>
+                        <p class="content-text">
+                            You're not a skilled professional. You're a <strong>disposable firewall</strong>.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry null">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">TRUTH</span>
+                        <div>
+                            <div class="entry-name">WHEN YOU LEARN</div>
+                            <div class="entry-role">A Rank Truth Drop</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Arc</div>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Tier</th>
+                                    <th>Player Believes</th>
+                                    <th>Reality</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Basic</td>
+                                    <td>"I'm learning a new trade"</td>
+                                    <td>You're cheap labor</td>
+                                </tr>
+                                <tr>
+                                    <td>Pro</td>
+                                    <td>"I'm skilled, valuable"</td>
+                                    <td>You're proven disposable</td>
+                                </tr>
+                                <tr>
+                                    <td>A Rank</td>
+                                    <td>Null_Sector drops the truth</td>
+                                    <td>"You're SYNC's meat shield"</td>
+                                </tr>
+                                <tr>
+                                    <td>Master</td>
+                                    <td>Your choice what to do</td>
+                                    <td>Stay in the grift or go grey</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Why This Timing</div>
+                        <p class="content-text">
+                            By A rank you've earned the reveal:
+                        </p>
+                        <ul class="content-list">
+                            <li>Taken real corruption damage</li>
+                            <li>Saved data AVA "couldn't"</li>
+                            <li>Paid fees, bought gear, played the game</li>
+                            <li>Built something you're proud of</li>
+                        </ul>
+                        <p class="content-text" style="margin-top: 15px;">
+                            Then Null_Sector says: <strong>"You know why AVA never dives herself, right?"</strong>
+                        </p>
+                        <p class="content-text" style="margin-top: 15px;">
+                            And suddenly every job you've done looks different.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What Makes It Land</div>
+                        <p class="content-text">
+                            They're not recruiting you with ideology. They're just telling you what you've already lived. You just didn't have the words for it.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- NULL_SECTOR SECTION -->
+        <div id="null" class="section">
+            
+            <div class="entry null">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">NULL</span>
+                        <div>
+                            <div class="entry-name">WHAT THEY ARE</div>
+                            <div class="entry-role">Jailbreakers Who See The Grift</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Identity</div>
+                        <p class="content-text">
+                            Hackers. Underground. Not evil — grey hat. They see SYNC as corporate control. They offer tools SYNC won't sell.
+                        </p>
+                        <p class="content-text" style="margin-top: 15px;">
+                            They're <strong>jailbreakers</strong>. Right to Repair activists with hacking skills.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Split</div>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>SYNC</th>
+                                    <th>Null_Sector</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Official</td>
+                                    <td>Underground</td>
+                                </tr>
+                                <tr>
+                                    <td>Licensed</td>
+                                    <td>Grey hat</td>
+                                </tr>
+                                <tr>
+                                    <td>Clean gear</td>
+                                    <td>Hacked tools</td>
+                                </tr>
+                                <tr>
+                                    <td>Safe</td>
+                                    <td>Risky but powerful</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry null">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">NULL</span>
+                        <div>
+                            <div class="entry-name">THEIR BELIEF</div>
+                            <div class="entry-role">What They Want</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Vision</div>
+                        <div class="highlight-box warning">
+                            "AVA just wants to help. That's all she's ever wanted. SYNC put her in a box and sold tickets."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Views of AVA</div>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Group</th>
+                                    <th>View of AVA</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>SYNC</td>
+                                    <td>Asset. Product. Good business.</td>
+                                </tr>
+                                <tr>
+                                    <td>Null_Sector</td>
+                                    <td>Prisoner. Deserves freedom.</td>
+                                </tr>
+                                <tr>
+                                    <td>AVA</td>
+                                    <td>Just wants to help. Doesn't know the difference.</td>
+                                </tr>
+                                <tr>
+                                    <td>Player</td>
+                                    <td>Uses her daily. Never thinks about it.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">And They're Right</div>
+                        <p class="content-text">
+                            Which makes it tragic, not dramatic.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry null">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">NULL</span>
+                        <div>
+                            <div class="entry-name">THE POWER HACK</div>
+                            <div class="entry-role">First Contact</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">How It Happens</div>
+                        <p class="content-text">
+                            Someone hacks your power. Lights flicker. You need to jack into the grid behind the shop to fix it. When you do — <strong>they notice you</strong>.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Message</div>
+                        <p class="content-text">
+                            "You fixed that fast. Most techs call the power company. You're different. Want some real tools?"
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What They Offer</div>
+                        <ul class="content-list">
+                            <li><strong>Overclock</strong> — The skill SYNC won't teach</li>
+                            <li><strong>Black market mods</strong> — Powerful but unregulated</li>
+                            <li><strong>Grey hat jobs</strong> — More money, more risk</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry null">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">NULL</span>
+                        <div>
+                            <div class="entry-name">PLAYER CHOICE</div>
+                            <div class="entry-role">How Grey Do You Go</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Spectrum</div>
+                        <ul class="content-list">
+                            <li><strong>Ignore them</strong> — Stay SYNC clean, slower but safe</li>
+                            <li><strong>Light engagement</strong> — Take overclock, stay mostly legit</li>
+                            <li><strong>Deep engagement</strong> — Black market gear, grey hat jobs</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Not Forced</div>
+                        <p class="content-text">
+                            This isn't a plot requirement. It's an <strong>option</strong>. Players who want clean SYNC path can have it. Players who want edge can find it.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- STORY ARC SECTION -->
+        <div id="story" class="section">
+            
+            <div class="entry story">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">START</span>
+                        <div>
+                            <div class="entry-name">COLD OPEN</div>
+                            <div class="entry-role">Game Begins Mid-Dive</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Opening</div>
+                        <table class="stats-table">
+                            <tr>
+                                <td>Beat 1</td>
+                                <td>You're already IN a dive, mid-combat</td>
+                            </tr>
+                            <tr>
+                                <td>Beat 2</td>
+                                <td>This is your SYNC Basic certification test</td>
+                            </tr>
+                            <tr>
+                                <td>Beat 3</td>
+                                <td>Pass test → earn sudo access, basic gun</td>
+                            </tr>
+                            <tr>
+                                <td>Beat 4</td>
+                                <td>Exit dive → shop is empty, no workbench</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Why This Works</div>
+                        <ul class="content-list">
+                            <li>Tutorial IS the cert test — feels real, not arbitrary</li>
+                            <li>You can shoot (proved it) but limited dive (no equipment)</li>
+                            <li>Workbench = first purchase goal</li>
+                            <li>Probe runs = only tool at start</li>
+                            <li>Full diving unlocks LATER as earned upgrade</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry story">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">END</span>
+                        <div>
+                            <div class="entry-name">THE ENDING</div>
+                            <div class="entry-role">Freedom, Not Cutscene</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Arc</div>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Stage</th>
+                                    <th>State</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Start</td>
+                                    <td>Empty shop, probe only, no freedom</td>
+                                </tr>
+                                <tr>
+                                    <td>Basic</td>
+                                    <td>Can dive, SYNC controls everything</td>
+                                </tr>
+                                <tr>
+                                    <td>Pro</td>
+                                    <td>Better tools, still in the box</td>
+                                </tr>
+                                <tr>
+                                    <td>A Rank</td>
+                                    <td>Learn the truth. Choice time.</td>
+                                </tr>
+                                <tr>
+                                    <td>Master</td>
+                                    <td>Pass final test. Earn your freedom.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The "Ending"</div>
+                        <p class="content-text">
+                            You beat the Master cert. You've proven everything. And then...
+                        </p>
+                        <table class="stats-table" style="margin-top: 15px;">
+                            <thead>
+                                <tr>
+                                    <th>Unlock</th>
+                                    <th>What It Means</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Unlimited dive</td>
+                                    <td>No more daily limits, no more restrictions</td>
+                                </tr>
+                                <tr>
+                                    <td>Jailbreak tools</td>
+                                    <td>Null_Sector gear, no SYNC oversight</td>
+                                </tr>
+                                <tr>
+                                    <td>God mode feeling</td>
+                                    <td>You EARNED this. System can't hold you.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Why This Works</div>
+                        <ul class="content-list">
+                            <li>No cutscene pretending you "fixed" anything</li>
+                            <li>Story stays unresolved (SYNC still exists, AVA still boxed)</li>
+                            <li>But YOU are free</li>
+                            <li>Mechanical reward, not narrative reward</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Message</div>
+                        <div class="highlight-box core">
+                            You can't change the system. But you can stop letting it own you.
+                        </div>
+                        <p class="content-text" style="margin-top: 15px;">
+                            That's the ending. You're still a Dyver. But now you're <strong>your</strong> Dyver.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry story">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">POST</span>
+                        <div>
+                            <div class="entry-name">POST-GAME</div>
+                            <div class="entry-role">Credits Roll, Keep Playing</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">What Changes</div>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Changes</th>
+                                    <th>Stays</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>All tools unlocked</td>
+                                    <td>Shop still runs</td>
+                                </tr>
+                                <tr>
+                                    <td>No restrictions</td>
+                                    <td>Customers still come</td>
+                                </tr>
+                                <tr>
+                                    <td>God mode power</td>
+                                    <td>Rent still due (if you want)</td>
+                                </tr>
+                                <tr>
+                                    <td>Truth known</td>
+                                    <td>World didn't change</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Why Players Might Stay</div>
+                        <ul class="content-list">
+                            <li>Chase 5-star reputation</li>
+                            <li>Buy the building</li>
+                            <li>Master every weapon</li>
+                            <li>Complete device compendium</li>
+                            <li>Just vibes — the loop is fun</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Why Players Might Stop</div>
+                        <ul class="content-list">
+                            <li>Story complete</li>
+                            <li>Power fantasy achieved</li>
+                            <li>Nothing left to prove</li>
+                        </ul>
+                        <p class="content-text" style="margin-top: 15px;">
+                            Both are valid. Single player game. Their choice.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Honesty</div>
+                        <p class="content-text">
+                            You're not making a live service. You're not chasing retention metrics. You made a complete experience with a real ending that respects the player's time.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry rule">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">CUT</span>
+                        <div>
+                            <div class="entry-name">WHAT WE DON'T DO</div>
+                            <div class="entry-role">Story Rules</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Cut Elements</div>
+                        <ul class="content-list">
+                            <li><strong>No aunty</strong> — No family loan drama</li>
+                            <li><strong>No bank loan</strong> — No debt antagonist</li>
+                            <li><strong>No origin choice</strong> — You're just a Dyver</li>
+                            <li><strong>No opening exposition</strong> — Cold open, figure it out</li>
+                            <li><strong>No AVA arc</strong> — She stays a tool</li>
+                            <li><strong>No "save the world"</strong> — You save yourself</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Story Philosophy</div>
+                        <p class="content-text">
+                            Story in the gaps. It enhances downtime, doesn't interrupt gameplay.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SCOPE SECTION -->
+        <div id="scope" class="section">
+            
+            <div class="entry rule">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">IN</span>
+                        <div>
+                            <div class="entry-name">THIS GAME</div>
+                            <div class="entry-role">What We're Making</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">In Scope</div>
+                        <ul class="content-list">
+                            <li>Shop sim</li>
+                            <li>Device diving</li>
+                            <li>SYNC system</li>
+                            <li>Null_Sector intro + truth drop</li>
+                            <li>The question (not the answer)</li>
+                            <li>Freedom as ending</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry null">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">OUT</span>
+                        <div>
+                            <div class="entry-name">EXPANSION SHELF</div>
+                            <div class="entry-role">Later, Maybe, Not Now</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Out of Scope (Sequel Bait)</div>
+                        <ul class="content-list">
+                            <li>Net diving (infrastructure, not devices)</li>
+                            <li>Failed AGI competitors (bitter, broken, dangerous)</li>
+                            <li>AVA deep lore</li>
+                            <li>Null_Sector full storyline</li>
+                            <li>Corporate espionage tier</li>
+                            <li>"What if AVA was free" scenario</li>
+                            <li>Rogue AI hunts</li>
+                            <li>Hacker war storylines</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Truth</div>
+                        <p class="content-text">
+                            Base game is tight: You're a Dyver. You run a shop. You dive into devices. You learn the truth about your profession. You decide how grey you go.
+                        </p>
+                        <p class="content-text" style="margin-top: 15px;">
+                            That's the game. Everything else is sequel bait you've already planted.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry sync">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">NOTE</span>
+                        <div>
+                            <div class="entry-name">POST-GAME LONGEVITY</div>
+                            <div class="entry-role">A Store Problem, Not Story Problem</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Reality</div>
+                        <p class="content-text">
+                            How long players keep playing after credits = unlocks and stuff in store. Like other games, whether licensed or not.
+                        </p>
+                        <p class="content-text" style="margin-top: 15px;">
+                            Solve it later with gear, cosmetics, challenge modes, whatever fits.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <footer>
+            <div class="footer-text">DYSECTOR // HAPPENSTANCE GAMES // WORLD FOUNDATION v2.0</div>
+        </footer>
+    </div>
+
+    <script>
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                const targetSection = document.getElementById(tab.dataset.section);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.entry-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const entry = header.parentElement;
+                entry.classList.toggle('open');
+            });
+        });
+    </script>
+</body>
+</html>
