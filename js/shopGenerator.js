@@ -271,7 +271,8 @@ const ShopGenerator = {
                 const tile = map[y][x];
                 switch (tile) {
                     case this.TILES.DOOR:
-                        positions.door = { x, y };
+                        // Door spawn point is just INSIDE the door (y+1 for top door)
+                        positions.door = { x, y: y + 1 };
                         break;
                     case this.TILES.SERVICE_COUNTER:
                         positions.serviceCounter.push({ x, y });

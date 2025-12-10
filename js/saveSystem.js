@@ -2,7 +2,7 @@
 
 const SaveSystem = {
     SAVE_KEY: 'dysector_shop_save',
-    VERSION: 1,
+    VERSION: 2,  // Bumped to force new layout generation (door at top)
 
     // Default new game state
     getDefaultState() {
@@ -122,8 +122,15 @@ const SaveSystem = {
 
     // Migrate old saves to new version
     migrate(oldSave) {
-        // Add migration logic as versions change
-        console.log('[SAVE] Migrating save from version', oldSave.version);
+        console.log('[SAVE] Migrating save from version', oldSave.version, 'to', this.VERSION);
+
+        // Version 2: New shop layout (door at top, workbenches at bottom)
+        // Force regenerate layout but keep other game state
+        if (oldSave.version < 2) {
+            console.log('[SAVE] Regenerating shop layout for v2');
+            oldSave.shop.layout = null;  // Clear old layout, will regenerate
+        }
+
         oldSave.version = this.VERSION;
         return oldSave;
     },
