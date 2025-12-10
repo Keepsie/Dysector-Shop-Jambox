@@ -53,6 +53,7 @@ const NPCSystem = {
             id: Date.now() + Math.random(),
             data: customerData,
             intent: intent,
+            intentRevealed: false,  // True once they head to counter
             state: this.STATE.ENTERING,
 
             // Position
@@ -154,6 +155,7 @@ const NPCSystem = {
             if (availableSpots.length > 0) {
                 npc.targetSpot = availableSpots[Math.floor(Math.random() * availableSpots.length)];
                 npc.state = this.STATE.TO_COUNTER;
+                npc.intentRevealed = true;  // Now we know what they want
             } else {
                 // No space, wait or leave
                 if (npc.patience < 50) {

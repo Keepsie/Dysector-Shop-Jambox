@@ -77,18 +77,54 @@ const Shop = {
         this.addText('', 'narrator');
         this.addText(`<span class="customer-name">${npc.data.name}</span> approaches with a <span class="item-highlight">${npc.data.device.fullName}</span>.`, 'narrator');
 
-        // Show urgency hint
-        if (npc.data.urgency?.id === 'desperate') {
-            this.addText('They look stressed, desperate for help.', 'narrator');
-        } else if (npc.data.urgency?.id === 'flexible') {
-            this.addText('They seem relaxed, in no particular rush.', 'narrator');
-        }
+        // Build job data for service interface
+        const problemDesc = DialogueSystem.getProblemDescription(npc.data.problem.id, npc.data.device.name);
+        const job = {
+            device: npc.data.device.fullName,
+            problemType: npc.data.problem.name,
+            problemDesc: problemDesc,
+            estimatedPrice: npc.data.problem.basePrice || 50,
+            urgency: npc.data.urgency
+        };
 
-        const greeting = DialogueSystem.getPlayerGreeting();
+        // Start service interface on canvas
+        this.addText('[Opening service terminal...]', 'system');
+
+        ServiceInterface.startService(npc, job, (result) => this.handleServiceComplete(result));
+
         this.setOptions([
-            { label: `"${greeting}"`, action: 'greet', class: 'primary' },
-            { label: '"Sorry, not taking jobs right now."', action: 'dismiss_npc', class: 'danger' }
+            { label: '[Use service terminal on map]', action: 'none', disabled: true }
         ]);
+    },
+
+    // Handle service interface completion
+    handleServiceComplete(result) {
+        this.interactionState = 'negotiating';
+
+        if (result.accepted) {
+            // Create the job
+            const job = {
+                id: Date.now(),
+                customer: this.currentCustomer.name,
+                device: this.currentCustomer.device,
+                problem: this.currentCustomer.problem,
+                deadline: result.deadline,
+                price: result.price,
+                status: 'pending'
+            };
+
+            GameState.activeJobs = GameState.activeJobs || [];
+            GameState.activeJobs.push(job);
+
+            this.addText(`[JOB ACCEPTED] ${job.device.fullName} - Due Day ${result.deadline} - $${result.price}`, 'success');
+
+            updateDisplays();
+            this.finishInteraction(true);
+        } else {
+            // Declined
+            this.addText('[Job declined]', 'system');
+            this.finishInteraction(false);
+        }
     },
 
     // Called when player interacts with BUY customer

@@ -57,6 +57,7 @@ const ShopGenerator = {
         // Place furniture
         this.placeDisplayTables(map, width, height);
         this.placeWorkbenches(map, width, height);
+        this.placeShelves(map, width, height);
 
         return map;
     },
@@ -124,20 +125,20 @@ const ShopGenerator = {
 
     placeServiceCounter(map, width, height) {
         const dividerY = Math.floor(height * 0.6);
-
-        // Service counter (BLUE) on the left side, near divider
         const counterY = dividerY - 1;
-        const counterStartX = 2 + this.randomInt(0, 2);
-        const counterLength = 3 + this.randomInt(0, 2);
 
-        for (let x = counterStartX; x < counterStartX + counterLength && x < width / 2 - 1; x++) {
+        // Service counter (BLUE) on the left side - GUARANTEED 3 tiles minimum
+        const counterStartX = 2;
+        const counterLength = 3;  // Fixed length to guarantee placement
+
+        for (let x = counterStartX; x < counterStartX + counterLength; x++) {
             map[counterY][x] = this.TILES.SERVICE_COUNTER;
         }
 
         // Place SERVICE waiting area in front of counter (towards door/top)
         const waitY = counterY - 1;
         if (waitY > 1) {
-            for (let x = counterStartX; x < counterStartX + counterLength && x < width / 2 - 1; x++) {
+            for (let x = counterStartX; x < counterStartX + counterLength; x++) {
                 if (map[waitY][x] === this.TILES.FLOOR) {
                     map[waitY][x] = this.TILES.SERVICE_WAIT;
                 }
@@ -149,28 +150,27 @@ const ShopGenerator = {
 
     placePOSCounter(map, width, height) {
         const dividerY = Math.floor(height * 0.6);
-
-        // POS counter (PURPLE) on the right side, near divider
         const counterY = dividerY - 1;
-        const counterEndX = width - 3 - this.randomInt(0, 2);
-        const counterLength = 3 + this.randomInt(0, 2);
-        const counterStartX = counterEndX - counterLength;
 
-        for (let x = counterStartX; x <= counterEndX && x > width / 2 + 1; x++) {
+        // POS counter (PURPLE) on the right side - GUARANTEED 3 tiles minimum
+        const counterLength = 3;  // Fixed length to guarantee placement
+        const counterStartX = width - 2 - counterLength;  // Start from right side
+
+        for (let x = counterStartX; x < counterStartX + counterLength; x++) {
             map[counterY][x] = this.TILES.POS_COUNTER;
         }
 
         // Place POS waiting area in front of counter (towards door/top)
         const waitY = counterY - 1;
         if (waitY > 1) {
-            for (let x = counterStartX; x <= counterEndX && x > width / 2 + 1; x++) {
+            for (let x = counterStartX; x < counterStartX + counterLength; x++) {
                 if (map[waitY][x] === this.TILES.FLOOR) {
                     map[waitY][x] = this.TILES.POS_WAIT;
                 }
             }
         }
 
-        this.posCounterPos = { x: counterEndX - 1, y: counterY + 1 };
+        this.posCounterPos = { x: counterStartX + 1, y: counterY + 1 };
     },
 
     placeDisplayTables(map, width, height) {
@@ -241,6 +241,66 @@ const ShopGenerator = {
             for (let x = rightX; x < rightX + 2 && x < width - 1; x++) {
                 if (map[y][x] === this.TILES.BACKFLOOR) {
                     map[y][x] = this.TILES.WORKBENCH;
+                }
+            }
+        }
+    },
+
+    placeShelves(map, width, height) {
+        const dividerY = Math.floor(height * 0.6);
+
+        // Shelves go along walls in customer area (between door and counters)
+        // Left wall shelves - varied lengths
+        const leftShelfY = 2;
+        const leftShelfLength = this.randomInt(2, 4);
+        for (let y = leftShelfY; y < leftShelfY + leftShelfLength && y < dividerY - 3; y++) {
+            if (map[y][1] === this.TILES.FLOOR) {
+                map[y][1] = this.TILES.SHELF;
+            }
+        }
+
+        // Right wall shelves - varied lengths
+        const rightShelfY = 2 + this.randomInt(0, 2);
+        const rightShelfLength = this.randomInt(2, 4);
+        for (let y = rightShelfY; y < rightShelfY + rightShelfLength && y < dividerY - 3; y++) {
+            if (map[y][width - 2] === this.TILES.FLOOR) {
+                map[y][width - 2] = this.TILES.SHELF;
+            }
+        }
+
+        // Top wall shelves (near door but not blocking it) - random placement
+        const doorX = this.doorPosition?.x || Math.floor(width / 2);
+
+        // Left of door
+        if (this.random() > 0.3) {
+            const leftTopStart = 2 + this.randomInt(0, 2);
+            const leftTopLength = this.randomInt(2, 3);
+            for (let x = leftTopStart; x < leftTopStart + leftTopLength && x < doorX - 2; x++) {
+                if (map[1][x] === this.TILES.FLOOR) {
+                    map[1][x] = this.TILES.SHELF;
+                }
+            }
+        }
+
+        // Right of door
+        if (this.random() > 0.3) {
+            const rightTopStart = doorX + 2 + this.randomInt(0, 2);
+            const rightTopLength = this.randomInt(2, 3);
+            for (let x = rightTopStart; x < rightTopStart + rightTopLength && x < width - 2; x++) {
+                if (map[1][x] === this.TILES.FLOOR) {
+                    map[1][x] = this.TILES.SHELF;
+                }
+            }
+        }
+
+        // Maybe add a middle aisle shelf (freestanding)
+        if (this.random() > 0.5) {
+            const midX = Math.floor(width / 2) + this.randomInt(-2, 2);
+            const midY = 3 + this.randomInt(0, 2);
+            const midLength = this.randomInt(2, 3);
+            for (let y = midY; y < midY + midLength && y < dividerY - 3; y++) {
+                if (map[y][midX] === this.TILES.FLOOR) {
+                    map[y][midX] = this.TILES.SHELF;
                 }
             }
         }

@@ -2,7 +2,7 @@
 
 const SaveSystem = {
     SAVE_KEY: 'dysector_shop_save',
-    VERSION: 2,  // Bumped to force new layout generation (door at top)
+    VERSION: 4,  // Bumped for varied shelf placement
 
     // Default new game state
     getDefaultState() {
@@ -129,6 +129,18 @@ const SaveSystem = {
         if (oldSave.version < 2) {
             console.log('[SAVE] Regenerating shop layout for v2');
             oldSave.shop.layout = null;  // Clear old layout, will regenerate
+        }
+
+        // Version 3: Guaranteed counter placement
+        if (oldSave.version < 3) {
+            console.log('[SAVE] Regenerating shop layout for v3 (guaranteed counters)');
+            oldSave.shop.layout = null;  // Clear old layout, will regenerate
+        }
+
+        // Version 4: Varied shelf placement
+        if (oldSave.version < 4) {
+            console.log('[SAVE] Regenerating shop layout for v4 (varied shelves)');
+            oldSave.shop.layout = null;
         }
 
         oldSave.version = this.VERSION;

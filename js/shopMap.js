@@ -22,7 +22,7 @@ const ShopMap = {
         table: '#e94560',          // Magenta/pink - display tables
         workbench: '#f39c12',      // Orange - workbench area
         door: '#27ae60',           // Green - entrance
-        shelf: '#2ecc71',          // Lighter green - shelves
+        shelf: '#d4ac0d',          // Light yellow/gold - shelves
         player: '#ffffff',         // White - you
         customer: '#f1c40f',       // YELLOW - customers/NPCs
     },
@@ -127,6 +127,12 @@ const ShopMap = {
         // If register is active, pass click to it
         if (typeof RegisterSystem !== 'undefined' && RegisterSystem.active) {
             RegisterSystem.handleClick(x, y);
+            return;
+        }
+
+        // If service interface is active, pass click to it
+        if (typeof ServiceInterface !== 'undefined' && ServiceInterface.active) {
+            ServiceInterface.handleClick(x, y);
             return;
         }
 
@@ -290,6 +296,14 @@ const ShopMap = {
 
     handleHover(e) {
         this.hoveredTile = this.getTileAt(e);
+
+        // Pass hover to service interface for calendar highlighting
+        if (typeof ServiceInterface !== 'undefined' && ServiceInterface.active) {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            ServiceInterface.handleMove(x, y);
+        }
     },
 
     // Render
@@ -299,6 +313,12 @@ const ShopMap = {
         // If register is active, render that instead
         if (typeof RegisterSystem !== 'undefined' && RegisterSystem.active) {
             RegisterSystem.render();
+            return;
+        }
+
+        // If service interface is active, render that instead
+        if (typeof ServiceInterface !== 'undefined' && ServiceInterface.active) {
+            ServiceInterface.render();
             return;
         }
 
@@ -421,11 +441,15 @@ const ShopMap = {
             }
 
             // Intent indicator (small letter inside block)
+            // Only show S/B once intent is revealed (they head to counter)
             ctx.fillStyle = '#000';
             ctx.font = 'bold 9px monospace';
             ctx.textAlign = 'center';
-            const intentLetter = npc.intent === NPCSystem.INTENT.SERVICE ? 'S' :
-                                 npc.intent === NPCSystem.INTENT.BUY ? 'B' : '?';
+            let intentLetter = '?';  // Unknown by default
+            if (npc.intentRevealed) {
+                intentLetter = npc.intent === NPCSystem.INTENT.SERVICE ? 'S' :
+                               npc.intent === NPCSystem.INTENT.BUY ? 'B' : '?';
+            }
             ctx.fillText(intentLetter, npc.x * this.tileSize + this.tileSize / 2, npc.y * this.tileSize + this.tileSize / 2 + 3);
         }
 
