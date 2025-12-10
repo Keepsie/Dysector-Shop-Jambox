@@ -357,5 +357,54 @@ const InventorySystem = {
             { itemId: 'cleaning_kit', quantity: 3 },
         ];
         console.log('[INVENTORY] Gave starter inventory');
+    },
+
+    // Quick stock all shelves and tables with random items at random prices (debug/testing)
+    quickStockAll() {
+        // Refill backstock first
+        for (const item of this.ITEMS) {
+            const existing = this.backstock.find(b => b.itemId === item.id);
+            if (existing) {
+                existing.quantity = Math.max(existing.quantity, 10);
+            } else {
+                this.backstock.push({ itemId: item.id, quantity: 10 });
+            }
+        }
+
+        // Stock all shelves
+        for (const [key, shelf] of Object.entries(this.shelves)) {
+            if (shelf.items.length < shelf.maxSlots) {
+                // Pick random items
+                const availableItems = this.ITEMS.filter(i =>
+                    !shelf.items.some(s => s.itemId === i.id)
+                );
+
+                while (shelf.items.length < shelf.maxSlots && availableItems.length > 0) {
+                    const idx = Math.floor(Math.random() * availableItems.length);
+                    const item = availableItems.splice(idx, 1)[0];
+
+                    // Random price: 90% to 130% of market
+                    const priceMultiplier = 0.9 + Math.random() * 0.4;
+                    const price = Math.round(item.marketPrice * priceMultiplier);
+                    const qty = 2 + Math.floor(Math.random() * 5);
+
+                    shelf.items.push({ itemId: item.id, quantity: qty, price: price });
+                }
+            }
+        }
+
+        // Stock all display tables
+        for (const [key, table] of Object.entries(this.displayTables)) {
+            if (!table.item) {
+                const item = this.ITEMS[Math.floor(Math.random() * this.ITEMS.length)];
+                const priceMultiplier = 0.9 + Math.random() * 0.4;
+                const price = Math.round(item.marketPrice * priceMultiplier);
+                const qty = 1 + Math.floor(Math.random() * 3);
+
+                table.item = { itemId: item.id, quantity: qty, price: price };
+            }
+        }
+
+        console.log('[INVENTORY] Quick stocked all shelves and tables');
     }
 };

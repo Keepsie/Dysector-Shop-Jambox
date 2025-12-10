@@ -81,9 +81,10 @@ const Shop = {
         const problemDesc = DialogueSystem.getProblemDescription(npc.data.problem.id, npc.data.device.typeName);
         const job = {
             device: npc.data.device.fullName,
+            deviceGrade: npc.data.device.grade,
             problemType: npc.data.problem.name,
+            problem: npc.data.problem,
             problemDesc: problemDesc,
-            estimatedPrice: npc.data.problem.basePrice || 50,
             urgency: npc.data.urgency
         };
 
@@ -110,19 +111,26 @@ const Shop = {
                 problem: this.currentCustomer.problem,
                 deadline: result.deadline,
                 price: result.price,
+                downPayment: result.downPayment,
+                remainingPayment: result.price - result.downPayment,
                 status: 'pending'
             };
 
             GameState.activeJobs = GameState.activeJobs || [];
             GameState.activeJobs.push(job);
 
-            this.addText(`[JOB ACCEPTED] ${job.device.fullName} - Due Day ${result.deadline} - $${result.price}`, 'success');
+            // Add down payment to cash
+            GameState.cash = (GameState.cash || 0) + result.downPayment;
+
+            this.addText(`[JOB ACCEPTED] ${job.device.fullName} - Due Day ${result.deadline}`, 'success');
+            this.addText(`[DOWN PAYMENT] +$${result.downPayment} (remaining: $${job.remainingPayment})`, 'success');
 
             updateDisplays();
             this.finishInteraction(true);
         } else {
-            // Declined
-            this.addText('[Job declined]', 'system');
+            // Declined or rejected
+            const reason = result.reason === 'price_rejected' ? '[Customer left - price too high]' : '[Job declined]';
+            this.addText(reason, 'system');
             this.finishInteraction(false);
         }
     },

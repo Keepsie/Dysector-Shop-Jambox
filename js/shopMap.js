@@ -157,6 +157,19 @@ const ShopMap = {
             return;
         }
 
+        // Check UI buttons
+        if (this.pauseBtn && x >= this.pauseBtn.x && x <= this.pauseBtn.x + this.pauseBtn.width &&
+            y >= this.pauseBtn.y && y <= this.pauseBtn.y + this.pauseBtn.height) {
+            this.togglePause();
+            return;
+        }
+
+        if (this.quickStockBtn && x >= this.quickStockBtn.x && x <= this.quickStockBtn.x + this.quickStockBtn.width &&
+            y >= this.quickStockBtn.y && y <= this.quickStockBtn.y + this.quickStockBtn.height) {
+            this.quickStock();
+            return;
+        }
+
         const tile = this.getTileAt(e);
 
         // Check if clicked on an NPC
@@ -569,6 +582,52 @@ const ShopMap = {
         ctx.font = 'bold 10px monospace';
         ctx.textAlign = 'center';
         ctx.fillText('P', this.player.x * this.tileSize + this.tileSize / 2, this.player.y * this.tileSize + this.tileSize / 2 + 3);
+
+        // === UI BUTTONS (top right corner) ===
+        const btnWidth = 60;
+        const btnHeight = 22;
+        const btnX = this.canvas.width - btnWidth - 5;
+
+        // Pause button
+        this.pauseBtn = { x: btnX, y: 5, width: btnWidth, height: btnHeight };
+        const isPaused = typeof GameState !== 'undefined' && GameState.paused;
+        ctx.fillStyle = isPaused ? '#e74c3c' : '#2ecc71';
+        ctx.fillRect(this.pauseBtn.x, this.pauseBtn.y, this.pauseBtn.width, this.pauseBtn.height);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(isPaused ? 'PLAY' : 'PAUSE', this.pauseBtn.x + btnWidth/2, this.pauseBtn.y + 15);
+
+        // Quick stock button (debug/testing)
+        this.quickStockBtn = { x: btnX, y: 32, width: btnWidth, height: btnHeight };
+        ctx.fillStyle = '#9b59b6';
+        ctx.fillRect(this.quickStockBtn.x, this.quickStockBtn.y, this.quickStockBtn.width, this.quickStockBtn.height);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText('Q.STOCK', this.quickStockBtn.x + btnWidth/2, this.quickStockBtn.y + 15);
+
+        // Paused overlay
+        if (isPaused) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(0, 60, this.canvas.width, 40);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 20px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('PAUSED', this.canvas.width / 2, 88);
+        }
+    },
+
+    togglePause() {
+        if (typeof GameState !== 'undefined') {
+            GameState.paused = !GameState.paused;
+            GameState.timePaused = GameState.paused;  // Also pause game time
+        }
+    },
+
+    quickStock() {
+        if (typeof InventorySystem !== 'undefined') {
+            InventorySystem.quickStockAll();
+        }
     },
 
     lastTime: 0,
@@ -578,9 +637,13 @@ const ShopMap = {
             const deltaTime = time - this.lastTime;
             this.lastTime = time;
 
-            // Update NPC system
-            const isShopOpen = typeof GameState !== 'undefined' && GameState.shopOpen;
-            NPCSystem.update(deltaTime, isShopOpen);
+            const isPaused = typeof GameState !== 'undefined' && GameState.paused;
+
+            // Only update if not paused
+            if (!isPaused) {
+                const isShopOpen = typeof GameState !== 'undefined' && GameState.shopOpen;
+                NPCSystem.update(deltaTime, isShopOpen);
+            }
 
             this.render();
 
