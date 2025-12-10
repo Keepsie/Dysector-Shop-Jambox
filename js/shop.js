@@ -110,10 +110,85 @@ const Shop = {
         this.currentSale = wantsToBuy;
 
         this.setOptions([
-            { label: `"That'll be ${formatMoney(wantsToBuy.price)}." [Sell]`, action: 'complete_sale', class: 'success' },
-            { label: '"Sorry, out of stock."', action: 'decline_sale' },
-            { label: '"Actually, let me show you something better..." [Upsell]', action: 'upsell', class: 'negotiate' }
+            { label: `"That'll be ${formatMoney(wantsToBuy.price)}." [Ring up]`, action: 'start_register', class: 'success' },
+            { label: '"Sorry, out of stock."', action: 'decline_sale' }
         ]);
+    },
+
+    // Start the register for a sale
+    startRegister() {
+        if (!this.currentSale) return;
+
+        this.addText('[Opening register...]', 'system');
+        this.interactionState = 'register';
+
+        // Convert price to cents for register
+        const priceInCents = this.currentSale.price * 100;
+
+        // Start register transaction
+        RegisterSystem.startTransaction(
+            this.currentSale.item,
+            priceInCents,
+            (result) => this.handleRegisterComplete(result)
+        );
+
+        // Hide options while register is active
+        this.setOptions([
+            { label: '[Use register on map to complete sale]', action: 'none', disabled: true }
+        ]);
+    },
+
+    // Handle register completion
+    handleRegisterComplete(result) {
+        this.interactionState = 'selling';
+
+        if (result.correct) {
+            // Correct change given
+            this.addText('"Here\'s your change."', 'player');
+            const thanks = DialogueSystem.getSaleComplete();
+            this.addText(`"${thanks}"`, 'customer');
+            this.addText(`[+${formatMoney(this.currentSale.price)}]`, 'success');
+
+            GameState.cash += this.currentSale.price;
+            GameState.stats = GameState.stats || {};
+            GameState.stats.totalEarnings = (GameState.stats.totalEarnings || 0) + this.currentSale.price;
+
+            updateDisplays();
+            this.finishInteraction(true);
+        } else {
+            // Wrong change
+            const diff = result.difference / 100;  // Convert back to dollars
+            if (diff > 0) {
+                // Gave too much change
+                this.addText(`[ERROR] Gave ${formatMoney(Math.abs(diff))} too much in change!`, 'error');
+                this.addText('Customer happily takes the extra money.', 'narrator');
+
+                // Still complete sale but lose the difference
+                const actualEarnings = this.currentSale.price - Math.abs(diff);
+                GameState.cash += actualEarnings;
+
+                // Rep hit
+                GameState.reputation = Math.max(0, (GameState.reputation || 50) - 2);
+                this.addText('[-2 Reputation]', 'error');
+            } else {
+                // Gave too little change
+                this.addText(`[ERROR] Shorted customer ${formatMoney(Math.abs(diff))}!`, 'error');
+                this.addText('"Hey, this isn\'t right!" The customer is annoyed.', 'customer');
+
+                // Still get the sale but bigger rep hit
+                GameState.cash += this.currentSale.price;
+
+                // Bigger rep hit for shortchanging
+                GameState.reputation = Math.max(0, (GameState.reputation || 50) - 5);
+                this.addText('[-5 Reputation]', 'error');
+            }
+
+            GameState.stats = GameState.stats || {};
+            GameState.stats.totalEarnings = (GameState.stats.totalEarnings || 0) + this.currentSale.price;
+
+            updateDisplays();
+            this.finishInteraction(true);
+        }
     },
 
     // Serve NPC from chat button (not map click)
@@ -341,6 +416,9 @@ const Shop = {
                 break;
             case 'complete_sale':
                 this.completeSale();
+                break;
+            case 'start_register':
+                this.startRegister();
                 break;
             case 'decline_sale':
                 this.declineSale();

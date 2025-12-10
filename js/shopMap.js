@@ -5,7 +5,7 @@ const ShopMap = {
     ctx: null,
 
     // Grid settings
-    tileSize: 24,
+    tileSize: 38,
     gridWidth: 20,
     gridHeight: 14,
 
@@ -120,6 +120,16 @@ const ShopMap = {
     },
 
     handleClick(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // If register is active, pass click to it
+        if (typeof RegisterSystem !== 'undefined' && RegisterSystem.active) {
+            RegisterSystem.handleClick(x, y);
+            return;
+        }
+
         const tile = this.getTileAt(e);
 
         // Check if clicked on an NPC
@@ -285,6 +295,12 @@ const ShopMap = {
     // Render
     render() {
         if (!this.ctx) return;
+
+        // If register is active, render that instead
+        if (typeof RegisterSystem !== 'undefined' && RegisterSystem.active) {
+            RegisterSystem.render();
+            return;
+        }
 
         const ctx = this.ctx;
         const T = this.TILES;
