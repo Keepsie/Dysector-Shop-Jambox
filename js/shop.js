@@ -127,51 +127,29 @@ const Shop = {
         }
     },
 
-    // Called when player interacts with BUY customer
+    // Called when player interacts with BUY customer - go straight to register
     triggerSaleDialogue(npc) {
         if (this.interactionState !== 'idle') return;
 
         this.currentNPC = npc;
-        this.interactionState = 'selling';
-
-        this.addText('', 'narrator');
-        this.addText(`<span class="customer-name">${npc.data.name}</span> is ready to make a purchase.`, 'narrator');
-
-        // Generate what they want to buy using dialogue system
-        const wantsToBuy = DialogueSystem.getSaleRequest();
-
-        this.addText(`"${wantsToBuy.dialogue}"`, 'customer');
-        this.addText(`[SALE] ${wantsToBuy.item} - ${formatMoney(wantsToBuy.price)}`, 'system');
-
-        this.currentSale = wantsToBuy;
-
-        this.setOptions([
-            { label: `"That'll be ${formatMoney(wantsToBuy.price)}." [Ring up]`, action: 'start_register', class: 'success' },
-            { label: '"Sorry, out of stock."', action: 'decline_sale' }
-        ]);
-    },
-
-    // Start the register for a sale
-    startRegister() {
-        if (!this.currentSale) return;
-
-        this.addText('[Opening register...]', 'system');
         this.interactionState = 'register';
 
-        // Convert price to cents for register
-        const priceInCents = this.currentSale.price * 100;
+        // Generate what they want to buy
+        const wantsToBuy = DialogueSystem.getSaleRequest();
+        this.currentSale = wantsToBuy;
 
-        // Start register transaction
+        // Convert price to cents for register
+        const priceInCents = wantsToBuy.price * 100;
+
+        // Go straight to register - no dialogue needed
         RegisterSystem.startTransaction(
-            this.currentSale.item,
+            wantsToBuy.item,
             priceInCents,
             (result) => this.handleRegisterComplete(result)
         );
 
-        // Hide options while register is active
-        this.setOptions([
-            { label: '[Use register on map to complete sale]', action: 'none', disabled: true }
-        ]);
+        // Clear options while register is active
+        this.setOptions([]);
     },
 
     // Handle register completion

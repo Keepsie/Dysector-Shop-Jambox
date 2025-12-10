@@ -164,20 +164,32 @@ const ShopMap = {
         if (!panel) return;
 
         const isWaiting = npc.state === NPCSystem.STATE.WAITING;
+        const isLeaving = npc.state === NPCSystem.STATE.LEAVING;
+
         const statusText = {
             'entering': 'Entering shop...',
             'browsing': 'Browsing',
             'toCounter': 'Heading to counter...',
             'waiting': 'Waiting at counter!',
             'beingServed': 'Being served',
-            'leaving': 'Leaving...'
+            'leaving': 'Exiting shop...'
         }[npc.state] || npc.state;
 
-        const intentText = {
+        const intentText = isLeaving ? 'Done shopping' : {
             'service': 'Needs repair service',
             'buy': 'Wants to buy something',
             'browse': 'Just browsing'
         }[npc.intent] || '';
+
+        // Different button states
+        let buttonText = 'BUSY';
+        let buttonDisabled = true;
+        if (isWaiting) {
+            buttonText = 'SERVE';
+            buttonDisabled = false;
+        } else if (isLeaving) {
+            buttonText = 'LEAVING';
+        }
 
         panel.innerHTML = `
             <div class="map-info-customer">
@@ -187,8 +199,8 @@ const ShopMap = {
                     <div class="customer-info-status">${statusText}</div>
                 </div>
                 <div class="customer-info-right">
-                    <button class="interact-btn" ${isWaiting ? '' : 'disabled'} onclick="ShopMap.interactWithNPC('${npc.id}')">
-                        ${isWaiting ? 'SERVE' : 'BUSY'}
+                    <button class="interact-btn" ${buttonDisabled ? 'disabled' : ''} onclick="ShopMap.interactWithNPC('${npc.id}')">
+                        ${buttonText}
                     </button>
                 </div>
             </div>

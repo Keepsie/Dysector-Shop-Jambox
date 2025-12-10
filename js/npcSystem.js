@@ -65,6 +65,10 @@ const NPCSystem = {
             path: [],
             moveTimer: 0,
             moveSpeed: 250 + Math.random() * 150,  // ms per tile
+            lastX: -1,
+            lastY: -1,
+            stuckCount: 0,
+            totalStuckTime: 0,  // Track total time stuck
 
             // Behavior
             browseTime: 0,
@@ -262,7 +266,32 @@ const NPCSystem = {
         const dy = npc.targetSpot.y - npc.y;
 
         // At destination?
-        if (dx === 0 && dy === 0) return;
+        if (dx === 0 && dy === 0) {
+            npc.stuckCount = 0;
+            npc.totalStuckTime = 0;
+            return;
+        }
+
+        // Remember position before moving
+        const prevX = npc.x;
+        const prevY = npc.y;
+
+        // Check what tiles are around us for debugging
+        const T = ShopGenerator.TILES;
+        const getTileName = (tx, ty) => {
+            const tile = ShopMap.map?.[ty]?.[tx];
+            const names = {
+                [T.VOID]: 'VOID', [T.WALL]: 'WALL', [T.FLOOR]: 'FLOOR',
+                [T.SERVICE_COUNTER]: 'SVC_CTR', [T.POS_COUNTER]: 'POS_CTR',
+                [T.TABLE]: 'TABLE', [T.WORKBENCH]: 'BENCH', [T.DOOR]: 'DOOR',
+                [T.BACKFLOOR]: 'BACK', [T.SHELF]: 'SHELF',
+                [T.SERVICE_WAIT]: 'SVC_WAIT', [T.POS_WAIT]: 'POS_WAIT'
+            };
+            return names[tile] || `?${tile}`;
+        };
+
+        // Track if we actually moved this tick
+        let moved = false;
 
         // NPCs can pass through each other - only tiles block movement
         // Prioritize larger distance
@@ -270,49 +299,76 @@ const NPCSystem = {
             const newX = npc.x + Math.sign(dx);
             if (this.canWalk(newX, npc.y)) {
                 npc.x = newX;
-                return;
+                moved = true;
             }
         }
 
-        if (dy !== 0) {
+        if (!moved && dy !== 0) {
             const newY = npc.y + Math.sign(dy);
             if (this.canWalk(npc.x, newY)) {
                 npc.y = newY;
-                return;
+                moved = true;
             }
         }
 
         // If blocked, try alternate horizontal
-        if (dx !== 0) {
+        if (!moved && dx !== 0) {
             const newX = npc.x + Math.sign(dx);
             if (this.canWalk(newX, npc.y)) {
                 npc.x = newX;
-                return;
+                moved = true;
             }
         }
 
         // Still blocked - try perpendicular moves to go around obstacle
-        if (dy === 0 || Math.abs(dx) > Math.abs(dy)) {
-            // Trying to go horizontal but blocked - try up or down
-            if (this.canWalk(npc.x, npc.y - 1)) {
-                npc.y -= 1;
-                return;
+        if (!moved) {
+            // Try all 4 directions randomly to escape
+            const dirs = [[0,-1], [0,1], [-1,0], [1,0]];
+            for (let i = dirs.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [dirs[i], dirs[j]] = [dirs[j], dirs[i]];
             }
-            if (this.canWalk(npc.x, npc.y + 1)) {
-                npc.y += 1;
-                return;
-            }
-        } else {
-            // Trying to go vertical but blocked - try left or right
-            if (this.canWalk(npc.x - 1, npc.y)) {
-                npc.x -= 1;
-                return;
-            }
-            if (this.canWalk(npc.x + 1, npc.y)) {
-                npc.x += 1;
-                return;
+            for (const [ddx, ddy] of dirs) {
+                if (this.canWalk(npc.x + ddx, npc.y + ddy)) {
+                    npc.x += ddx;
+                    npc.y += ddy;
+                    moved = true;
+                    break;
+                }
             }
         }
+
+        // Track stuck status
+        if (moved) {
+            npc.stuckCount = 0;
+            npc.totalStuckTime = 0;
+        } else {
+            npc.stuckCount++;
+            npc.totalStuckTime += npc.moveSpeed;
+
+            // Log if stuck for more than 3 seconds and not waiting
+            if (npc.totalStuckTime > 3000 && npc.state !== this.STATE.WAITING) {
+                console.warn(`[NPC STUCK] ${npc.data.name} at (${npc.x},${npc.y}) state=${npc.state} target=(${npc.targetSpot?.x},${npc.targetSpot?.y})`);
+                console.warn(`  Surroundings: UP=${getTileName(npc.x, npc.y-1)} DOWN=${getTileName(npc.x, npc.y+1)} LEFT=${getTileName(npc.x-1, npc.y)} RIGHT=${getTileName(npc.x+1, npc.y)}`);
+                console.warn(`  Standing on: ${getTileName(npc.x, npc.y)}`);
+                npc.totalStuckTime = 0;  // Reset so we don't spam
+
+                // If stuck too long, just teleport closer to target
+                if (npc.stuckCount > 20) {
+                    console.warn(`  TELEPORTING ${npc.data.name} toward target`);
+                    // Move 1 step closer to target ignoring walls (emergency)
+                    if (Math.abs(dx) > Math.abs(dy)) {
+                        npc.x += Math.sign(dx);
+                    } else if (dy !== 0) {
+                        npc.y += Math.sign(dy);
+                    }
+                    npc.stuckCount = 0;
+                }
+            }
+        }
+
+        npc.lastX = prevX;
+        npc.lastY = prevY;
     },
 
     canWalk(x, y) {
