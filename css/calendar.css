@@ -159,6 +159,44 @@
     padding: 20px;
 }
 
+/* Day Summary (job count + charges) */
+.day-summary {
+    display: flex;
+    gap: 6px;
+    padding: 4px 0;
+    flex-wrap: wrap;
+}
+
+.day-summary.warning .summary-jobs,
+.day-summary.warning .summary-bills {
+    animation: pulse-warning 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.summary-jobs {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    background: rgba(231, 76, 60, 0.2);
+    color: var(--red);
+    border: 1px solid var(--red);
+}
+
+.summary-bills {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    background: rgba(212, 172, 13, 0.2);
+    color: var(--gold);
+    border: 1px solid var(--gold);
+}
+
 /* Day Jobs */
 .day-jobs {
     display: flex;
@@ -187,11 +225,52 @@
 .day-job-name {
     color: var(--text-primary);
     margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .day-job-customer {
     color: var(--text-dim);
     font-size: 9px;
+}
+
+.day-job-more {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    padding: 2px 8px;
+}
+
+/* Day Bills */
+.day-bill {
+    padding: 4px 8px;
+    background: rgba(212, 172, 13, 0.1);
+    border-left: 3px solid var(--gold);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.day-bill-name {
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.day-bill-amt {
+    color: var(--gold);
+    font-weight: 700;
+}
+
+.day-bill-more {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--gold);
+    padding: 2px 8px;
 }
 
 /* ========================================

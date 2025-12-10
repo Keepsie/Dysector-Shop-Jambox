@@ -45,14 +45,17 @@ const Calendar = {
             const dayEl = document.createElement('div');
             dayEl.className = `cal-day ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''} ${isPast ? 'past' : ''}`;
 
-            // Get jobs for this day
+            // Get jobs due this day (deadlines)
             const jobsThisDay = GameState.activeJobs.filter(j => j.deadline === dayNum);
-            const workThisDay = GameState.activeJobs.filter(j => {
-                // Estimate work days (simplified)
-                const workStart = j.acceptedDay;
-                const workEnd = j.deadline;
-                return dayNum >= workStart && dayNum <= workEnd;
-            });
+
+            // Get bills due this day
+            const billsThisDay = GameState.bills.filter(b => !b.paid && b.dueDay === dayNum);
+            const totalCharges = billsThisDay.reduce((sum, b) => sum + b.amount, 0);
+
+            // Build summary badges
+            const jobCount = jobsThisDay.length;
+            const billCount = billsThisDay.length;
+            const hasIssue = jobCount >= 3 || (jobCount > 0 && billCount > 0);
 
             dayEl.innerHTML = `
                 <div class="day-header">
@@ -63,23 +66,24 @@ const Calendar = {
                     ${isWeekend ? `
                         <div class="day-closed">CLOSED</div>
                     ` : `
-                        <div class="day-dives">
-                            <span class="dive-icon">D</span>
-                            <span class="dive-count">${isToday ? `${GameState.divesRemaining}/${GameState.divesMax}` : `${GameState.divesMax}/${GameState.divesMax}`}</span>
+                        <div class="day-summary ${hasIssue ? 'warning' : ''}">
+                            ${jobCount > 0 ? `<span class="summary-jobs" title="${jobCount} job${jobCount > 1 ? 's' : ''} due">${jobCount}J</span>` : ''}
+                            ${billCount > 0 ? `<span class="summary-bills" title="$${totalCharges} in bills">$${totalCharges}</span>` : ''}
                         </div>
                         <div class="day-jobs">
-                            ${jobsThisDay.map(job => `
+                            ${jobsThisDay.slice(0, 2).map(job => `
                                 <div class="day-job deadline">
-                                    <div class="day-job-name">${job.device.fullName}</div>
-                                    <div class="day-job-customer">DEADLINE - ${job.customer}</div>
+                                    <div class="day-job-name">${job.device?.fullName || 'Device'}</div>
                                 </div>
                             `).join('')}
-                            ${workThisDay.filter(j => j.deadline !== dayNum).map(job => `
-                                <div class="day-job">
-                                    <div class="day-job-name">${job.device.fullName}</div>
-                                    <div class="day-job-customer">${job.customer}</div>
+                            ${jobsThisDay.length > 2 ? `<div class="day-job-more">+${jobsThisDay.length - 2} more</div>` : ''}
+                            ${billsThisDay.slice(0, 2).map(bill => `
+                                <div class="day-bill">
+                                    <div class="day-bill-name">${bill.name}</div>
+                                    <div class="day-bill-amt">-$${bill.amount}</div>
                                 </div>
                             `).join('')}
+                            ${billsThisDay.length > 2 ? `<div class="day-bill-more">+${billsThisDay.length - 2} bills</div>` : ''}
                         </div>
                     `}
                 </div>

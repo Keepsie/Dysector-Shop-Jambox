@@ -1,5 +1,78 @@
 # DYSECTOR Shop Prototype - Progress
 
+## Current Version: v0.1
+
+---
+
+## Session 4 - Dec 10, 2024
+
+### What We Built
+- **Shelf/Display Table Stocking System**
+  - 20 inventory items with costPrice + marketPrice
+  - Backstock storage, shelves (3 slots, 10 per slot), display tables (single item, max 5)
+  - Player sets prices with +10%/+20%/+30% quick buttons (based on market price)
+  - Profit display shows margin vs cost
+
+- **NPC Shelf/Table Browsing**
+  - BUY intent NPCs browse shelves and display tables
+  - Random price tolerance (5-35% over market) per customer
+  - High markup = fewer sales, low markup = more volume
+
+- **Service Pricing Overhaul (MAJOR)**
+  - Player diagnoses device and sets repair price (not customer)
+  - Market rate calculated from: problem type × device grade × needsDive
+  - Customer reacts based on urgency (desperate pays 140-170%, flexible 90-110%)
+  - Negotiation: MAKE QUOTE → accept/counter → ACCEPT/HOLD FIRM
+  - **Half down payment** on job acceptance - enables buying supplies before completion
+
+- **Canvas UI Buttons**
+  - PAUSE button (green/red) - stops time and NPC movement
+  - Q.STOCK button - quick fills all shelves/tables with random items/prices (testing)
+  - Version number display (bottom left)
+
+- **Calendar Improvements**
+  - Shows job count (3J) and bill charges ($150) on each day
+  - Warning pulse animation when jobs + bills overlap
+  - Bills show with gold accent, jobs show with red accent
+
+### What's Working
+- Full sales loop: backstock → stock shelves → set prices → NPCs browse → check prices → buy or leave → POS register
+- Full service loop: customer arrives → diagnose → quote price → negotiate → down payment → job scheduled
+- Pause for real-life breaks
+- Quick stock for rapid testing
+- Calendar shows upcoming financial pressure at a glance
+
+### Version History
+- v0.1 - Initial prototype with full shop loop
+
+---
+
+## Session 3 - Dec 10, 2024
+
+### What We Built
+- **Dialogue JSON externalization** - 3 files with ~350 lines each, ~30 getter methods
+- **Register mini-game** - Bills ($20/10/5/1) + coins (25¢/10¢/5¢/1¢), wrong change = rep hit
+- **Service interface** - 14-day calendar for deadline selection
+- **NPC intent system** - ? shows until they decide, then S or B reveals intent
+
+### Bug Fixes
+- SERVICE_WAIT/POS_WAIT tiles now walkable
+- NPC stuck detection with emergency teleport
+- Door spawn position fixed (y+1)
+- Proper cleanup after serving customers
+
+---
+
+## Session 2 - Dec 10, 2024
+
+### What We Built
+- **SaveSystem** - localStorage persistence, version migration
+- **ShopGenerator** - Seeded proc-gen layouts, dual counters
+- **NPCSystem** - Intent-based routing, state machine, patience decay
+- **ShopMap** - Canvas renderer with click handling
+
+---
+
 ## Session 1 - Dec 10, 2024
 
 ### What We Built

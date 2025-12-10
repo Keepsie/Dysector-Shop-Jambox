@@ -615,6 +615,12 @@ const ShopMap = {
             ctx.textAlign = 'center';
             ctx.fillText('PAUSED', this.canvas.width / 2, 88);
         }
+
+        // Version number (bottom left)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.font = '9px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('Shop Prototype v0.1', 5, this.canvas.height - 5);
     },
 
     togglePause() {

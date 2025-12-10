@@ -70,4 +70,12 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
     Main.init();
     updateDisplays();
+
+    // Restart button with confirmation
+    document.getElementById('restart-btn')?.addEventListener('click', () => {
+        if (confirm('⚠️ RESTART GAME?\n\nThis will DELETE all save data and start fresh.\n\nAre you sure?')) {
+            localStorage.removeItem('dysector_shop_save');
+            location.reload();
+        }
+    });
 });
