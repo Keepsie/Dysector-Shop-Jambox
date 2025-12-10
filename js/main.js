@@ -71,6 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
     Main.init();
     updateDisplays();
 
+    // Update version display from SaveSystem
+    const versionElement = document.getElementById('header-version');
+    if (versionElement && typeof SaveSystem !== 'undefined') {
+        versionElement.textContent = `SHOP PROTOTYPE v${SaveSystem.VERSION}`;
+    }
+
     // Restart button with confirmation
     document.getElementById('restart-btn')?.addEventListener('click', () => {
         if (confirm('⚠️ RESTART GAME?\n\nThis will DELETE all save data and start fresh.\n\nAre you sure?')) {
