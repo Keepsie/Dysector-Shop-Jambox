@@ -4,6 +4,7 @@ const Shop = {
     textDisplay: null,
     optionsContainer: null,
     currentCustomer: null,
+    currentMapCustomer: null, // Customer object from ShopMap
     interactionState: 'idle', // idle, customer_arriving, negotiating, working
     customerSpawnTimer: null,
 
@@ -14,6 +15,55 @@ const Shop = {
 
         // Start with morning phase
         this.startNewDay();
+
+        // Update map stats periodically
+        setInterval(() => this.updateMapStats(), 500);
+    },
+
+    updateMapStats() {
+        const countEl = document.getElementById('map-customer-count');
+        const waitingEl = document.getElementById('map-waiting-count');
+        if (countEl && typeof ShopMap !== 'undefined') {
+            countEl.textContent = ShopMap.getCustomerCount();
+        }
+        if (waitingEl && typeof ShopMap !== 'undefined') {
+            waitingEl.textContent = ShopMap.getWaitingCount();
+        }
+    },
+
+    // Called by ShopMap when customer is clicked
+    triggerCustomerDialogue(mapCustomer) {
+        if (this.interactionState !== 'idle' || !GameState.shopOpen) return;
+        if (mapCustomer.state !== 'waiting') {
+            this.addText(`[Customer is still browsing...]`, 'system');
+            return;
+        }
+
+        this.currentMapCustomer = mapCustomer;
+        this.currentCustomer = mapCustomer.data;
+        this.interactionState = 'customer_arriving';
+        GameState.customersToday++;
+        updateDisplays();
+
+        this.addText('', 'narrator');
+        this.addText(`<span class="customer-name">${this.currentCustomer.name}</span> is at the counter with a <span class="item-highlight">${this.currentCustomer.device.fullName}</span>.`, 'narrator');
+
+        // Show urgency hint
+        if (this.currentCustomer.urgency.id === 'desperate') {
+            this.addText('They look stressed, glancing at their watch repeatedly.', 'narrator');
+        } else if (this.currentCustomer.urgency.id === 'flexible') {
+            this.addText('They seem relaxed and patient.', 'narrator');
+        }
+
+        this.setOptions([
+            { label: '"What can I help you with?"', action: 'greet', class: 'primary' },
+            { label: '[Wave them off]', action: 'dismiss_customer', class: 'danger' }
+        ]);
+    },
+
+    // Called by ShopMap when customer reaches counter
+    customerReady(mapCustomer) {
+        this.addText(`[A customer is waiting at the counter]`, 'system');
     },
 
     bindEvents() {
@@ -99,6 +149,9 @@ const Shop = {
                 break;
             case 'back_to_idle':
                 this.returnToIdle();
+                break;
+            case 'dismiss_customer':
+                this.dismissCustomer();
                 break;
             case 'open_shop':
                 this.openShop();
@@ -186,11 +239,18 @@ const Shop = {
         this.currentCustomer = null;
 
         if (GameState.dayPhase === 'open') {
-            this.setOptions([
-                { label: 'Wait for customer', action: 'wait' },
-                { label: 'Go to workbench', action: 'workbench' },
-                { label: 'Close shop early', action: 'close', class: 'danger' }
-            ]);
+            const waitingCount = typeof ShopMap !== 'undefined' ? ShopMap.getWaitingCount() : 0;
+            const options = [];
+
+            if (waitingCount > 0) {
+                options.push({ label: `[Click a customer on the map to serve them]`, action: 'wait', disabled: true });
+            } else {
+                options.push({ label: '[Waiting for customers...]', action: 'wait', disabled: true });
+            }
+            options.push({ label: 'Go to workbench', action: 'workbench' });
+            options.push({ label: 'Close shop early', action: 'close', class: 'danger' });
+
+            this.setOptions(options);
         } else if (GameState.dayPhase === 'closed') {
             this.showClosedOptions();
         } else {
@@ -243,25 +303,35 @@ const Shop = {
     },
 
     // ========================================
-    // CUSTOMER SPAWNING
+    // CUSTOMER SPAWNING - Now uses ShopMap
     // ========================================
 
     startCustomerSpawning() {
         // Check for customers periodically during open hours
         this.customerSpawnTimer = setInterval(() => {
             if (!GameState.shopOpen || GameState.timePaused) return;
-            if (this.currentCustomer) return; // Already dealing with someone
+
+            // Don't spawn if map is full
+            if (typeof ShopMap !== 'undefined' && ShopMap.customers.length >= ShopMap.maxCustomers) return;
 
             // Random chance of customer (higher early, lower late)
             const hourProgress = (GameState.currentHour - GameState.businessHoursStart) /
                                 (GameState.businessHoursEnd - GameState.businessHoursStart);
-            const baseChance = 0.15; // 15% check every few seconds
+            const baseChance = 0.2; // 20% check every few seconds
             const timeModifier = hourProgress < 0.5 ? 1.2 : 0.8; // Busier in morning
 
             if (Math.random() < baseChance * timeModifier) {
-                this.customerArrives();
+                this.spawnCustomerOnMap();
             }
-        }, 3000); // Check every 3 real seconds
+        }, 2500); // Check every 2.5 real seconds
+    },
+
+    spawnCustomerOnMap() {
+        const customerData = generateCustomer();
+        if (typeof ShopMap !== 'undefined') {
+            ShopMap.spawnCustomer(customerData);
+            this.addText('The door chimes. A customer walks in.', 'narrator');
+        }
     },
 
     stopCustomerSpawning() {
@@ -269,6 +339,18 @@ const Shop = {
             clearInterval(this.customerSpawnTimer);
             this.customerSpawnTimer = null;
         }
+    },
+
+    dismissCustomer() {
+        if (this.currentMapCustomer) {
+            this.addText('"Sorry, can\'t help you right now."', 'player');
+            this.addText(`${this.currentCustomer.name} looks disappointed and leaves.`, 'narrator');
+            ShopMap.customerLeave(this.currentMapCustomer.id);
+        }
+        this.currentCustomer = null;
+        this.currentMapCustomer = null;
+        this.interactionState = 'idle';
+        this.returnToIdle();
     },
 
     // ========================================
@@ -502,6 +584,10 @@ const Shop = {
             } else {
                 this.addText('"That\'s too long. I\'ll try somewhere else."', 'customer');
                 this.addText(`${c.name} leaves the shop.`, 'narrator');
+                if (this.currentMapCustomer && typeof ShopMap !== 'undefined') {
+                    ShopMap.customerLeave(this.currentMapCustomer.id);
+                }
+                this.currentMapCustomer = null;
                 this.returnToIdle();
             }
         } else if (c.urgency.id === 'flexible') {
@@ -525,6 +611,10 @@ const Shop = {
             } else {
                 this.addText('"Hmm, that\'s later than I hoped. Let me think about it."', 'customer');
                 this.addText(`${c.name} leaves, uncertain.`, 'narrator');
+                if (this.currentMapCustomer && typeof ShopMap !== 'undefined') {
+                    ShopMap.customerLeave(this.currentMapCustomer.id);
+                }
+                this.currentMapCustomer = null;
                 this.returnToIdle();
             }
         }
@@ -588,6 +678,11 @@ const Shop = {
         }
 
         this.addText(`${c.name} leaves the shop, disappointed.`, 'narrator');
+
+        if (this.currentMapCustomer && typeof ShopMap !== 'undefined') {
+            ShopMap.customerLeave(this.currentMapCustomer.id);
+        }
+        this.currentMapCustomer = null;
         this.returnToIdle();
     },
 
@@ -620,6 +715,12 @@ const Shop = {
         this.addText(`Deadline: ${job.deadlineDayName} (Day ${job.deadline}) | Payment: ${formatMoney(job.price)}`, 'system');
 
         this.addText(`${c.name} hands over the ${c.device.typeName.toLowerCase()} and leaves.`, 'narrator');
+
+        // Make customer leave the map
+        if (this.currentMapCustomer && typeof ShopMap !== 'undefined') {
+            ShopMap.customerLeave(this.currentMapCustomer.id);
+        }
+        this.currentMapCustomer = null;
 
         // Update job display
         this.updateJobsDisplay();

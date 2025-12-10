@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DYSECTOR // CLI Minigames</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0c;
+            --bg-card: #111115;
+            --bg-card-hover: #18181d;
+            --cyan: #4ecdc4;
+            --cyan-dim: #2a7a74;
+            --green: #27ae60;
+            --green-dim: #1e8449;
+            --purple: #9b59b6;
+            --purple-dim: #6c3483;
+            --gold: #d4a843;
+            --gold-dim: #8b7355;
+            --text-primary: #e8e8e8;
+            --text-secondary: #888;
+            --text-dim: #555;
+            --border: #2a2a30;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 36px;
+            font-weight: 900;
+            letter-spacing: 6px;
+            color: var(--cyan);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+        }
+
+        .summary-table th,
+        .summary-table td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .summary-table th {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            color: var(--cyan);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: var(--bg-dark);
+        }
+
+        .summary-table td {
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+
+        .summary-table tr:last-child td { border-bottom: none; }
+
+        .game-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .game-card.g1::before { background: var(--cyan); }
+        .game-card.g2::before { background: var(--green); }
+        .game-card.g3::before { background: var(--purple); }
+        .game-card.g4::before { background: var(--gold); }
+
+        .game-header {
+            padding: 20px 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .game-header:hover { background: var(--bg-card-hover); }
+
+        .game-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .game-subtitle {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .game-toggle {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 24px;
+            color: var(--text-dim);
+            transition: transform 0.3s ease;
+        }
+
+        .game-card.open .game-toggle { transform: rotate(45deg); }
+
+        .game-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            border-top: 1px solid transparent;
+        }
+
+        .game-card.open .game-content {
+            max-height: 2000px;
+            border-top-color: var(--border);
+        }
+
+        .content-section {
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .content-section:last-child { border-bottom: none; }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .game-card.g1 .section-title { color: var(--cyan-dim); }
+        .game-card.g2 .section-title { color: var(--green-dim); }
+        .game-card.g3 .section-title { color: var(--purple-dim); }
+        .game-card.g4 .section-title { color: var(--gold-dim); }
+
+        .content-text {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .content-text strong { color: var(--text-primary); }
+
+        .content-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .content-list li {
+            font-size: 15px;
+            color: var(--text-secondary);
+            padding: 6px 0;
+            padding-left: 18px;
+            position: relative;
+        }
+
+        .content-list li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--text-dim);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .game-visual {
+            text-align: center;
+            padding: 20px;
+            background: #000;
+            border: 1px solid var(--border);
+            margin: 10px 0;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .game-ascii {
+            font-size: 11px;
+            color: var(--text-primary);
+            line-height: 1.3;
+            white-space: pre;
+        }
+
+        .difficulty-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .difficulty-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .difficulty-table td:first-child {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--text-dim);
+            width: 80px;
+        }
+
+        .difficulty-table tr:last-child td { border-bottom: none; }
+
+        footer {
+            margin-top: 40px;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-text {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CLI MINIGAMES</h1>
+            <div class="subtitle">WORKBENCH REPAIR GAMES — TERMINAL AESTHETIC</div>
+        </header>
+
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>Game</th>
+                    <th>Task</th>
+                    <th>Verb</th>
+                    <th>Skill</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Probe Launch</td>
+                    <td>Diagnostic Scan</td>
+                    <td>Aim / Bounce</td>
+                    <td>Geometry</td>
+                </tr>
+                <tr>
+                    <td>Hex Pipes</td>
+                    <td>Bypass / Routing</td>
+                    <td>Rotate</td>
+                    <td>Spatial</td>
+                </tr>
+                <tr>
+                    <td>Memory Match</td>
+                    <td>Data Recovery</td>
+                    <td>Remember</td>
+                    <td>Memory</td>
+                </tr>
+                <tr>
+                    <td>Packet Hunt</td>
+                    <td>Hacking / Access</td>
+                    <td>Spot / Scan</td>
+                    <td>Visual</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- PROBE LAUNCH -->
+        <div class="game-card g1">
+            <div class="game-header">
+                <div>
+                    <div class="game-title">PROBE LAUNCH</div>
+                    <div class="game-subtitle">Diagnostic Scan — Aim / Bounce — Geometry</div>
+                </div>
+                <span class="game-toggle">+</span>
+            </div>
+            <div class="game-content">
+                <div class="content-section">
+                    <div class="section-title">Concept</div>
+                    <p class="content-text">
+                        <strong>Billiards / Peggle style.</strong> Aim a diagnostic probe, shoot it into the system, watch it bounce off walls toward the core. Limited attempts.
+                    </p>
+                </div>
+                <div class="content-section">
+                    <div class="section-title">Visual</div>
+                    <div class="game-visual">
+                        <div class="game-ascii">┌──────────────────────────────────┐
+│                                  │
+│  >  ┌────┐    ████               │
+│     │    │    ████    ┌────┐     │
+│  >  └────┘            │CORE│     │
+│       ·····▸          └────┘     │
+│  >   ████████                    │
+│      ████████   ████             │
+│                 ████             │
+├──────────────────────────────────┤
+│ PROBES: 3 | SELECT ENTRY         │
+└──────────────────────────────────┘</div>
+                    </div>
+                </div>
+                <div class="content-section">
+                    <div class="section-title">Mechanics</div>
+                    <ul class="content-list">
+                        <li>Entry points on edges (pick which to fire from)</li>
+                        <li>Core destination somewhere on grid</li>
+                        <li>Walls/obstacles cause bounces</li>
+                        <li>Limited probes (3-5 shots)</li>
+                        <li>Some walls destructible</li>
+                        <li>Goal: get one probe to touch core</li>
+                    </ul>
+                </div>
+                <div class="content-section">
+                    <div class="section-title">Difficulty</div>
+                    <table class="difficulty-table">
+                        <tr><td>Easy</td><td>Few walls, 5 probes, large core</td></tr>
+                        <tr><td>Medium</td><td>More obstacles, 3 probes, smaller core</td></tr>
+                        <tr><td>Hard</td><td>Maze walls, 2 probes, tiny core, destructibles</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- HEX PIPES -->
+        <div class="game-card g2">
+            <div class="game-header">
+                <div>
+                    <div class="game-title">HEX PIPES</div>
+                    <div class="game-subtitle">Bypass / Routing — Rotate — Spatial</div>
+                </div>
+                <span class="game-toggle">+</span>
+            </div>
+            <div class="game-content">
+                <div class="content-section">
+                    <div class="section-title">Concept</div>
+                    <p class="content-text">
+                        <strong>Pipe puzzle / tile rotation.</strong> Hex grid with path segments. Rotate tiles to create continuous path from I/O to END.
+                    </p>
+                </div>
+                <div class="content-section">
+                    <div class="section-title">Visual</div>
+                    <div class="game-visual">
+                        <div class="game-ascii">┌──────────────────────────────────┐
+│    ╭─╮   ╭─╮   ╭─╮   ╭─╮         │
+│   ╱ ╲ ╲ ╱ │ ╲ ╱ ╲ ╲ ╱ ╲ ╲        │
+│I/O╲ ─ ╱ ╲ ╯ ╱ ╲ ─ ╱ ╲ ─ ╱ END    │
+│   ╱ ╲ ╲ ╱ ╲ ╲ ╱ │ ╲ ╱ ╲ ╲        │
+│    ╰─╯   ╰─╯   ╰─╯   ╰─╯         │
+├──────────────────────────────────┤
+│ TILES: 12 | CONNECTED: NO        │
+└──────────────────────────────────┘</div>
+                    </div>
+                </div>
+                <div class="content-section">
+                    <div class="section-title">Mechanics</div>
+                    <ul class="content-list">
+                        <li>Hex grid with pipe/path tiles</li>
+                        <li>Start (I/O) and Target (END) marked</li>
+                        <li>Click tiles to rotate</li>
+                        <li>Create continuous path</li>
+                        <li>Some tiles one-way only</li>
+                        <li>Blocked tiles cannot rotate</li>
+                    </ul>
+                </div>
+                <div class="content-section">
+                    <div class="section-title">Difficulty</div>
+                    <table class="difficulty-table">
+                        <tr><td>Easy</td><td>Small grid (4x4), obvious solution</td></tr>
+                        <tr><td>Medium</td><td>Larger grid (6x5), some one-ways</td></tr>
+                        <tr><td>Hard</td><td>Large grid (8x6), many one-ways, obstacles</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- MEMORY MATCH -->
+        <div class="game-card g3">
+            <div class="game-header">
+                <div>
+                    <div class="game-title">MEMORY MATCH</div>
+                    <div class="game-subtitle">Data Recovery — Remember — Memory</div>
+                </div>
+                <span class="game-toggle">+</span>
+            </div>
+            <div class="game-content">
+                <div class="content-section">
+                    <div class="section-title">Concept</div>
+                    <p class="content-text">
+                        <strong>Classic memory matching.</strong> Grid of tiles, flip to reveal symbols, find matching pairs. Customer's fragmented files — match fragments to reconstruct.
+                    </p>
+                </div>
+                <div class="content-section">
+                    <div class="section-title">Visual</div>
+                    <div class="game-visual">
+                        <div class="game-ascii">┌──────────────────────────────────┐
+│                                  │
+│      ┌─┐  ┌─┐  ┌─┐  ┌─┐          │
+│      │?│  │■│  │?│  │?│          │
+│      └─┘  └─┘  └─┘  └─┘          │
+│      ┌─┐  ┌─┐  ┌─┐  ┌─┐          │
+│      │?│  │?│  │■│  │?│          │
+│      └─┘  └─┘  └─┘  └─┘          │
+│                                  │
+├──────────────────────────────────┤
+│ PAIRS: 2/8 | MOVES: 12           │
+└──────────────────────────────────┘</div>
+                    </div>
+                </div>
+                <div class="content-section">
+                    <div class="section-title">Mechanics</div>
+                    <ul class="content-list">
+                        <li>Grid of face-down tiles</li>
+                        <li>Click to flip, reveal symbol</li>
+                        <li>Find matching pairs</li>
+                        <li>Pairs disappear when matched</li>
+                        <li>Clear all pairs to win</li>
+                        <li>Move counter for efficiency</li>
+                    </ul>
+                </div>
+                <div class="content-section">
+                    <div class="section-title">Difficulty</div>
+                    <table class="difficulty-table">
+                        <tr><td>Easy</td><td>4x4 grid, simple symbols</td></tr>
+                        <tr><td>Medium</td><td>5x5 grid, more symbol types</td></tr>
+                        <tr><td>Hard</td><td>6x6 grid, similar symbols, time pressure</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PACKET HUNT -->
+        <div class="game-card g4">
+            <div class="game-header">
+                <div>
+                    <div class="game-title">PACKET HUNT</div>
+                    <div class="game-subtitle">Hacking / Access — Spot / Scan — Visual</div>
+                </div>
+                <span class="game-toggle">+</span>
+            </div>
+            <div class="game-content">
+                <div class="content-section">
+                    <div class="section-title">Concept</div>
+                    <p class="content-text">
+                        <strong>Spot the Difference.</strong> Send junk data into system, find the anomaly among the noise, then hunt all matching vulnerabilities. Two-phase mechanic.
+                    </p>
+                </div>
+                <div class="content-section">
+                    <div class="section-title">Visual</div>
+                    <div class="game-visual">
+                        <div class="game-ascii">┌──────────────────────────────────┐
+│ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ │
+│ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ │
+│ ▪ ▫ ▪ ▫ ▪ ▫ ● ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ │
+│ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ● ▫ ▪ ▫ ▪ │
+│ ▪ ▫ ▪ ▫ ● ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ │
+│ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ ▫ ▪ │
+├──────────────────────────────────┤
+│ TARGET: 2/5 | TIME: 12           │
+└──────────────────────────────────┘</div>
+                    </div>
+                </div>
+                <div class="content-section">
+                    <div class="section-title">Two Phases</div>
+                    <ul class="content-list">
+                        <li><strong>DETECT:</strong> Screen floods with symbols. Find the ONE that's different.</li>
+                        <li><strong>EXPLOIT:</strong> Now find all others like it FAST.</li>
+                    </ul>
+                </div>
+                <div class="content-section">
+                    <div class="section-title">Node Variation</div>
+                    <p class="content-text">Each node has different visual puzzle, different count to find:</p>
+                    <ul class="content-list">
+                        <li>Node 1: Packet with extra dot. Need 3.</li>
+                        <li>Node 2: Bracket facing wrong way. Need 5.</li>
+                        <li>Node 3: Symbol with gap. Need 4.</li>
+                    </ul>
+                </div>
+                <div class="content-section">
+                    <div class="section-title">Difficulty</div>
+                    <table class="difficulty-table">
+                        <tr><td>Easy</td><td>Obvious difference, few targets, generous time</td></tr>
+                        <tr><td>Medium</td><td>Subtle difference, more targets</td></tr>
+                        <tr><td>Hard</td><td>Very subtle, many targets, time pressure</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div class="footer-text">DYSECTOR // CLI MINIGAMES</div>
+        </footer>
+    </div>
+
+    <script>
+        document.querySelectorAll('.game-header').forEach(header => {
+            header.addEventListener('click', () => {
+                header.parentElement.classList.toggle('open');
+            });
+        });
+    </script>
+</body>
+</html>

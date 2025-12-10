@@ -73,67 +73,67 @@
 
             <!-- SHOP TAB -->
             <section id="shop" class="tab-panel active">
-                <div class="shop-layout">
-                    <!-- Left: Text/Dialogue Area -->
-                    <div class="shop-text-area">
-                        <div class="text-display" id="shop-text-display">
-                            <div class="text-line system">[SYSTEM] Shop opened. Business hours: 9AM - 6PM</div>
-                            <div class="text-line system">[SYSTEM] Waiting for customers...</div>
+                <div class="shop-layout-v2">
+                    <!-- Left: 2D Shop Map + Info Panel -->
+                    <div class="shop-map-area">
+                        <div id="shop-map-container" class="shop-map-container">
+                            <!-- Canvas inserted by JS -->
                         </div>
-                        <div class="text-input-area">
-                            <div class="input-prompt">&gt;</div>
-                            <div class="input-options" id="shop-options">
-                                <button class="option-btn" data-action="wait">[1] Wait for customer</button>
-                                <button class="option-btn" data-action="workbench">[2] Go to workbench</button>
-                                <button class="option-btn" data-action="close">[3] Close shop early</button>
+                        <div class="map-info-panel" id="map-info-panel">
+                            <div class="map-info-default">
+                                <span class="info-hint">Click on map elements for details</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Right: Shop Status Panel -->
-                    <div class="shop-status-panel">
-                        <div class="status-section">
-                            <div class="status-header">SHOP STATUS</div>
-                            <div class="status-item">
+                    <!-- Right: Status + Dialogue + Commands -->
+                    <div class="shop-sidebar">
+                        <!-- Stats -->
+                        <div class="sidebar-stats">
+                            <div class="status-row">
                                 <span class="status-label">Status</span>
-                                <span class="status-value open" id="shop-status">OPEN</span>
+                                <span class="status-value open" id="shop-status">MORNING</span>
                             </div>
-                            <div class="status-item">
+                            <div class="status-row">
                                 <span class="status-label">Time</span>
-                                <span class="status-value" id="shop-time">9:00 AM</span>
+                                <span class="status-value" id="shop-time">8:00 AM</span>
                             </div>
-                            <div class="status-item">
-                                <span class="status-label">Customers Today</span>
+                            <div class="status-row">
+                                <span class="status-label">In Shop</span>
+                                <span class="status-value" id="map-customer-count">0</span>
+                            </div>
+                            <div class="status-row">
+                                <span class="status-label">Waiting</span>
+                                <span class="status-value waiting-highlight" id="map-waiting-count">0</span>
+                            </div>
+                            <div class="status-row">
+                                <span class="status-label">Served</span>
                                 <span class="status-value" id="customers-today">0</span>
                             </div>
                         </div>
 
-                        <div class="status-section">
-                            <div class="status-header">ACTIVE JOBS</div>
+                        <!-- Active Jobs -->
+                        <div class="sidebar-section">
+                            <div class="sidebar-header">ACTIVE JOBS</div>
                             <div class="jobs-list" id="active-jobs">
-                                <div class="empty-state">No active jobs</div>
+                                <div class="empty-state-small">No jobs</div>
                             </div>
                         </div>
 
-                        <div class="status-section">
-                            <div class="status-header">INVENTORY</div>
-                            <div class="inventory-quick" id="inventory-quick">
-                                <div class="inv-item">
-                                    <span class="inv-label">Devices</span>
-                                    <span class="inv-count">3</span>
-                                </div>
-                                <div class="inv-item">
-                                    <span class="inv-label">Software</span>
-                                    <span class="inv-count">5</span>
-                                </div>
-                                <div class="inv-item">
-                                    <span class="inv-label">Cases</span>
-                                    <span class="inv-count">2</span>
-                                </div>
-                                <div class="inv-item">
-                                    <span class="inv-label">Stims</span>
-                                    <span class="inv-count">1</span>
-                                </div>
+                        <!-- Dialogue -->
+                        <div class="sidebar-section sidebar-dialogue">
+                            <div class="sidebar-header">LOG</div>
+                            <div class="text-display" id="shop-text-display">
+                                <div class="text-line system">[SYSTEM] Shop ready.</div>
+                            </div>
+                        </div>
+
+                        <!-- Commands -->
+                        <div class="sidebar-commands">
+                            <div class="input-options" id="shop-options">
+                                <button class="option-btn" data-action="open_shop">[1] Open Shop</button>
+                                <button class="option-btn" data-action="go_dive_os">[2] Dive OS</button>
+                                <button class="option-btn" data-action="go_calendar">[3] Calendar</button>
                             </div>
                         </div>
                     </div>
@@ -592,6 +592,7 @@
     </div>
 
     <script src="js/gameState.js"></script>
+    <script src="js/shopMap.js"></script>
     <script src="js/shop.js"></script>
     <script src="js/shopOS.js"></script>
     <script src="js/diveOS.js"></script>

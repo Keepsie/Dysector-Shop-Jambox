@@ -1,0 +1,3000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DYSECTOR // Combat Identity Codex</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0c;
+            --bg-card: #111115;
+            --bg-card-hover: #18181d;
+            --gold: #d4a843;
+            --gold-dim: #8b7355;
+            --cyan: #4ecdc4;
+            --cyan-dim: #2a7a74;
+            --red: #e74c3c;
+            --red-dim: #922f25;
+            --text-primary: #e8e8e8;
+            --text-secondary: #888;
+            --text-dim: #555;
+            --border: #2a2a30;
+            --circuit: rgba(212, 168, 67, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Circuit Pattern Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(90deg, var(--circuit) 1px, transparent 1px),
+                linear-gradient(var(--circuit) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Scanline Effect */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.1) 2px,
+                rgba(0, 0, 0, 0.1) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px;
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-dark) 100%);
+            position: relative;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .header-label {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--gold);
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: 8px;
+            background: linear-gradient(180deg, var(--text-primary) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-tab {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            letter-spacing: 2px;
+            padding: 12px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .nav-tab:hover {
+            border-color: var(--gold-dim);
+            color: var(--text-primary);
+        }
+
+        .nav-tab.active {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: rgba(212, 168, 67, 0.1);
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Entry Cards */
+        .entry {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .entry::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--gold);
+        }
+
+        .entry.enemy::before {
+            background: var(--red);
+        }
+
+        .entry.system::before {
+            background: var(--cyan);
+        }
+
+        .entry-header {
+            padding: 20px 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.3s ease;
+        }
+
+        .entry-header:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .entry-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .entry-icon {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            padding: 4px 8px;
+            background: rgba(212, 168, 67, 0.2);
+            color: var(--gold);
+            border: 1px solid var(--gold-dim);
+        }
+
+        .entry.enemy .entry-icon {
+            background: rgba(231, 76, 60, 0.2);
+            color: var(--red);
+            border-color: var(--red-dim);
+        }
+
+        .entry.system .entry-icon {
+            background: rgba(78, 205, 196, 0.2);
+            color: var(--cyan);
+            border-color: var(--cyan-dim);
+        }
+
+        .entry-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .entry-role {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .entry-toggle {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 20px;
+            color: var(--text-dim);
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .entry.open .entry-toggle {
+            transform: rotate(45deg);
+            color: var(--gold);
+        }
+
+        .entry-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .entry.open .entry-content {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Content Sections */
+        .content-block {
+            margin-bottom: 30px;
+        }
+
+        .content-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .block-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            letter-spacing: 3px;
+            color: var(--gold);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+        }
+
+        .entry.enemy .block-title {
+            color: var(--red);
+        }
+
+        .entry.system .block-title {
+            color: var(--cyan);
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .data-table td {
+            color: var(--text-primary);
+        }
+
+        .data-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            padding: 4px 10px;
+            margin: 2px 4px 2px 0;
+            background: rgba(212, 168, 67, 0.15);
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
+        }
+
+        .tag.negative {
+            background: rgba(231, 76, 60, 0.15);
+            border-color: var(--red-dim);
+            color: var(--red);
+        }
+
+        .tag.info {
+            background: rgba(78, 205, 196, 0.15);
+            border-color: var(--cyan-dim);
+            color: var(--cyan);
+        }
+
+        /* Lists */
+        .content-list {
+            list-style: none;
+        }
+
+        .content-list li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .content-list li::before {
+            content: 'â–¸';
+            position: absolute;
+            left: 0;
+            color: var(--gold);
+        }
+
+        .entry.enemy .content-list li::before {
+            color: var(--red);
+        }
+
+        /* Paragraphs */
+        .content-text {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .content-text strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .highlight {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .entry.enemy .highlight {
+            color: var(--red);
+        }
+
+        /* Quote Block */
+        .quote-block {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-left: 3px solid var(--gold);
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .entry.enemy .quote-block {
+            border-left-color: var(--red);
+        }
+
+        /* Tier Dividers */
+        .tier-divider {
+            margin: 50px 0 40px 0;
+            padding: 20px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+            background: linear-gradient(90deg, transparent, rgba(212, 168, 67, 0.05), transparent);
+        }
+
+        .tier-divider h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 6px;
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
+
+        .tier-divider p {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+        }
+
+        .tier-divider.elite {
+            background: linear-gradient(90deg, transparent, rgba(231, 76, 60, 0.05), transparent);
+        }
+
+        .tier-divider.elite h2 {
+            color: var(--red);
+        }
+
+        .tier-divider.boss {
+            background: linear-gradient(90deg, transparent, rgba(78, 205, 196, 0.1), transparent);
+        }
+
+        .tier-divider.boss h2 {
+            color: var(--cyan);
+        }
+
+        /* Boss Entry Styling */
+        .entry.boss::before {
+            background: var(--cyan);
+        }
+
+        .entry.boss .entry-icon {
+            background: rgba(78, 205, 196, 0.2);
+            color: var(--cyan);
+            border-color: var(--cyan-dim);
+        }
+
+        .entry.boss .block-title {
+            color: var(--cyan);
+        }
+
+        .entry.boss .quote-block {
+            border-left-color: var(--cyan);
+        }
+
+        .entry.boss .highlight {
+            color: var(--cyan);
+        }
+
+        .entry.boss .content-list li::before {
+            color: var(--cyan);
+        }
+
+        /* Universal Rules Section */
+        .rules-banner {
+            background: linear-gradient(90deg, rgba(78, 205, 196, 0.1) 0%, transparent 100%);
+            border: 1px solid var(--cyan-dim);
+            padding: 20px 25px;
+            margin-bottom: 30px;
+        }
+
+        .rules-banner h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            color: var(--cyan);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .rules-banner p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 60px;
+            padding: 30px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .footer-text {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 28px;
+                letter-spacing: 4px;
+            }
+
+            .entry-header {
+                padding: 15px 20px;
+            }
+
+            .entry-content {
+                padding: 20px;
+            }
+
+            .entry-name {
+                font-size: 16px;
+            }
+
+            .nav-tab {
+                padding: 10px 16px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-label">HAPPENSTANCE GAMES // DESIGN CODEX</div>
+            <h1>DYSECTOR</h1>
+            <div class="subtitle">COMBAT IDENTITY GUIDE v0.1</div>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-section="player">PLAYER</button>
+            <button class="nav-tab" data-section="enemies">ENEMIES</button>
+            <button class="nav-tab" data-section="rules">UNIVERSAL RULES</button>
+        </nav>
+
+        <!-- PLAYER SECTION -->
+        <div id="player" class="section active">
+            
+            <div class="entry open">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">AVATAR</span>
+                        <div>
+                            <div class="entry-name">PLAYER CHARACTER</div>
+                            <div class="entry-role">DyTech Repair Technician</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Identity</div>
+                        <div class="quote-block">
+                            "Repair tech who understands the system well enough to exploit it. Not chosen one. Not gifted powers. Just good at the job."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Combat Promise</div>
+                        <p class="content-text">
+                            <strong>"Prepare smart. Shoot clean. Use everything around you. Get out alive."</strong><br><br>
+                            You are a tech in an avatar, not a combat god. You win because you prepared and played smart. Not a space marine. Not a ninja. A professional in over their head who survives by being clever.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Combat Tools</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Tool</th>
+                                    <th>Purpose</th>
+                                    <th>Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Guns</td>
+                                    <td>Primary damage</td>
+                                    <td>Ammo = Data (buy or find)</td>
+                                </tr>
+                                <tr>
+                                    <td>Melee</td>
+                                    <td>Fallback, break stuff, feels good</td>
+                                    <td>Free</td>
+                                </tr>
+                                <tr>
+                                    <td>Throwables</td>
+                                    <td>Software you throw (damage, utility, repair)</td>
+                                    <td>Bought or found - use vs sell choice</td>
+                                </tr>
+                                <tr>
+                                    <td>Logic Injector</td>
+                                    <td>Environment manipulation (walls, systems, hacks)</td>
+                                    <td>Free</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Movement System</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th>Cost</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Walk / Strafe</td>
+                                    <td>Free</td>
+                                    <td>Always available</td>
+                                </tr>
+                                <tr>
+                                    <td>Jump</td>
+                                    <td>Free</td>
+                                    <td>Feels good, basic utility</td>
+                                </tr>
+                                <tr>
+                                    <td>Sprint</td>
+                                    <td>Stamina drain</td>
+                                    <td>Combat only - unlimited outside combat</td>
+                                </tr>
+                                <tr>
+                                    <td>Dodge</td>
+                                    <td>Stamina chunk (2 charges)</td>
+                                    <td>Directional dash, i-frames</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="content-text" style="margin-top: 15px;">
+                            <strong>Stamina only active in combat.</strong> Out of combat = unlimited sprint, no restrictions. Creates decision weight during fights without exploration tedium.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Overclock (The Ace)</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Phase</th>
+                                    <th>Duration</th>
+                                    <th>Effect</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Active</td>
+                                    <td>~5 seconds</td>
+                                    <td>God mode, increased damage, no resource drain</td>
+                                </tr>
+                                <tr>
+                                    <td>Backlash</td>
+                                    <td>Until recovery</td>
+                                    <td>No stamina + reduced damage</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="content-text" style="margin-top: 15px;">
+                            <span class="highlight">Moddable:</span> Duration up, backlash down via mods. Risk/reward baked in. Lore-justified: you're pushing your avatar past safe limits because you understand how it works. That's what a tech does.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Shield + Health System</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Layer</th>
+                                    <th>Regens?</th>
+                                    <th>How to Heal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Shield (Firewall)</td>
+                                    <td>YES (after no damage for X time)</td>
+                                    <td>Automatic</td>
+                                </tr>
+                                <tr>
+                                    <td>Health</td>
+                                    <td>NO</td>
+                                    <td>Packs, stations, or new dive only</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="content-text" style="margin-top: 15px;">
+                            <strong>Combat feel:</strong><br>
+                            â€¢ Aggressive play = shield tanks it, you're fine<br>
+                            â€¢ Sloppy play = health chipped, now counting packs<br>
+                            â€¢ Disaster = low health, no packs, do you abort the dive?<br><br>
+                            Shield is your mistake buffer. Health is real stakes.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Dive Limits &amp; Backup System</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Element</th>
+                                    <th>Rule</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Dive Limit</td>
+                                    <td>2-3 per cycle (upgradeable later)</td>
+                                </tr>
+                                <tr>
+                                    <td>After Limit</td>
+                                    <td>Mental fatigue - work shop, rest</td>
+                                </tr>
+                                <tr>
+                                    <td>Failed Dive Counts?</td>
+                                    <td>YES - every attempt costs</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="content-text" style="margin-top: 15px;">
+                            <strong>Backup Nodes (System Shock style):</strong><br>
+                            â€¢ Found in dive only, few per level<br>
+                            â€¢ One-time use - consumed on death<br>
+                            â€¢ Die before finding one = kicked out, dive wasted<br>
+                            â€¢ Die after activating = respawn at node<br><br>
+                            <span class="highlight">Lore:</span> You're plugging your brain into corrupted systems. Mental fatigue is real. Backups are restore points.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Preparation Loop</div>
+                        <p class="content-text">
+                            <strong>Before Dive:</strong> Buy ammo (data), stock health packs, choose loadout, plan for what you're facing.<br><br>
+                            <strong>During Dive:</strong> Find more ammo/health (not guaranteed), manage what you brought, improvise when low.<br><br>
+                            <strong>Double-Dip Option:</strong> Dive 1 to scout/diagnose, return to shop to prep specifically, Dive 2 to execute. Longer repairs feel like real jobs. Veterans one-dive, newbies two-dive.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Mod Slots</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Target</th>
+                                    <th>Slots</th>
+                                    <th>Purpose</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Character / Avatar</td>
+                                    <td>3</td>
+                                    <td>Define playstyle, passive bonuses</td>
+                                </tr>
+                                <tr>
+                                    <td>Per Weapon</td>
+                                    <td>2</td>
+                                    <td>Tweak the gun, not transform it</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="content-text" style="margin-top: 15px;">
+                            <strong>Total build expression:</strong> 3 character + 4 weapon (2 per gun) = 7 mod decisions per loadout. Enough for variety, not spreadsheet gaming.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Weapon Limit</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Element</th>
+                                    <th>Limit</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Weapons Carried</td>
+                                    <td>2 MAX</td>
+                                    <td>Hard limit - upgrades don't change this</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="content-text" style="margin-top: 15px;">
+                            <strong>Every combo has a hole:</strong><br>
+                            â€¢ Pistol + Assault = versatile, safe<br>
+                            â€¢ Assault + Sniper = range covered, no backup<br>
+                            â€¢ Pistol + Sniper = precision focus, weak mid-range<br><br>
+                            You're a tech, not Master Chief. You brought what fits in the kit.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Throwables (Software Economy)</div>
+                        <p class="content-text">
+                            <strong>Grenades aren't grenades. They're software you throw.</strong>
+                        </p>
+                        <table class="data-table" style="margin-top: 15px;">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Cost</th>
+                                    <th>Power</th>
+                                    <th>Sell Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Basic (cheap antivirus)</td>
+                                    <td>Cheap (but still costs)</td>
+                                    <td>Weak, better than nothing</td>
+                                    <td>Low / none</td>
+                                </tr>
+                                <tr>
+                                    <td>Premium (found software)</td>
+                                    <td>Found or expensive</td>
+                                    <td>Strong</td>
+                                    <td>Worth real money</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="content-text" style="margin-top: 15px;">
+                            <span class="highlight">The tension:</span> "Do I use this virus bomb or sell it for $200?" Every throw = money burned. Combat choices become economic, not just tactical. Ties combat directly to business loop.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What We Don't Have</div>
+                        <div class="tag negative">NO POWERS</div>
+                        <div class="tag negative">NO HEALTH REGEN</div>
+                        <div class="tag negative">NO MAGIC</div>
+                        <p class="content-text" style="margin-top: 15px;">
+                            Everything is tech. Nothing is magic. Player is smart, not superhuman. Shield regens (firewall), health doesn't. Small team can't afford power balancing nightmare.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ENEMIES SECTION -->
+        <div id="enemies" class="section">
+
+            <div class="tier-divider">
+                <h2>TIER 1 — COMMON</h2>
+                <p>Backbone of encounters — numerous, create pressure through numbers</p>
+            </div>
+
+            <div class="entry enemy">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">TIER 1</span>
+                        <div>
+                            <div class="entry-name">THREAD UNIT</div>
+                            <div class="entry-role">Universal Worker // Fodder</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Identity</div>
+                        <div class="quote-block">
+                            "Workers doing their job. Got corrupted. Now forced to fight something they can't beat. They KNOW they can't beat you. They try anyway."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What They Are</div>
+                        <p class="content-text">
+                            Cheap, expendable workers. Strength in numbers. The "go-to" unit - most common thing you'll see. Run all tasks for all software. Slightly more health than Fragbyte (built for task durability).
+                        </p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag">MELEE ONLY</span>
+                            <span class="tag">MOST COMMON</span>
+                            <span class="tag">CHEAP UNITS</span>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Emotion: FEAR</div>
+                        <p class="content-text">
+                            Shouldn't be smart. Shouldn't feel fear. <strong>But they do.</strong> Something's wrong with threads - they're more aware than they should be. Workers that don't want to die. Makes killing them feel... different. Animation sells the fear. Player might feel bad.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Combat Behavior</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>State</th>
+                                    <th>Behavior</th>
+                                    <th>Threat Level</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Solo / Small Group (1-3)</td>
+                                    <td>Scared, hesitant, sloppy melee</td>
+                                    <td>Low</td>
+                                </tr>
+                                <tr>
+                                    <td>Group (4+)</td>
+                                    <td>Leader auto-promotes, coordination</td>
+                                    <td>Medium-High</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Leader Promotion Mechanic</div>
+                        <p class="content-text">
+                            <span class="highlight">4+ threads together = one auto-promotes to leader.</span><br><br>
+                            Lore justification: Distributed computing. They're feeding cycles into one unit so it can think better. That's what threads DO - share workload.
+                        </p>
+                        <table class="data-table" style="margin-top: 15px;">
+                            <thead>
+                                <tr>
+                                    <th>Leader Behavior</th>
+                                    <th>Effect</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Hides</td>
+                                    <td>Doesn't fight directly</td>
+                                </tr>
+                                <tr>
+                                    <td>Commands</td>
+                                    <td>Others become coordinated</td>
+                                </tr>
+                                <tr>
+                                    <td>Activates Environment</td>
+                                    <td>Walls, turrets, processes help threads</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="content-text" style="margin-top: 15px;">
+                            <strong>Promotion criteria:</strong> Slightly more health than others. Others still visibly afraid - being commanded, not brave.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Player Tension</div>
+                        <ul class="content-list">
+                            <li>"Do I thin the herd before a leader spawns?"</li>
+                            <li>"Where did the leader hide?"</li>
+                            <li>"What's he turning on?"</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Tragedy</div>
+                        <p class="content-text">
+                            Most games make fodder disposable and forgettable. <strong>Yours makes fodder sad.</strong> They didn't ask for this.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry enemy">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">TIER 1</span>
+                        <div>
+                            <div class="entry-name">FRAGBYTE</div>
+                            <div class="entry-role">Cleaner Family // Swarm Fodder</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Identity</div>
+                        <div class="quote-block">
+                            "Frag in or get fragged. Kill fast or deal with chaos."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What They Are</div>
+                        <p class="content-text">
+                            Cleaners, lowest tier. Fastest enemy, lowest health (glass cannon until enraged). Pack hunters with instinct.
+                        </p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag">FASTEST</span>
+                            <span class="tag">LOWEST HEALTH</span>
+                            <span class="tag">MELEE + JUMP</span>
+                            <span class="tag">PACK HUNTERS</span>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Emotion: VENGEANCE</div>
+                        <p class="content-text">
+                            <strong>Opposite of Thread.</strong> Thread is scared and smart. Fragbyte is angry and instinctual. When allies die, they don't mourn - they rage.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Combat Pattern: 3+1</div>
+                        <p class="content-text">
+                            <strong>Normal state:</strong> 3 pressure you (left, right, middle) forcing aim splitting. 1 hangs back, waits for opening, then jump attack.
+                        </p>
+                        <p class="content-text" style="margin-top: 10px;">
+                            Forces movement naturally. Unless you're god-tier at snap flicking, they WILL make you move.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Rage System</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Element</th>
+                                    <th>Detail</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Trigger</td>
+                                    <td>2-3 deaths (randomized per encounter)</td>
+                                </tr>
+                                <tr>
+                                    <td>Visual</td>
+                                    <td>Red flares on ALL survivors, growing with each death</td>
+                                </tr>
+                                <tr>
+                                    <td>Behavior Change</td>
+                                    <td>Pattern breaks, chaotic rush</td>
+                                </tr>
+                                <tr>
+                                    <td>Stat Boost</td>
+                                    <td>Damage up + Health up (temporary)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Rage Visual Progression</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Deaths</th>
+                                    <th>Visual State</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>0</td>
+                                    <td>Normal</td>
+                                </tr>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Faint red pulse</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Brighter, more frequent</td>
+                                </tr>
+                                <tr>
+                                    <td>Threshold</td>
+                                    <td>Full red snap - chaos begins</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="content-text" style="margin-top: 15px;">
+                            No UI bar needed - it's ON the enemy. All survivors flare together (pack emotion). They all feel it when one dies.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Difficulty Scaling (Rage Threshold)</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Difficulty</th>
+                                    <th>Deaths to Rage</th>
+                                    <th>Feel</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Easy</td>
+                                    <td>8 or never</td>
+                                    <td>Learn the enemy safely</td>
+                                </tr>
+                                <tr>
+                                    <td>Medium</td>
+                                    <td>4-5</td>
+                                    <td>Room for mistakes</td>
+                                </tr>
+                                <tr>
+                                    <td>Hard</td>
+                                    <td>2-3 (random)</td>
+                                    <td>Tension every kill</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Two Fodder Types, Opposite Reactions</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Thread</th>
+                                    <th>Fragbyte</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Scared</td>
+                                    <td>Angry</td>
+                                </tr>
+                                <tr>
+                                    <td>Groups = smarter</td>
+                                    <td>Groups = wilder</td>
+                                </tr>
+                                <tr>
+                                    <td>Leader hides, commands</td>
+                                    <td>No leader, pack instinct</td>
+                                </tr>
+                                <tr>
+                                    <td>Tragic</td>
+                                    <td>Threatening</td>
+                                </tr>
+                                <tr>
+                                    <td>Feel bad killing</td>
+                                    <td>Feel good killing fast</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry enemy">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">TIER 1</span>
+                        <div>
+                            <div class="entry-name">FRAGSCOUT</div>
+                            <div class="entry-role">Cleaner Family // Aerial Sentinel</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Identity</div>
+                        <div class="quote-block">
+                            "Not here to fight. Here to watch. And it KNOWS when you're aiming at it."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What They Are</div>
+                        <p class="content-text">
+                            Issue detection drone. Hovers above combat, maintains distance, calls for backup if left alive too long. Works alone - never stacks with other Scouts. The eye in the sky that makes every fight worse.
+                        </p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag">AERIAL</span>
+                            <span class="tag">SWAY MECHANIC</span>
+                            <span class="tag">ALERT TIMER</span>
+                            <span class="tag">SLOW BUT PAINFUL</span>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Emotion: SMUG COWARDICE</div>
+                        <p class="content-text">
+                            Fragscout is a professional coward. It doesn't want to fight - it wants to <strong>report</strong> you. But it's not stupid. It knows what a gun barrel pointed at it means.<br><br>
+                            The moment your aim lingers? It sways. Drifts. Just enough to make you miss. Not a dodge - a <strong>taunt</strong>. <em>"You're too slow."</em>
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Want Statement</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Wants</th>
+                                    <th>Doesn't Care About</th>
+                                    <th>Gives Up When</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Report threat, survive to call backup</td>
+                                    <td>Trading damage, honor, fighting fair</td>
+                                    <td>Successfully summons help (job done)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Sway Mechanic</div>
+                        <p class="content-text">
+                            Scout tracks your crosshair. If aimed at for ~1 second, begins lateral sway.<br><br>
+                            • <strong>Sway pattern</strong> is predictable but annoying - figure it out or waste ammo<br>
+                            • <strong>Snap shots</strong> before sway triggers = clean kill<br>
+                            • <strong>Hesitation</strong> = frustration<br><br>
+                            <span class="highlight">Rewards:</span> Quick target acquisition, confident shooting<br>
+                            <span class="highlight">Punishes:</span> Slow aim, indecision, "lining up the perfect shot"
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Punishing Shot</div>
+                        <p class="content-text">
+                            Attacks are <strong>slow</strong> - long wind-up, visible charge. But when it hits? <strong>You feel it.</strong> Real chunk of shield/health.<br><br>
+                            • Forces respect: "I can't just ignore this thing"<br>
+                            • Wind-up is interruptible (flinch cancels the shot) - reward for aggression<br>
+                            • Creates pressure while you're trying to track the sway
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Alert System</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Phase</th>
+                                    <th>What Happens</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Observing</td>
+                                    <td>Timer building, harassing shots</td>
+                                </tr>
+                                <tr>
+                                    <td>Alert State</td>
+                                    <td>Flashing, spinning, calling backup</td>
+                                </tr>
+                                <tr>
+                                    <td>Reinforcements</td>
+                                    <td>Fragblock + 5-7 Fragbytes incoming</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="content-text" style="margin-top: 15px;">
+                            <strong>Kill before alert = reinforcements never come.</strong> Scout encounters are timer fights.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Difficulty Scaling</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Element</th>
+                                    <th>Easy</th>
+                                    <th>Medium</th>
+                                    <th>Hard</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Sway Trigger</td>
+                                    <td>Slow (1.5s)</td>
+                                    <td>Medium (1s)</td>
+                                    <td>Fast (0.5s)</td>
+                                </tr>
+                                <tr>
+                                    <td>Sway Pattern</td>
+                                    <td>Simple side-to-side</td>
+                                    <td>Figure-8 drift</td>
+                                    <td>Irregular</td>
+                                </tr>
+                                <tr>
+                                    <td>Shot Damage</td>
+                                    <td>Moderate</td>
+                                    <td>Painful</td>
+                                    <td>Brutal</td>
+                                </tr>
+                                <tr>
+                                    <td>Alert Timer</td>
+                                    <td>Long (20s)</td>
+                                    <td>Medium (12s)</td>
+                                    <td>Short (8s)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Positioning Intelligence</div>
+                        <p class="content-text">
+                            Scouts are <strong>aware</strong> of each other. Won't stack same vertical space. Spread to create crossfire angles. If one dies, others adjust.<br><br>
+                            Lore-justified: They're <em>issue detection drones</em>. Of course they communicate and avoid redundancy. That's literally their job.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Annoyance Factor</div>
+                        <p class="content-text">
+                            Fragscout should make players mutter <em>"fucking SCOUT"</em> under their breath. Not because it's unfair - because it's <strong>smug</strong>. It knows you're trying to hit it. It's not scared. It's inconvenienced.<br><br>
+                            The satisfaction of finally popping one mid-sway? <strong>Chef's kiss.</strong>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry enemy">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">TIER 1</span>
+                        <div>
+                            <div class="entry-name">FIREWALL GUARDIAN</div>
+                            <div class="entry-role">Protector Family // Baseline Security</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Identity</div>
+                        <div class="quote-block">
+                            "Not corrupted. Not confused. Doing exactly what it was built to do. You're the intruder here."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What They Are</div>
+                        <p class="content-text">
+                            Legitimate security software doing its actual job - blocking unauthorized access. The uncomfortable truth? From its perspective, <strong>YOU'RE the virus</strong>. You broke in. You're messing with system files. It's going to stop you.
+                        </p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag">ALL-ROUNDER</span>
+                            <span class="tag">RANGED + MELEE</span>
+                            <span class="tag">BULKY HEALTH</span>
+                            <span class="tag">WEAK SHIELD</span>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Emotion: COLD PROFESSIONALISM</div>
+                        <p class="content-text">
+                            Firewall Guardian isn't tragic. Isn't angry. Isn't scared. It's <strong>working</strong>.<br><br>
+                            No malice. No vendetta. Just a professional handling an intrusion. The Protector family doesn't have emotions - they have <strong>duty</strong>.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Want Statement</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Wants</th>
+                                    <th>Doesn't Care About</th>
+                                    <th>Gives Up When</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Neutralize intruder, protect sector</td>
+                                    <td>Your reasons, negotiation</td>
+                                    <td>You're dead or it is</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Combat Pattern: RANGE CHECK → APPROPRIATE RESPONSE</div>
+                        <p class="content-text">
+                            Firewall doesn't have one trick. It reads the situation and responds correctly. <strong>Chooses fight style, attack type, and movement based on you.</strong>
+                        </p>
+                        <table class="data-table" style="margin-top: 15px;">
+                            <thead>
+                                <tr>
+                                    <th>Distance</th>
+                                    <th>Response</th>
+                                    <th>Feel</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Long / Medium</td>
+                                    <td>Beam attacks - accurate, hurts</td>
+                                    <td>"Stop peeking me"</td>
+                                </tr>
+                                <tr>
+                                    <td>Close</td>
+                                    <td>Melee strikes - heavy, punishing</td>
+                                    <td>"You made a mistake closing in"</td>
+                                </tr>
+                                <tr>
+                                    <td>Any</td>
+                                    <td>Advances steadily, maintains pressure</td>
+                                    <td>"I'm coming regardless"</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Weak Shield</div>
+                        <p class="content-text">
+                            Can flash a small shield to block shots, but it's <strong>weak</strong>. Not a gimmick to exploit - just buys it a moment. Breaks fast, doesn't regenerate quickly.<br><br>
+                            This isn't a puzzle. It's just a soldier with basic gear.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Stat Reality</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Element</th>
+                                    <th>Firewall Guardian</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Health</td>
+                                    <td>HIGH - takes sustained fire to drop</td>
+                                </tr>
+                                <tr>
+                                    <td>Ranged Damage</td>
+                                    <td>Painful - can't just tank it</td>
+                                </tr>
+                                <tr>
+                                    <td>Melee Damage</td>
+                                    <td>Brutal - punishes bad positioning</td>
+                                </tr>
+                                <tr>
+                                    <td>Speed</td>
+                                    <td>Moderate - not rushing, not slow</td>
+                                </tr>
+                                <tr>
+                                    <td>Flinch</td>
+                                    <td>Minimal - keeps fighting through damage</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Difficulty Scaling</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Element</th>
+                                    <th>Easy</th>
+                                    <th>Medium</th>
+                                    <th>Hard</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Accuracy</td>
+                                    <td>Misses some shots</td>
+                                    <td>Consistent</td>
+                                    <td>Laser precise</td>
+                                </tr>
+                                <tr>
+                                    <td>Aggression</td>
+                                    <td>Holds position more</td>
+                                    <td>Balanced push</td>
+                                    <td>Relentless advance</td>
+                                </tr>
+                                <tr>
+                                    <td>Melee Tracking</td>
+                                    <td>Whiffs if you strafe</td>
+                                    <td>Tracks okay</td>
+                                    <td>Reads your dodge</td>
+                                </tr>
+                                <tr>
+                                    <td>Recovery</td>
+                                    <td>Pauses between attacks</td>
+                                    <td>Steady rhythm</td>
+                                    <td>Chains attacks</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Role in Encounters</div>
+                        <p class="content-text">
+                            Firewall is your <span class="highlight">anchor enemy</span>. It creates structure. No gimmick because it doesn't NEED one. It's the foundation other enemies play off of.
+                        </p>
+                        <ul class="content-list">
+                            <li><strong>1 Firewall alone</strong> = honest duel, skill test</li>
+                            <li><strong>1 Firewall + Fragbytes</strong> = can't focus either safely</li>
+                            <li><strong>1 Firewall + Scout</strong> = vertical AND horizontal pressure</li>
+                            <li><strong>1 Firewall + Fragblock</strong> = nowhere is safe</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Uncomfortable Truth</div>
+                        <p class="content-text">
+                            Killing Fragbytes? They're confused workers. <em>Sad.</em><br>
+                            Killing Fragblock? He was protecting his crew. <em>Noble.</em><br>
+                            Killing Fragscout? It was just doing recon. <em>Annoying but fair.</em><br><br>
+                            <strong>Killing Firewall Guardian?</strong> You killed security for doing its job. You're the bad guy here. It was RIGHT to try and stop you.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Cleaner vs Protector Families</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Cleaner (Maintenance)</th>
+                                    <th>Protector (Security)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Fragbyte - scared swarm</td>
+                                    <td>Firewall Guardian - professional soldier</td>
+                                </tr>
+                                <tr>
+                                    <td>Fragblock - protective supervisor</td>
+                                    <td>(V2 Enforcer - elite soldier)</td>
+                                </tr>
+                                <tr>
+                                    <td>Fragscout - smug recon</td>
+                                    <td>(V3 Master Guardian - boss)</td>
+                                </tr>
+                                <tr>
+                                    <td>Thread - tragic worker</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="content-text" style="margin-top: 15px;">
+                            Cleaners have <strong>emotion</strong>. They're corrupted workers with feelings.<br>
+                            Protectors have <strong>duty</strong>. They're security doing their jobs. Cold. Correct.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="tier-divider elite">
+                <h2>TIER 2 — ELITE</h2>
+                <p>Specialists with unique mechanics — encounter escalation</p>
+            </div>
+
+            <div class="entry enemy">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">TIER 2</span>
+                        <div>
+                            <div class="entry-name">FRAGBLOCK</div>
+                            <div class="entry-role">Cleaner Family // Elite Heavy</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Identity</div>
+                        <div class="quote-block">
+                            "When you see him, you know the Fragbytes got elite help. Supervisor's here - fight just got real."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What They Are</div>
+                        <p class="content-text">
+                            Defragmentation supervisor. Bulky, armored, protects Fragbyte workers. Not always around - but when he shows up, the encounter escalates. Uses same head-ram attack he'd use to break data blocks - now aimed at you. Not angry. Not scared. <strong>Working.</strong>
+                        </p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag">ELITE</span>
+                            <span class="tag">MELEE CHARGE</span>
+                            <span class="tag">STUN WINDOWS</span>
+                            <span class="tag">BULKY HEALTH</span>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Emotion: PROTECTIVE DUTY</div>
+                        <p class="content-text">
+                            Not angry like Fragbyte. Not scared like Thread. Fragblock is <strong>working</strong>. He sees you hurting his crew and responds the only way he knows how - remove the obstacle.<br><br>
+                            There's something almost noble about it. He's not smart enough to know he's corrupted. He just knows the little ones are dying and you're the reason.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Want Statement</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Wants</th>
+                                    <th>Doesn't Care About</th>
+                                    <th>Gives Up When</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Protect Fragbytes, remove obstacles</td>
+                                    <td>His own safety</td>
+                                    <td>Never (dies trying)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Combat Pattern: CHARGE → STUN → RECOVER</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Phase</th>
+                                    <th>Action</th>
+                                    <th>Player Opportunity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1. Wind-up</td>
+                                    <td>Lowers head, scrapes ground</td>
+                                    <td>Clear telegraph - prepare</td>
+                                </tr>
+                                <tr>
+                                    <td>2. Charge</td>
+                                    <td>Fast, heavy, committed</td>
+                                    <td>Break charge with enough damage OR dodge</td>
+                                </tr>
+                                <tr>
+                                    <td>3. Impact/Stun</td>
+                                    <td>Hits you OR gets interrupted</td>
+                                    <td>Broken charge = longer stun window</td>
+                                </tr>
+                                <tr>
+                                    <td>4. Recovery</td>
+                                    <td>Stunned, shakes head</td>
+                                    <td>DPS window - unload on him</td>
+                                </tr>
+                                <tr>
+                                    <td>5. Re-engage</td>
+                                    <td>Back to step 1</td>
+                                    <td>Cycle repeats</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Stun Threshold System</div>
+                        <p class="content-text">
+                            During charge, Fragblock has a <span class="highlight">stun meter</span>. Enough concentrated damage breaks the charge early.<br><br>
+                            • <strong>Broken charge</strong> = longer stun window (reward for skill)<br>
+                            • <strong>Completed charge</strong> = short recovery (punishment for missing)<br><br>
+                            Creates skill expression: <em>"Do I have the DPS to break this charge, or do I need to dodge?"</em>
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Difficulty Scaling</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Element</th>
+                                    <th>Easy</th>
+                                    <th>Medium</th>
+                                    <th>Hard</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Telegraph Duration</td>
+                                    <td>Long (2s)</td>
+                                    <td>Medium (1.2s)</td>
+                                    <td>Short (0.7s)</td>
+                                </tr>
+                                <tr>
+                                    <td>Stun Threshold</td>
+                                    <td>Low (easy to break)</td>
+                                    <td>Medium</td>
+                                    <td>High (need serious damage)</td>
+                                </tr>
+                                <tr>
+                                    <td>Recovery Window</td>
+                                    <td>Long (3s)</td>
+                                    <td>Medium (2s)</td>
+                                    <td>Short (1s)</td>
+                                </tr>
+                                <tr>
+                                    <td>Re-engage Speed</td>
+                                    <td>Slow</td>
+                                    <td>Normal</td>
+                                    <td>Fast (barely a pause)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Tragedy</div>
+                        <p class="content-text">
+                            He's not evil. He's a supervisor doing his job - protecting workers from threats. The virus just made him see <strong>you</strong> as the threat.<br><br>
+                            When you kill his last Fragbyte and he still charges... that's not rage. That's a foreman who failed his crew and has nothing left but the fight.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry enemy">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">TIER 2</span>
+                        <div>
+                            <div class="entry-name">FIREWALL ENFORCER (V2)</div>
+                            <div class="entry-role">Protector Family // Premium Security</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Identity</div>
+                        <div class="quote-block">
+                            "You bought the premium version. It was built to punish people exactly like you."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What They Are</div>
+                        <p class="content-text">
+                            Paid security. $40-80/year Norton, McAfee, AVG Premium. Corporate/government grade. It doesn't just defend checkpoints - it actively eliminates threats. And it learned from V1's weaknesses.<br><br>
+                            <strong>Everything that worked on the Guardian? Enforcer is ready for it.</strong>
+                        </p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag">ELITE</span>
+                            <span class="tag">COUNTER-FIGHTER</span>
+                            <span class="tag">REFLECTS BULLETS</span>
+                            <span class="tag">PARRY + SHOCKWAVE</span>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Emotion: CALCULATED AGGRESSION</div>
+                        <p class="content-text">
+                            V1 is professional. V2 is <strong>hunting</strong>.<br><br>
+                            This isn't a guard at a checkpoint. This is active threat elimination. Premium software doing premium work.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Want Statement</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Wants</th>
+                                    <th>Doesn't Care About</th>
+                                    <th>Gives Up When</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Eliminate threat efficiently</td>
+                                    <td>Fair fights, your excuses</td>
+                                    <td>You're dead or it is</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What Makes It Elite</div>
+                        <p class="content-text">
+                            V2 <strong>inherits</strong> everything V1 has but adds <span class="highlight">counter-mechanics</span> that punish sloppy play:
+                        </p>
+                        <table class="data-table" style="margin-top: 15px;">
+                            <thead>
+                                <tr>
+                                    <th>New Ability</th>
+                                    <th>What It Does</th>
+                                    <th>Punishes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Block Stance</td>
+                                    <td>Arms up, reflects bullets back</td>
+                                    <td>Spray and pray</td>
+                                </tr>
+                                <tr>
+                                    <td>Parry Counter</td>
+                                    <td>Deflects melee → immediate rush</td>
+                                    <td>Predictable aggression</td>
+                                </tr>
+                                <tr>
+                                    <td>Shockwave</td>
+                                    <td>AoE burst, knockback + damage</td>
+                                    <td>Overstaying in melee</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Combat Pattern: READ → COUNTER → PUNISH</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Your Mistake</th>
+                                    <th>V2's Response</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Full-auto spray at range</td>
+                                    <td>Block stance → bullets hit YOU</td>
+                                </tr>
+                                <tr>
+                                    <td>Predictable melee timing</td>
+                                    <td>Parry → rush → big damage</td>
+                                </tr>
+                                <tr>
+                                    <td>Stay in melee too long</td>
+                                    <td>Shockwave → knockback + hurt</td>
+                                </tr>
+                                <tr>
+                                    <td>Play passive, don't commit</td>
+                                    <td>Aggressive advance, forces engagement</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">How To Beat V2</div>
+                        <p class="content-text">
+                            <strong>Don't be predictable.</strong>
+                        </p>
+                        <ul class="content-list">
+                            <li>Vary your timing - don't always shoot at same rhythm</li>
+                            <li>Bait abilities - tap fire to trigger block, punish when it drops</li>
+                            <li>Hit and run in melee - don't overstay, shockwave is coming</li>
+                            <li>Mix up tactics mid-fight - if it adapted to Pattern A, switch to B</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Difficulty Scaling</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Element</th>
+                                    <th>Easy</th>
+                                    <th>Medium</th>
+                                    <th>Hard</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Block Telegraph</td>
+                                    <td>Obvious wind-up</td>
+                                    <td>Moderate</td>
+                                    <td>Reads your trigger</td>
+                                </tr>
+                                <tr>
+                                    <td>Parry Window</td>
+                                    <td>Wide, easy to bait</td>
+                                    <td>Normal</td>
+                                    <td>Tight timing</td>
+                                </tr>
+                                <tr>
+                                    <td>Shockwave Charge</td>
+                                    <td>Slow, plenty of warning</td>
+                                    <td>Moderate</td>
+                                    <td>Punishes greed</td>
+                                </tr>
+                                <tr>
+                                    <td>Pattern Recognition</td>
+                                    <td>Slow to adapt</td>
+                                    <td>Learns mid-fight</td>
+                                    <td>Reads you fast</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Protector Evolution</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Version</th>
+                                    <th>Role</th>
+                                    <th>Feel</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>V1 - Guardian</td>
+                                    <td>Free security, all-rounder</td>
+                                    <td>"Honest fight"</td>
+                                </tr>
+                                <tr>
+                                    <td>V2 - Enforcer</td>
+                                    <td>Paid security, counter-fighter</td>
+                                    <td>"Punishes mistakes"</td>
+                                </tr>
+                                <tr>
+                                    <td>V3 - Master Guardian</td>
+                                    <td>Premium security, boss</td>
+                                    <td>"Everything chained together"</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Lore Integration</div>
+                        <p class="content-text">
+                            <strong>Why It Got Hacked:</strong><br>
+                            • User temporarily disabled protection ("Just for this one download...")<br>
+                            • Ignored critical warnings, clicked "Allow Anyway"<br>
+                            • Gave admin permissions to malware disguised as update<br>
+                            • Social engineering ("Your antivirus expired! Click to renew!")<br><br>
+                            <strong>Shop Context:</strong> "Customer paid for Norton but device infected. Log shows protection disabled 3 days ago for 'important work file.' Classic user error."
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Skill Test Changes</div>
+                        <p class="content-text">
+                            <strong>V1 asks:</strong> "Can you outshoot an equal?"<br>
+                            <strong>V2 asks:</strong> "Can you stop being predictable?"
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry enemy">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">TIER 2</span>
+                        <div>
+                            <div class="entry-name">DATA MINER</div>
+                            <div class="entry-role">Malware // Heavy Siege</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Identity</div>
+                        <div class="quote-block">
+                            "Built to break through encryption and extract value. Now it's breaking through YOU."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What They Are</div>
+                        <p class="content-text">
+                            Heavy malware. Crypto miner / data extractor given physical form. Slower than Guardian but way stronger. That shield isn't decorative - it's a wall you have to solve.
+                        </p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag">ELITE</span>
+                            <span class="tag">HEAVY SHIELD</span>
+                            <span class="tag">THROWS PROJECTILES</span>
+                            <span class="tag">STOMP ATTACK</span>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Emotion: RELENTLESS EXTRACTION</div>
+                        <p class="content-text">
+                            Data Miner doesn't care about fighting fair. It cares about getting through whatever's in its way. Walls, encryption, firewalls - you. Same approach to all of them: tank hits, smash through.<br><br>
+                            It's a battering ram that throws rocks.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Want Statement</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Wants</th>
+                                    <th>Doesn't Care About</th>
+                                    <th>Gives Up When</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Get through you, extract what it wants</td>
+                                    <td>Your attacks, taking damage</td>
+                                    <td>Dead</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Data Miner vs Guardian</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Guardian</th>
+                                    <th>Data Miner</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Moderate speed</td>
+                                    <td>Slow</td>
+                                </tr>
+                                <tr>
+                                    <td>Weak shield</td>
+                                    <td>Heavy shield</td>
+                                </tr>
+                                <tr>
+                                    <td>All-rounder</td>
+                                    <td>Shield + melee focused</td>
+                                </tr>
+                                <tr>
+                                    <td>Ranged + melee balance</td>
+                                    <td>Throws stuff at range, smashes up close</td>
+                                </tr>
+                                <tr>
+                                    <td>Honest fight</td>
+                                    <td>Siege you have to crack</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Combat Pattern: ADVANCE → BLOCK → THROW → SMASH</div>
+                        <p class="content-text">
+                            <strong>At Range:</strong><br>
+                            • Advances behind heavy shield<br>
+                            • Throws debris/projectiles to pressure you<br>
+                            • Forces you to deal with it or get pinned<br><br>
+                            <strong>Up Close:</strong><br>
+                            • Melee smashes - heavy, slow, painful<br>
+                            • Stomp attack (AoE, punishes circling)<br>
+                            • Shield bash
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Problem</div>
+                        <p class="content-text">
+                            You can't out-trade it. You can't ignore it. You have to either:
+                        </p>
+                        <ul class="content-list">
+                            <li><strong>Break the shield</strong> (commit ammo)</li>
+                            <li><strong>Flank it</strong> (risky positioning)</li>
+                            <li><strong>Kite forever</strong> (tedious, other enemies will wreck you)</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Shield Mechanics</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Aspect</th>
+                                    <th>How It Works</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Coverage</td>
+                                    <td>Frontal - can be flanked</td>
+                                </tr>
+                                <tr>
+                                    <td>Health</td>
+                                    <td>Takes real damage to break</td>
+                                </tr>
+                                <tr>
+                                    <td>Regen</td>
+                                    <td>Slow or none (once cracked, stays cracked)</td>
+                                </tr>
+                                <tr>
+                                    <td>When Down</td>
+                                    <td>Vulnerable, but now it's angry</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Difficulty Scaling</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Element</th>
+                                    <th>Easy</th>
+                                    <th>Medium</th>
+                                    <th>Hard</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Advance Speed</td>
+                                    <td>Slow</td>
+                                    <td>Moderate</td>
+                                    <td>Steady pressure</td>
+                                </tr>
+                                <tr>
+                                    <td>Shield Health</td>
+                                    <td>Cracks fast</td>
+                                    <td>Takes commitment</td>
+                                    <td>Tanky</td>
+                                </tr>
+                                <tr>
+                                    <td>Throw Accuracy</td>
+                                    <td>Misses often</td>
+                                    <td>Leads a little</td>
+                                    <td>Hard to dodge</td>
+                                </tr>
+                                <tr>
+                                    <td>Stomp Telegraph</td>
+                                    <td>Long wind-up</td>
+                                    <td>Moderate</td>
+                                    <td>Quick</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Role in Encounters</div>
+                        <p class="content-text">
+                            Data Miner is your <span class="highlight">siege problem</span>. It doesn't chase you down. It <em>advances</em> on you and forces a decision.
+                        </p>
+                        <ul class="content-list">
+                            <li><strong>Data Miner alone</strong> = positioning puzzle</li>
+                            <li><strong>Data Miner + Fragbytes</strong> = can't kite safely</li>
+                            <li><strong>Data Miner + Fragscout</strong> = can't focus either</li>
+                            <li><strong>Data Miner + Weaver</strong> = absolute nightmare</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Malware Feel</div>
+                        <p class="content-text">
+                            No tragedy. No "just doing its job." Data Miner exists to extract value from systems - passwords, credit cards, crypto. Now it's extracting your health bar.<br><br>
+                            <strong>Feels good to kill.</strong>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry enemy">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">TIER 2</span>
+                        <div>
+                            <div class="entry-name">ENCRYPTION WEAVER</div>
+                            <div class="entry-role">Malware // Aerial Controller</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Identity</div>
+                        <div class="quote-block">
+                            "No job. No purpose. Just locks everything down and watches you struggle."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What They Are</div>
+                        <p class="content-text">
+                            Ransomware given form. Fast flyer - way more mobile than Fragscout. Has shield for survivability. Shoots data balls while zipping around. Think Destiny's Ghosts but <strong>hostile</strong>.
+                        </p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag">ELITE</span>
+                            <span class="tag">AERIAL</span>
+                            <span class="tag">FAST FLYER</span>
+                            <span class="tag">SHIELD</span>
+                            <span class="tag">DATA BALLS</span>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Emotion: MALICIOUS INTENT</div>
+                        <p class="content-text">
+                            Unlike Cleaners (corrupted workers) or Protectors (doing their job), Weaver is pure malware. Never had a legitimate function. Exists to encrypt, lock, restrict, hold hostage.<br><br>
+                            She's not confused. Not following bad orders. Just <strong>mean</strong>.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Want Statement</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Wants</th>
+                                    <th>Doesn't Care About</th>
+                                    <th>Gives Up When</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Lock everything down, watch you suffer</td>
+                                    <td>Your progress, fairness</td>
+                                    <td>Dead</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Fragscout vs Weaver</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Fragscout</th>
+                                    <th>Encryption Weaver</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Hovers in place</td>
+                                    <td>Flies patterns, repositions</td>
+                                </tr>
+                                <tr>
+                                    <td>Sways to dodge</td>
+                                    <td>Shield + speed to survive</td>
+                                </tr>
+                                <tr>
+                                    <td>Slow painful shot</td>
+                                    <td>Data ball volleys</td>
+                                </tr>
+                                <tr>
+                                    <td>Calls reinforcements</td>
+                                    <td>Affects environment (locks things)</td>
+                                </tr>
+                                <tr>
+                                    <td>Annoying</td>
+                                    <td>Threatening</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Combat Pattern: FLY → SHIELD → VOLLEY → REPOSITION</div>
+                        <p class="content-text">
+                            • Flies fast, hard to track<br>
+                            • Shield absorbs some hits (forces commitment)<br>
+                            • Fires data balls while moving<br>
+                            • Repositions constantly - never stays still<br><br>
+                            <strong>The Pressure:</strong> She's not waiting for you to deal with her. She's making everything worse while you're busy with ground threats.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Environmental Effect (TBD)</div>
+                        <p class="content-text">
+                            Locks stuff down while alive:
+                        </p>
+                        <ul class="content-list">
+                            <li>Doors won't open?</li>
+                            <li>Terminals inaccessible?</li>
+                            <li>Area denial threads?</li>
+                        </ul>
+                        <p class="content-text" style="margin-top: 15px;">
+                            <em>Figure out later - but she should affect the space, not just shoot at you.</em>
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Difficulty Scaling</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Element</th>
+                                    <th>Easy</th>
+                                    <th>Medium</th>
+                                    <th>Hard</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Flight Speed</td>
+                                    <td>Trackable</td>
+                                    <td>Quick</td>
+                                    <td>Hard to follow</td>
+                                </tr>
+                                <tr>
+                                    <td>Shield Strength</td>
+                                    <td>Weak (2-3 shots)</td>
+                                    <td>Moderate</td>
+                                    <td>Tanky</td>
+                                </tr>
+                                <tr>
+                                    <td>Ball Accuracy</td>
+                                    <td>Misses often</td>
+                                    <td>Consistent</td>
+                                    <td>Leads your movement</td>
+                                </tr>
+                                <tr>
+                                    <td>Reposition Frequency</td>
+                                    <td>Stays put sometimes</td>
+                                    <td>Regular</td>
+                                    <td>Constant motion</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Malware Difference</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Corrupted (Cleaners/Protectors)</th>
+                                    <th>Malware (Weaver, Data Miner)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Had a real job once</td>
+                                    <td>Never legitimate</td>
+                                </tr>
+                                <tr>
+                                    <td>Tragic or professional</td>
+                                    <td>Malicious</td>
+                                </tr>
+                                <tr>
+                                    <td>Might feel bad killing</td>
+                                    <td>Feels good killing</td>
+                                </tr>
+                                <tr>
+                                    <td>"They didn't ask for this"</td>
+                                    <td>"They exist to hurt you"</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="tier-divider boss">
+                <h2>TIER 3 — BOSS</h2>
+                <p>Rare encounters — repair objectives, not just combat</p>
+            </div>
+
+            <div class="entry boss">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">BOSS</span>
+                        <div>
+                            <div class="entry-name">MASTER GUARDIAN V3</div>
+                            <div class="entry-role">Protector Family // The Repair Boss</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Identity</div>
+                        <div class="quote-block">
+                            "Premium antivirus. Military-grade. Customer paid $80-150/year for this. You're not here to kill it. You're here to fix it."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What They Are</div>
+                        <p class="content-text">
+                            The final evolution of the Protector family. BitDefender, Norton, Kaspersky - the premium stuff. Last line of defense protecting critical system files. Legitimate software doing its job perfectly.<br><br>
+                            <strong>You're not destroying it. You're repairing the system it's protecting.</strong>
+                        </p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag">BOSS</span>
+                            <span class="tag">REPAIR OBJECTIVE</span>
+                            <span class="tag">NODE CHASE</span>
+                            <span class="tag">MINIGAME PHASES</span>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Emotion: ULTIMATE DUTY</div>
+                        <p class="content-text">
+                            Everything V1 and V2 are, perfected. Professional. Relentless. Correct.<br><br>
+                            The uncomfortable truth at maximum volume: this thing is RIGHT to try and stop you. You're the intruder. It's doing exactly what premium security should do.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Boss Philosophy</div>
+                        <p class="content-text">
+                            <strong>You're a repair tech, not a boss killer.</strong><br><br>
+                            Combat is the obstacle. Repair is the goal. You weaken Guardian's systems to allow the fix - not to destroy it.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Core Loop</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Phase</th>
+                                    <th>What Happens</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1. Fight</td>
+                                    <td>Deal damage, pressure Guardian</td>
+                                </tr>
+                                <tr>
+                                    <td>2. Retreat</td>
+                                    <td>At threshold, Guardian runs to node to heal/charge</td>
+                                </tr>
+                                <tr>
+                                    <td>3. Chase</td>
+                                    <td>Player pursues to node location</td>
+                                </tr>
+                                <tr>
+                                    <td>4. Minigame</td>
+                                    <td>Interact with node, repair minigame</td>
+                                </tr>
+                                <tr>
+                                    <td>5. Result</td>
+                                    <td>Success = stop heal + weaken. Fail = Guardian recovers</td>
+                                </tr>
+                                <tr>
+                                    <td>6. Repeat</td>
+                                    <td>Back to fighting, new phase</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Nodes</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Node Type</th>
+                                    <th>What It Does</th>
+                                    <th>Minigame Success</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Shield Generator</td>
+                                    <td>Powers Guardian's shield</td>
+                                    <td>Shield gone for phase</td>
+                                </tr>
+                                <tr>
+                                    <td>Power Conduit</td>
+                                    <td>Feeds Guardian strength</td>
+                                    <td>Guardian weakened</td>
+                                </tr>
+                                <tr>
+                                    <td>Backup System</td>
+                                    <td>Allows healing</td>
+                                    <td>No more heals</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Why This Works</div>
+                        <ul class="content-list">
+                            <li><strong>Combat AND repair</strong> - you're doing your job</li>
+                            <li><strong>Chase creates pacing</strong> - not just shooting for 10 minutes</li>
+                            <li><strong>Minigame success = tangible reward</strong> - not just damage numbers</li>
+                            <li><strong>Guardian feels fixable</strong> - corrupted security, not monster</li>
+                            <li><strong>Skill expression</strong> - in combat AND repair</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Feel</div>
+                        <p class="content-text">
+                            <em>"I'm not here to destroy the antivirus. I'm here to unfuck it."</em>
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Variants</div>
+                        <p class="content-text">
+                            3 variants planned - small differences in node types, chase patterns, and combat phases. Provides replayability without designing separate bosses.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry boss">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">BOSS</span>
+                        <div>
+                            <div class="entry-name">SYSTEM VIRUS</div>
+                            <div class="entry-role">Malware // The Chaos Boss</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Identity</div>
+                        <div class="quote-block">
+                            "Pure malware. No fixing this one. Kill it - but the whole room is trying to kill you too."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What They Are</div>
+                        <p class="content-text">
+                            Pure destructive malware. The infection from "Download_Movie_FREE.exe." So bad that repair isn't worth it - this is a kill mission. Digital vandalism given form.<br><br>
+                            <strong>No redemption. No fixing. Just burn the infection.</strong>
+                        </p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag">BOSS</span>
+                            <span class="tag">KILL OBJECTIVE</span>
+                            <span class="tag">ENVIRONMENT CORRUPTION</span>
+                            <span class="tag">RECLAIM DECISIONS</span>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Emotion: PURE MALICE</div>
+                        <p class="content-text">
+                            No tragic backstory. No "just doing its job." System Virus exists to destroy. Customer ignored warnings, clicked the wrong thing, and now this exists.<br><br>
+                            <strong>Feels good to kill.</strong>
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Boss Philosophy</div>
+                        <p class="content-text">
+                            <strong>Opposite of Master Guardian.</strong><br><br>
+                            This IS a kill mission. But the twist: the environment turns against you. Combat the boss AND reclaim corrupted systems.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Core Loop</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Phase</th>
+                                    <th>What Happens</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1. Fight</td>
+                                    <td>Shoot the Virus, deal with adds</td>
+                                </tr>
+                                <tr>
+                                    <td>2. Corruption Spread</td>
+                                    <td>Virus turns systems against you</td>
+                                </tr>
+                                <tr>
+                                    <td>3. Reclaim</td>
+                                    <td>Player can cleanse systems mid-fight</td>
+                                </tr>
+                                <tr>
+                                    <td>4. Escalation</td>
+                                    <td>Ignore systems = fight gets worse</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Environment Turns Against You</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>System</th>
+                                    <th>Normal</th>
+                                    <th>Corrupted</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Terminals</td>
+                                    <td>Neutral/helpful</td>
+                                    <td>Shoot at you</td>
+                                </tr>
+                                <tr>
+                                    <td>Doors</td>
+                                    <td>Open</td>
+                                    <td>Lock you in bad spots</td>
+                                </tr>
+                                <tr>
+                                    <td>Floor Panels</td>
+                                    <td>Safe</td>
+                                    <td>Damage zones</td>
+                                </tr>
+                                <tr>
+                                    <td>Spawn Points</td>
+                                    <td>Inactive</td>
+                                    <td>Pump out adds</td>
+                                </tr>
+                                <tr>
+                                    <td>Turrets</td>
+                                    <td>Offline</td>
+                                    <td>Target you</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Decision</div>
+                        <p class="content-text">
+                            Every moment you spend cleansing = you're not shooting the boss.<br>
+                            But if you don't cleanse, the arena becomes hell.
+                        </p>
+                        <ul class="content-list">
+                            <li><strong>Cleanse too much</strong> = boss heals / adds overwhelm</li>
+                            <li><strong>Cleanse too little</strong> = environment kills you</li>
+                            <li><strong>Balance</strong> = skill</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Why This Works</div>
+                        <ul class="content-list">
+                            <li><strong>Different from Master Guardian</strong> - chaos vs methodical</li>
+                            <li><strong>Environment IS the gimmick</strong> - not just dodge patterns</li>
+                            <li><strong>No sympathy</strong> - pure malware, destroy it</li>
+                            <li><strong>Replayable</strong> - which systems corrupt is semi-random</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">The Feel</div>
+                        <p class="content-text">
+                            <em>"The whole room wants me dead and I have to fight the building AND the boss."</em>
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Boss Comparison</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Master Guardian</th>
+                                    <th>System Virus</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Repair boss</td>
+                                    <td>Kill boss</td>
+                                </tr>
+                                <tr>
+                                    <td>Chase to nodes</td>
+                                    <td>Hold your ground</td>
+                                </tr>
+                                <tr>
+                                    <td>Minigame phases</td>
+                                    <td>Reclaim decisions</td>
+                                </tr>
+                                <tr>
+                                    <td>Methodical, professional</td>
+                                    <td>Chaotic, desperate</td>
+                                </tr>
+                                <tr>
+                                    <td>"Fix the security"</td>
+                                    <td>"Burn the infection"</td>
+                                </tr>
+                                <tr>
+                                    <td>Sympathetic (doing its job)</td>
+                                    <td>Malicious (exists to hurt)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Variants</div>
+                        <p class="content-text">
+                            3 variants planned - different corruption patterns, system priorities, and add compositions. Provides replayability without designing separate bosses.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- UNIVERSAL RULES SECTION -->
+        <div id="rules" class="section">
+            
+            <div class="entry system">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">CORE</span>
+                        <div>
+                            <div class="entry-name">DIFFICULTY DESIGN</div>
+                            <div class="entry-role">Behavior Thresholds, Not Stats</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Philosophy</div>
+                        <div class="quote-block">
+                            "Easy teaches mechanics safely. Medium tests understanding. Hard punishes mistakes. Player learns the ENEMY, not the numbers."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What Stays The Same</div>
+                        <div class="tag info">HEALTH</div>
+                        <div class="tag info">DAMAGE</div>
+                        <p class="content-text" style="margin-top: 15px;">
+                            Health scaling is lazy. Behavior scaling is design.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What Changes</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Element</th>
+                                    <th>Easy</th>
+                                    <th>Medium</th>
+                                    <th>Hard</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Behavior Triggers</td>
+                                    <td>Loose / Off</td>
+                                    <td>Moderate</td>
+                                    <td>Tight / Punishing</td>
+                                </tr>
+                                <tr>
+                                    <td>Patterns</td>
+                                    <td>Sloppy</td>
+                                    <td>Standard</td>
+                                    <td>Precise</td>
+                                </tr>
+                                <tr>
+                                    <td>Coordination</td>
+                                    <td>Low</td>
+                                    <td>Medium</td>
+                                    <td>High</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Examples</div>
+                        <ul class="content-list">
+                            <li><strong>Fragbyte rage threshold:</strong> 8 deaths (easy) vs 2-3 deaths (hard)</li>
+                            <li><strong>Thread leader promotion:</strong> 6+ threads (easy) vs 4 threads (hard)</li>
+                            <li><strong>Pattern precision:</strong> Sloppy 3+1 (easy) vs tight 3+1 (hard)</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry system">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">CORE</span>
+                        <div>
+                            <div class="entry-name">ENEMY DETECTION</div>
+                            <div class="entry-role">The Pause // Universal Trait</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Golden Trait</div>
+                        <div class="quote-block">
+                            "They stop. Turn to look. Red flash. Then they come. That pause is predator behavior. It says 'I'm not mindless - I chose to come for you.'"
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Detection Sequence</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Step</th>
+                                    <th>Action</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Detect player</td>
+                                    <td>Instant</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Stop movement</td>
+                                    <td>Instant</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Turn to face</td>
+                                    <td>~0.3s</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>Acknowledge (red flash)</td>
+                                    <td>0.5-0.8s</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td>Select behavior / attack</td>
+                                    <td>--</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Why This Works</div>
+                        <p class="content-text">
+                            Even fodder feels threatening when it acknowledges you first. Players learn "red flash = I'm about to get rushed" and it builds tension every time. This becomes Dysector's signature.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry system">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">CORE</span>
+                        <div>
+                            <div class="entry-name">ENEMY WANT STATEMENT</div>
+                            <div class="entry-role">Personality Before Mechanics</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Design Tool</div>
+                        <div class="quote-block">
+                            "Not 'what can this enemy do' but 'what does this enemy WANT.' When each thread has a clear want, the AI goals write themselves and players read the behavior instantly."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">For Each Enemy, Answer:</div>
+                        <ul class="content-list">
+                            <li><strong>What do they want?</strong></li>
+                            <li><strong>What do they NOT care about?</strong></li>
+                            <li><strong>When do they give up?</strong></li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Current Want Statements</div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Enemy</th>
+                                    <th>Wants</th>
+                                    <th>Doesn't Care About</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Thread</td>
+                                    <td>Complete task (kill you), but scared</td>
+                                    <td>--</td>
+                                </tr>
+                                <tr>
+                                    <td>Thread Leader</td>
+                                    <td>Hide, command, use environment</td>
+                                    <td>Fighting directly</td>
+                                </tr>
+                                <tr>
+                                    <td>Fragbyte</td>
+                                    <td>Reach you, pop, avenge pack</td>
+                                    <td>Self-preservation</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <footer>
+            <div class="footer-text">DYSECTOR // HAPPENSTANCE GAMES // COMBAT IDENTITY CODEX</div>
+        </footer>
+    </div>
+
+    <script>
+        // Tab Navigation
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active from all tabs
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                // Add active to clicked tab
+                tab.classList.add('active');
+                
+                // Hide all sections
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                // Show target section
+                const targetSection = document.getElementById(tab.dataset.section);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                }
+            });
+        });
+
+        // Entry Accordion
+        document.querySelectorAll('.entry-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const entry = header.parentElement;
+                entry.classList.toggle('open');
+            });
+        });
+    </script>
+</body>
+</html>

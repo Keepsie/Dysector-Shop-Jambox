@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DYSECTOR // Probe System Codex</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0c;
+            --bg-card: #111115;
+            --bg-card-hover: #18181d;
+            --purple: #9b59b6;
+            --purple-dim: #6c3483;
+            --cyan: #4ecdc4;
+            --cyan-dim: #2a7a74;
+            --gold: #d4a843;
+            --gold-dim: #8b7355;
+            --red: #e74c3c;
+            --red-dim: #922f25;
+            --green: #27ae60;
+            --green-dim: #1e8449;
+            --text-primary: #e8e8e8;
+            --text-secondary: #888;
+            --text-dim: #555;
+            --border: #2a2a30;
+            --circuit: rgba(155, 89, 182, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(90deg, var(--circuit) 1px, transparent 1px),
+                linear-gradient(var(--circuit) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.1) 2px,
+                rgba(0, 0, 0, 0.1) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px;
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-dark) 100%);
+            position: relative;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+        }
+
+        .header-label {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--cyan);
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: 8px;
+            background: linear-gradient(180deg, var(--text-primary) 0%, var(--cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-tab {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            letter-spacing: 2px;
+            padding: 12px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .nav-tab:hover {
+            border-color: var(--cyan-dim);
+            color: var(--text-primary);
+        }
+
+        .nav-tab.active {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            background: rgba(78, 205, 196, 0.1);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .entry {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .entry::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--cyan);
+        }
+
+        .entry.probe::before { background: var(--cyan); }
+        .entry.workbench::before { background: var(--green); }
+        .entry.terminal::before { background: var(--gold); }
+        .entry.objective::before { background: var(--purple); }
+        .entry.rule::before { background: var(--purple); }
+        .entry.nuclear::before { background: var(--red); }
+
+        .entry-header {
+            padding: 20px 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .entry-header:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .entry-title {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .entry-icon {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            padding: 6px 12px;
+            background: rgba(78, 205, 196, 0.2);
+            border: 1px solid var(--cyan-dim);
+            color: var(--cyan);
+            letter-spacing: 2px;
+        }
+
+        .entry.workbench .entry-icon {
+            background: rgba(39, 174, 96, 0.2);
+            border-color: var(--green-dim);
+            color: var(--green);
+        }
+
+        .entry.terminal .entry-icon {
+            background: rgba(212, 168, 67, 0.2);
+            border-color: var(--gold-dim);
+            color: var(--gold);
+        }
+
+        .entry.objective .entry-icon {
+            background: rgba(155, 89, 182, 0.2);
+            border-color: var(--purple-dim);
+            color: var(--purple);
+        }
+
+        .entry.nuclear .entry-icon {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: var(--red-dim);
+            color: var(--red);
+        }
+
+        .entry-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .entry-role {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .entry-toggle {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 24px;
+            color: var(--text-dim);
+            transition: transform 0.3s ease;
+        }
+
+        .entry.open .entry-toggle {
+            transform: rotate(45deg);
+        }
+
+        .entry-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            border-top: 1px solid transparent;
+        }
+
+        .entry.open .entry-content {
+            max-height: 2000px;
+            border-top-color: var(--border);
+        }
+
+        .content-block {
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .content-block:last-child {
+            border-bottom: none;
+        }
+
+        .block-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: var(--cyan);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .entry.workbench .block-title { color: var(--green); }
+        .entry.terminal .block-title { color: var(--gold); }
+        .entry.objective .block-title { color: var(--purple); }
+        .entry.nuclear .block-title { color: var(--red); }
+
+        .content-text {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .content-text strong {
+            color: var(--text-primary);
+        }
+
+        .content-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .content-list li {
+            font-size: 16px;
+            color: var(--text-secondary);
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .content-list li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--cyan);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .entry.workbench .content-list li::before { color: var(--green); }
+        .entry.terminal .content-list li::before { color: var(--gold); }
+        .entry.objective .content-list li::before { color: var(--purple); }
+        .entry.nuclear .content-list li::before { color: var(--red); }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        .stats-table th,
+        .stats-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .stats-table th {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--cyan);
+            font-weight: normal;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .stats-table td {
+            color: var(--text-secondary);
+        }
+
+        .stats-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .quote-block {
+            background: rgba(78, 205, 196, 0.1);
+            border-left: 3px solid var(--cyan);
+            padding: 16px 20px;
+            font-style: italic;
+            color: var(--text-secondary);
+            margin: 10px 0;
+        }
+
+        .highlight-box {
+            background: var(--bg-card-hover);
+            border: 1px solid var(--border);
+            padding: 16px 20px;
+            margin: 10px 0;
+        }
+
+        .highlight-box.warning {
+            border-color: var(--red-dim);
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .highlight-box.info {
+            border-color: var(--cyan-dim);
+            background: rgba(78, 205, 196, 0.1);
+        }
+
+        .probe-visual {
+            text-align: center;
+            padding: 40px;
+            background: rgba(78, 205, 196, 0.05);
+            border: 1px dashed var(--cyan-dim);
+            margin: 10px 0;
+        }
+
+        .probe-shape {
+            font-size: 80px;
+            color: var(--cyan);
+            margin-bottom: 10px;
+        }
+
+        .probe-label {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+        }
+
+        footer {
+            margin-top: 60px;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-text {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-label">DESIGN CODEX // VERSION 2.0</div>
+            <h1>PROBE SYSTEM</h1>
+            <div class="subtitle">ONE FRAMEWORK — MULTIPLE OBJECTIVES</div>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-section="overview">Overview</button>
+            <button class="nav-tab" data-section="probe">The Probe</button>
+            <button class="nav-tab" data-section="objectives">Objectives</button>
+            <button class="nav-tab" data-section="contexts">Contexts</button>
+            <button class="nav-tab" data-section="nuclear">System Wipe</button>
+            <button class="nav-tab" data-section="progression">Progression</button>
+        </nav>
+
+        <!-- OVERVIEW SECTION -->
+        <div id="overview" class="section active">
+            
+            <div class="entry probe">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">CORE</span>
+                        <div>
+                            <div class="entry-name">ONE GAME, MANY JOBS</div>
+                            <div class="entry-role">The Probe System</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Breakthrough</div>
+                        <div class="quote-block">
+                            "We don't need 7 mini-games. We need ONE game framework with different objectives. Same probe, different missions."
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What It Is</div>
+                        <p class="content-text">
+                            <strong>Star Fox 2D-style side-scroller.</strong> You pilot a Probe through device systems. The objective changes based on context — scan, clean, recover, bypass — but the core gameplay is always the same.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Why It Works</div>
+                        <ul class="content-list">
+                            <li>One framework to build</li>
+                            <li>One system to learn</li>
+                            <li>Objectives change the feel</li>
+                            <li>Scales from workbench (30-90 sec) to terminal (5-15 sec)</li>
+                            <li>Workbench = 2D preview of 3D dive</li>
+                            <li>Same shooting skills, different camera</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry probe">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">CORE</span>
+                        <div>
+                            <div class="entry-name">WORKBENCH PREVIEWS DIVE</div>
+                            <div class="entry-role">2D Trains You for 3D</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Connection</div>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Location</th>
+                                    <th>View</th>
+                                    <th>What You're Doing</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Workbench (Probe)</td>
+                                    <td>2D Side-scroll</td>
+                                    <td>Fly, dodge, shoot</td>
+                                </tr>
+                                <tr>
+                                    <td>Dive (FPS)</td>
+                                    <td>3D First-person</td>
+                                    <td>Walk, dodge, shoot</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Same Skills, Different Camera</div>
+                        <p class="content-text">
+                            Probe runs teach: movement, shooting, dodging, collecting. Diving uses those same skills in 3D. <strong>Workbench is training wheels for the real thing.</strong>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- PROBE SECTION -->
+        <div id="probe" class="section">
+            
+            <div class="entry probe">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">PROBE</span>
+                        <div>
+                            <div class="entry-name">THE PROBE</div>
+                            <div class="entry-role">Your 2D Avatar</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Visual</div>
+                        <div class="probe-visual">
+                            <div class="probe-shape">◯</div>
+                            <div class="probe-label">[ ROUNDISH OVAL — SCANNER PROBE ]</div>
+                        </div>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What It Is</div>
+                        <p class="content-text">
+                            A diagnostic probe — small, round, oval-shaped scanner. This is YOU going into the device in miniature. When you're at the workbench, you're piloting this probe through the system.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Core Gameplay</div>
+                        <table class="stats-table">
+                            <tr>
+                                <td>View</td>
+                                <td>Side-scroll 2D (Star Fox style)</td>
+                            </tr>
+                            <tr>
+                                <td>Movement</td>
+                                <td>WASD — you control position</td>
+                            </tr>
+                            <tr>
+                                <td>Scroll</td>
+                                <td>Auto-scroll forward toward objective</td>
+                            </tr>
+                            <tr>
+                                <td>Actions</td>
+                                <td>Dodge, shoot, collect (based on objective)</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Thematic Tie-In</div>
+                        <p class="content-text">
+                            You're literally doing a mini-dive. The probe is your avatar navigating the device's systems in 2D. Same concept as walking through sectors in 3D — just simplified, faster, workbench-scale.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- OBJECTIVES SECTION -->
+        <div id="objectives" class="section">
+            
+            <div class="entry objective">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">OBJ</span>
+                        <div>
+                            <div class="entry-name">SCAN</div>
+                            <div class="entry-role">Dodge to Core</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Objective</div>
+                        <p class="content-text">
+                            <strong>Reach the core.</strong> Dodge obstacles, avoid hazards, navigate to the device's core to complete the diagnostic scan.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">What It Reveals</div>
+                        <ul class="content-list">
+                            <li>What's wrong with the device</li>
+                            <li>How bad the damage is</li>
+                            <li>Whether it needs a dive or just surface clean</li>
+                            <li>For mystery pallet devices — reveals grade</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Feel</div>
+                        <p class="content-text">
+                            Scouting. You're flying through, seeing the landscape, not engaging. <strong>What you encounter = hints at the problem.</strong> Lots of virus nodes = infected. Lots of junk blocks = clogged.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry objective">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">OBJ</span>
+                        <div>
+                            <div class="entry-name">CLEAN</div>
+                            <div class="entry-role">Shoot Threats</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Objective</div>
+                        <p class="content-text">
+                            <strong>Destroy the threats.</strong> Same path you scouted in Scan, but now you're shooting. Clear the infections, remove the junk.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Connection to Scan</div>
+                        <p class="content-text">
+                            Scan showed you what's there. Clean removes it. <strong>You're doing what you saw.</strong>
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Feel</div>
+                        <p class="content-text">
+                            Combat. Active. You're not dodging anymore — you're engaging. Same Star Fox movement, but now with shooting.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry objective">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">OBJ</span>
+                        <div>
+                            <div class="entry-name">RECOVER</div>
+                            <div class="entry-role">Collect Data</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Objective</div>
+                        <p class="content-text">
+                            <strong>Grab the data.</strong> Collect rings, data fragments, files. Navigate to pick up what the customer needs recovered.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Feel</div>
+                        <p class="content-text">
+                            Precision collection. You're not fighting — you're salvaging. Fly through the path, grab the goods, avoid hazards.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry objective">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">OBJ</span>
+                        <div>
+                            <div class="entry-name">DEFRAG</div>
+                            <div class="entry-role">Hold Steady</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Objective</div>
+                        <p class="content-text">
+                            <strong>Maintain stable flight.</strong> Hold position, stay in the safe zone, keep the connection steady while defrag runs.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Feel</div>
+                        <p class="content-text">
+                            The "hold-to-clean" option. Chill, low intensity. Just keep the probe steady. Satisfying busy work — zone out while it runs.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry objective">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">OBJ</span>
+                        <div>
+                            <div class="entry-name">BYPASS</div>
+                            <div class="entry-role">Speed Blitz</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">Objective</div>
+                        <p class="content-text">
+                            <strong>Get through fast.</strong> Same probe, same mechanics, but compressed to 5-15 seconds. Terminal hacking mid-dive.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Feel</div>
+                        <p class="content-text">
+                            Quick skill check. You know this game from workbench — now do it under pressure while enemies wait. Don't break combat flow.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- CONTEXTS SECTION -->
+        <div id="contexts" class="section">
+            
+            <div class="entry workbench">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">BENCH</span>
+                        <div>
+                            <div class="entry-name">WORKBENCH CONTEXT</div>
+                            <div class="entry-role">30-90 Seconds — Methodical</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">When</div>
+                        <p class="content-text">
+                            Customer brings device. You put it on workbench. You launch probe run to diagnose and/or fix.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Duration</div>
+                        <p class="content-text">
+                            <strong>30-90 seconds.</strong> Long enough to feel like real work. Short enough to not be a chore.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Available Objectives</div>
+                        <ul class="content-list">
+                            <li>Scan — diagnose the problem</li>
+                            <li>Clean — remove surface threats</li>
+                            <li>Recover — collect data for customer</li>
+                            <li>Defrag — hold steady while system reorganizes</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Feel</div>
+                        <p class="content-text">
+                            Safe. Methodical. Practice. You're learning the device, prepping for a potential dive. This is the 2D preview of the 3D experience.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry terminal">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">TERM</span>
+                        <div>
+                            <div class="entry-name">TERMINAL CONTEXT</div>
+                            <div class="entry-role">5-15 Seconds — Blitz</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">When</div>
+                        <p class="content-text">
+                            Mid-dive. You're in 3D combat. You reach a terminal. Plug in injector. Quick probe run to bypass.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Duration</div>
+                        <p class="content-text">
+                            <strong>5-15 seconds.</strong> Fast. Don't break combat momentum. Warframe-style quick action.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Available Objectives</div>
+                        <ul class="content-list">
+                            <li>Bypass — get through the security quick</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Feel</div>
+                        <p class="content-text">
+                            Pressure. Same game you know from workbench, but compressed. Skill check. Enemies are waiting. Get it done.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Why Same System Works</div>
+                        <p class="content-text">
+                            You've done this at the workbench 50 times. Now do it fast. <strong>Familiarity makes speed possible.</strong>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SYSTEM WIPE SECTION -->
+        <div id="nuclear" class="section">
+            
+            <div class="entry nuclear">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">NUCLEAR</span>
+                        <div>
+                            <div class="entry-name">SYSTEM WIPE</div>
+                            <div class="entry-role">Not a Probe Run — A Choice</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">What It Is</div>
+                        <p class="content-text">
+                            Complete device wipe and reinstall. <strong>Not a mini-game.</strong> A menu choice with real consequences. The "I'm in over my head" emergency button.
+                        </p>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Requirements</div>
+                        <table class="stats-table">
+                            <tr>
+                                <td>Cost</td>
+                                <td>OS Software (expensive, not farmable)</td>
+                            </tr>
+                            <tr>
+                                <td>Health Threshold</td>
+                                <td>Device must be above ~40% (can't wipe a brick)</td>
+                            </tr>
+                            <tr>
+                                <td>Availability</td>
+                                <td>Only after scan reveals issues</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Consequences</div>
+                        <div class="highlight-box warning">
+                            <strong>DATA RECOVERY JOBS:</strong> Customer wanted their files back. You nuked them. Bad review guaranteed. Don't use system wipe on recovery jobs unless you want angry customers.
+                        </div>
+                        <p class="content-text" style="margin-top: 15px;">
+                            <strong>Normal jobs:</strong> Works, but customer knows you took the easy way out. Reduced satisfaction. Not a strategy — an emergency exit.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- PROGRESSION SECTION -->
+        <div id="progression" class="section">
+            
+            <div class="entry rule">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">FLOW</span>
+                        <div>
+                            <div class="entry-name">EARLY GAME PROGRESSION</div>
+                            <div class="entry-role">Workbench First, Dive Later</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">The Build-Up</div>
+                        <table class="stats-table">
+                            <thead>
+                                <tr>
+                                    <th>Phase</th>
+                                    <th>What's Available</th>
+                                    <th>Purpose</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Jobs 1-2</td>
+                                    <td>Workbench only</td>
+                                    <td>Learn probe system</td>
+                                </tr>
+                                <tr>
+                                    <td>Job 3+</td>
+                                    <td>Diving unlocks</td>
+                                    <td>Graduate to 3D</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Why This Order</div>
+                        <ul class="content-list">
+                            <li>Workbench isn't filler — it's your intro</li>
+                            <li>Players WANT to dive because they've been doing baby versions</li>
+                            <li>Diving feels earned, not handed</li>
+                            <li>Probe runs = training wheels for FPS combat</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">Late Game</div>
+                        <p class="content-text">
+                            Choice opens up. Quick bench fix for simple jobs. Deep dive for serious infections. <strong>Workbench becomes the "I don't have time for a full dive" option.</strong>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="entry rule">
+                <div class="entry-header">
+                    <div class="entry-title">
+                        <span class="entry-icon">RULE</span>
+                        <div>
+                            <div class="entry-name">SUCCESS METRICS</div>
+                            <div class="entry-role">How We Know It Works</div>
+                        </div>
+                    </div>
+                    <span class="entry-toggle">+</span>
+                </div>
+                <div class="entry-content">
+                    
+                    <div class="content-block">
+                        <div class="block-title">It Works If</div>
+                        <ul class="content-list">
+                            <li>One framework feels like many games (objectives change feel)</li>
+                            <li>Workbench feels like real work, not busywork</li>
+                            <li>Terminals don't kill combat momentum</li>
+                            <li>Skills transfer from 2D probe to 3D dive</li>
+                            <li>Players say "I'm ready to dive" after workbench training</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <div class="block-title">It Fails If</div>
+                        <ul class="content-list">
+                            <li>Objectives feel same-y despite different goals</li>
+                            <li>Workbench feels disconnected from diving</li>
+                            <li>Terminal breaks flow instead of quick gate</li>
+                            <li>Players skip workbench mentally</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <footer>
+            <div class="footer-text">DYSECTOR // HAPPENSTANCE GAMES // PROBE SYSTEM CODEX</div>
+        </footer>
+    </div>
+
+    <script>
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                const targetSection = document.getElementById(tab.dataset.section);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelectorAll('.entry-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const entry = header.parentElement;
+                entry.classList.toggle('open');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,7 +1,231 @@
 /* DYSECTOR Shop Prototype - Shop Tab Styles */
 
 /* ========================================
-   SHOP LAYOUT
+   SHOP LAYOUT V2 - Map Left, Sidebar Right
+======================================== */
+.shop-layout-v2 {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    height: 100%;
+}
+
+/* Map area - left side */
+.shop-map-area {
+    background: var(--bg-darker);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    gap: 12px;
+}
+
+.shop-map-container {
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+}
+
+#shop-map {
+    display: block;
+    image-rendering: pixelated;
+}
+
+/* Info panel below map */
+.map-info-panel {
+    width: 100%;
+    max-width: 500px;
+    min-height: 60px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 12px 16px;
+}
+
+.map-info-default {
+    text-align: center;
+}
+
+.info-hint {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+/* Customer info display */
+.map-info-customer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.customer-info-left {
+    flex: 1;
+}
+
+.customer-info-name {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cyan);
+    margin-bottom: 4px;
+}
+
+.customer-info-device {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--gold);
+}
+
+.customer-info-status {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.customer-info-right .interact-btn {
+    padding: 8px 16px;
+    background: var(--bg-input);
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.customer-info-right .interact-btn:hover {
+    background: rgba(0, 255, 245, 0.1);
+}
+
+.customer-info-right .interact-btn:disabled {
+    border-color: var(--text-dim);
+    color: var(--text-dim);
+    cursor: not-allowed;
+}
+
+/* Table/workbench info */
+.map-info-tile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tile-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.tile-info-text {
+    flex: 1;
+}
+
+.tile-info-name {
+    font-family: var(--font-display);
+    font-size: 13px;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.tile-info-desc {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+/* Sidebar - right side */
+.shop-sidebar {
+    background: var(--bg-card);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sidebar-stats {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+}
+
+.waiting-highlight {
+    color: #ff9f1c !important;
+}
+
+.sidebar-section {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.sidebar-header {
+    font-family: var(--font-display);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+}
+
+.empty-state-small {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 8px 0;
+}
+
+/* Dialogue section - takes remaining space */
+.sidebar-dialogue {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.sidebar-dialogue .text-display {
+    flex: 1;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.sidebar-dialogue .text-line {
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+/* Commands at bottom */
+.sidebar-commands {
+    padding: 12px;
+    background: var(--bg-darker);
+    border-top: 1px solid var(--border);
+}
+
+.sidebar-commands .input-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sidebar-commands .option-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+}
+
+/* ========================================
+   OLD SHOP LAYOUT (kept for reference)
 ======================================== */
 .shop-layout {
     display: grid;
