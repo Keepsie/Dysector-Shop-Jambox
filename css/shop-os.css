@@ -1,0 +1,557 @@
+/* DYSECTOR Shop Prototype - Shop OS Tab Styles */
+
+/* ========================================
+   OS CONTAINER
+======================================== */
+.os-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #0a0a12 0%, #080810 100%);
+    position: relative;
+}
+
+.os-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: var(--bg-darker);
+    border-bottom: 1px solid var(--border);
+}
+
+.os-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    letter-spacing: 2px;
+}
+
+.os-status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    background: rgba(39, 174, 96, 0.2);
+    color: var(--green);
+    letter-spacing: 1px;
+}
+
+/* ========================================
+   DESKTOP
+======================================== */
+.os-desktop {
+    flex: 1;
+    padding: 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 100px);
+    grid-auto-rows: 100px;
+    gap: 20px;
+    align-content: start;
+}
+
+.os-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+    background: transparent;
+}
+
+.os-icon:hover {
+    background: rgba(78, 205, 196, 0.1);
+    border-color: var(--cyan-dim);
+}
+
+.os-icon:active {
+    background: rgba(78, 205, 196, 0.2);
+}
+
+.icon-graphic {
+    width: 48px;
+    height: 48px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--cyan);
+}
+
+.icon-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+/* Null Sector special styling */
+.os-icon[data-app="null-sector"] .icon-graphic {
+    border-color: var(--purple-dim);
+    color: var(--purple);
+    background: rgba(155, 89, 182, 0.1);
+}
+
+.os-icon[data-app="null-sector"]:hover {
+    background: rgba(155, 89, 182, 0.15);
+    border-color: var(--purple-dim);
+}
+
+/* ========================================
+   WINDOW
+======================================== */
+.os-window {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    max-width: 90%;
+    max-height: 80%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+}
+
+.window-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--bg-darker);
+    border-bottom: 1px solid var(--border);
+}
+
+.window-title {
+    font-family: var(--font-display);
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+}
+
+.window-close {
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.window-close:hover {
+    background: var(--red);
+    border-color: var(--red);
+    color: var(--text-bright);
+}
+
+.window-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* ========================================
+   TASKBAR
+======================================== */
+.os-taskbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: var(--bg-darker);
+    border-top: 1px solid var(--border);
+}
+
+.taskbar-time {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.taskbar-status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+}
+
+/* ========================================
+   WINDOW CONTENT - SUPPLIER
+======================================== */
+.supplier-section {
+    margin-bottom: 24px;
+}
+
+.supplier-section:last-child {
+    margin-bottom: 0;
+}
+
+.supplier-header {
+    font-family: var(--font-display);
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.supplier-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    transition: all 0.15s ease;
+}
+
+.supplier-item:hover {
+    border-color: var(--gold-dim);
+}
+
+.supplier-item-info {
+    flex: 1;
+}
+
+.supplier-item-name {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.supplier-item-desc {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.supplier-item-price {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-right: 16px;
+}
+
+.supplier-buy-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.supplier-buy-btn:hover {
+    background: rgba(212, 168, 67, 0.2);
+    border-color: var(--gold);
+}
+
+.supplier-buy-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   WINDOW CONTENT - LICENSES
+======================================== */
+.license-card {
+    padding: 16px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+}
+
+.license-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.license-name {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.license-name.grade-e { color: var(--text-secondary); }
+.license-name.grade-c { color: var(--green); }
+.license-name.grade-b { color: var(--blue); }
+.license-name.grade-a { color: var(--gold); }
+
+.license-status {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 4px 10px;
+}
+
+.license-status.owned {
+    background: rgba(39, 174, 96, 0.2);
+    color: var(--green);
+}
+
+.license-status.locked {
+    background: rgba(136, 136, 136, 0.2);
+    color: var(--text-secondary);
+}
+
+.license-desc {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.license-costs {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.license-cost {
+    font-family: var(--font-mono);
+    font-size: 12px;
+}
+
+.license-cost .label {
+    color: var(--text-dim);
+}
+
+.license-cost .value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.license-cost .value.cash {
+    color: var(--gold);
+}
+
+.license-cost .value.bits {
+    color: var(--cyan);
+}
+
+.license-btn {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.license-btn:hover:not(:disabled) {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: rgba(78, 205, 196, 0.1);
+}
+
+.license-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   WINDOW CONTENT - BILLS
+======================================== */
+.bills-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+
+.bills-summary-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.bills-summary-total {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--red);
+}
+
+.bill-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.bill-row:last-child {
+    border-bottom: none;
+}
+
+.bill-info {
+    flex: 1;
+}
+
+.bill-name {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.bill-due {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.bill-amount {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-right: 16px;
+}
+
+.bill-pay-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--green-dim);
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.bill-pay-btn:hover {
+    background: rgba(39, 174, 96, 0.2);
+    border-color: var(--green);
+}
+
+/* ========================================
+   WINDOW CONTENT - REVIEWS
+======================================== */
+.reviews-score {
+    text-align: center;
+    padding: 24px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+
+.score-value {
+    font-family: var(--font-display);
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--gold);
+}
+
+.score-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+}
+
+.review-item {
+    padding: 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.review-customer {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cyan);
+}
+
+.review-stars {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--gold);
+}
+
+.review-text {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* ========================================
+   WINDOW CONTENT - NULL SECTOR
+======================================== */
+.null-sector-content {
+    font-family: var(--font-mono);
+}
+
+.null-warning {
+    padding: 16px;
+    background: rgba(155, 89, 182, 0.1);
+    border: 1px solid var(--purple-dim);
+    color: var(--purple);
+    margin-bottom: 20px;
+    font-size: 12px;
+}
+
+.null-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--purple-dim);
+    margin-bottom: 8px;
+    transition: all 0.15s ease;
+}
+
+.null-item:hover {
+    background: rgba(155, 89, 182, 0.1);
+}
+
+.null-item-name {
+    font-size: 14px;
+    color: var(--purple);
+}
+
+.null-item-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+
+.null-item-price {
+    font-family: var(--font-display);
+    font-size: 16px;
+    color: var(--cyan);
+}

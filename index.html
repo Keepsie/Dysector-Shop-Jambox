@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DYSECTOR // Shop Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/shop.css">
+    <link rel="stylesheet" href="css/shop-os.css">
+    <link rel="stylesheet" href="css/dive-os.css">
+    <link rel="stylesheet" href="css/calendar.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <span class="header-label">DYSECTOR</span>
+                <span class="header-version">SHOP PROTOTYPE v0.1</span>
+            </div>
+            <div class="header-right">
+                <div class="header-stat">
+                    <span class="stat-label">CASH</span>
+                    <span class="stat-value" id="display-cash">$2,500</span>
+                </div>
+                <div class="header-stat">
+                    <span class="stat-label">BITS</span>
+                    <span class="stat-value bits" id="display-bits">150</span>
+                </div>
+                <div class="header-stat">
+                    <span class="stat-label">DIVES</span>
+                    <span class="stat-value dives" id="display-dives">2/2</span>
+                </div>
+                <div class="header-stat">
+                    <span class="stat-label">FATIGUE</span>
+                    <span class="stat-value fatigue-rested" id="display-fatigue">RESTED</span>
+                </div>
+                <div class="header-stat">
+                    <span class="stat-label">DAY</span>
+                    <span class="stat-value" id="display-day">MON 1</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Navigation Tabs -->
+        <nav class="main-tabs">
+            <button class="main-tab active" data-tab="shop">
+                <span class="tab-icon">[ ]</span>
+                <span class="tab-label">SHOP</span>
+            </button>
+            <button class="main-tab" data-tab="shop-os">
+                <span class="tab-icon">&gt;_</span>
+                <span class="tab-label">SHOP OS</span>
+            </button>
+            <button class="main-tab" data-tab="dive-os">
+                <span class="tab-icon">></span>
+                <span class="tab-label">DIVE OS</span>
+            </button>
+            <button class="main-tab" data-tab="calendar">
+                <span class="tab-icon">#</span>
+                <span class="tab-label">CALENDAR</span>
+            </button>
+            <button class="main-tab disabled" data-tab="probe">
+                <span class="tab-icon">*</span>
+                <span class="tab-label">PROBE</span>
+                <span class="tab-locked">SOON</span>
+            </button>
+        </nav>
+
+        <!-- Tab Content Areas -->
+        <main class="tab-content">
+
+            <!-- SHOP TAB -->
+            <section id="shop" class="tab-panel active">
+                <div class="shop-layout">
+                    <!-- Left: Text/Dialogue Area -->
+                    <div class="shop-text-area">
+                        <div class="text-display" id="shop-text-display">
+                            <div class="text-line system">[SYSTEM] Shop opened. Business hours: 9AM - 6PM</div>
+                            <div class="text-line system">[SYSTEM] Waiting for customers...</div>
+                        </div>
+                        <div class="text-input-area">
+                            <div class="input-prompt">&gt;</div>
+                            <div class="input-options" id="shop-options">
+                                <button class="option-btn" data-action="wait">[1] Wait for customer</button>
+                                <button class="option-btn" data-action="workbench">[2] Go to workbench</button>
+                                <button class="option-btn" data-action="close">[3] Close shop early</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Shop Status Panel -->
+                    <div class="shop-status-panel">
+                        <div class="status-section">
+                            <div class="status-header">SHOP STATUS</div>
+                            <div class="status-item">
+                                <span class="status-label">Status</span>
+                                <span class="status-value open" id="shop-status">OPEN</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Time</span>
+                                <span class="status-value" id="shop-time">9:00 AM</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Customers Today</span>
+                                <span class="status-value" id="customers-today">0</span>
+                            </div>
+                        </div>
+
+                        <div class="status-section">
+                            <div class="status-header">ACTIVE JOBS</div>
+                            <div class="jobs-list" id="active-jobs">
+                                <div class="empty-state">No active jobs</div>
+                            </div>
+                        </div>
+
+                        <div class="status-section">
+                            <div class="status-header">INVENTORY</div>
+                            <div class="inventory-quick" id="inventory-quick">
+                                <div class="inv-item">
+                                    <span class="inv-label">Devices</span>
+                                    <span class="inv-count">3</span>
+                                </div>
+                                <div class="inv-item">
+                                    <span class="inv-label">Software</span>
+                                    <span class="inv-count">5</span>
+                                </div>
+                                <div class="inv-item">
+                                    <span class="inv-label">Cases</span>
+                                    <span class="inv-count">2</span>
+                                </div>
+                                <div class="inv-item">
+                                    <span class="inv-label">Stims</span>
+                                    <span class="inv-count">1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SHOP OS TAB -->
+            <section id="shop-os" class="tab-panel">
+                <div class="os-container">
+                    <div class="os-header">
+                        <div class="os-title">SYNC-OS // BUSINESS TERMINAL</div>
+                        <div class="os-status">CONNECTED</div>
+                    </div>
+                    <div class="os-desktop">
+                        <div class="os-icon" data-app="supplier">
+                            <div class="icon-graphic">BOX</div>
+                            <div class="icon-label">Supplier</div>
+                        </div>
+                        <div class="os-icon" data-app="licenses">
+                            <div class="icon-graphic">ID</div>
+                            <div class="icon-label">Licenses</div>
+                        </div>
+                        <div class="os-icon" data-app="bills">
+                            <div class="icon-graphic">$</div>
+                            <div class="icon-label">Bills</div>
+                        </div>
+                        <div class="os-icon" data-app="bank">
+                            <div class="icon-graphic">BANK</div>
+                            <div class="icon-label">Bank</div>
+                        </div>
+                        <div class="os-icon" data-app="reviews">
+                            <div class="icon-graphic">STAR</div>
+                            <div class="icon-label">Reviews</div>
+                        </div>
+                        <div class="os-icon" data-app="null-sector">
+                            <div class="icon-graphic glitch">???</div>
+                            <div class="icon-label glitch">Null_Sector</div>
+                        </div>
+                    </div>
+                    <div class="os-window" id="os-window" style="display: none;">
+                        <div class="window-header">
+                            <span class="window-title">Application</span>
+                            <button class="window-close">X</button>
+                        </div>
+                        <div class="window-content" id="window-content">
+                            <!-- Dynamic content loads here -->
+                        </div>
+                    </div>
+                    <div class="os-taskbar">
+                        <span class="taskbar-time" id="os-time">9:00 AM</span>
+                        <span class="taskbar-status">SYNC-OS v4.2.1</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DIVE OS TAB -->
+            <section id="dive-os" class="tab-panel">
+                <div class="dive-os-container">
+                    <!-- Left: Avatar & Loadout -->
+                    <div class="dive-loadout">
+                        <div class="loadout-header">
+                            <span class="loadout-title">AVATAR LOADOUT</span>
+                            <span class="loadout-bits"><span id="dive-bits">150</span> BITS</span>
+                        </div>
+
+                        <!-- Avatar Visual -->
+                        <div class="avatar-display">
+                            <div class="avatar-figure">
+                                <div class="avatar-icon">[A]</div>
+                            </div>
+                            <div class="avatar-stats">
+                                <div class="avatar-stat">
+                                    <span class="stat-name">SHIELD</span>
+                                    <div class="stat-bar"><div class="stat-fill shield" style="width: 100%"></div></div>
+                                </div>
+                                <div class="avatar-stat">
+                                    <span class="stat-name">HEALTH</span>
+                                    <div class="stat-bar"><div class="stat-fill health" style="width: 100%"></div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Avatar Mod Slots -->
+                        <div class="loadout-section">
+                            <div class="section-header">AVATAR MODS <span class="slot-count">0/3</span></div>
+                            <div class="mod-slots avatar-mods">
+                                <div class="mod-slot empty" data-slot="avatar-1">
+                                    <span class="slot-label">SLOT 1</span>
+                                </div>
+                                <div class="mod-slot empty" data-slot="avatar-2">
+                                    <span class="slot-label">SLOT 2</span>
+                                </div>
+                                <div class="mod-slot empty" data-slot="avatar-3">
+                                    <span class="slot-label">SLOT 3</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Weapon Slots -->
+                        <div class="loadout-section">
+                            <div class="section-header">WEAPONS <span class="slot-count">1/2</span></div>
+                            <div class="weapon-slots">
+                                <div class="weapon-slot equipped" data-slot="weapon-1">
+                                    <div class="weapon-info">
+                                        <span class="weapon-name">SYNC Pistol</span>
+                                        <span class="weapon-type">SIDEARM</span>
+                                    </div>
+                                    <div class="weapon-mods">
+                                        <div class="mod-slot small empty"></div>
+                                        <div class="mod-slot small empty"></div>
+                                    </div>
+                                </div>
+                                <div class="weapon-slot empty" data-slot="weapon-2">
+                                    <span class="slot-label">WEAPON 2</span>
+                                    <span class="slot-hint">Select from armory</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Consumables -->
+                        <div class="loadout-section">
+                            <div class="section-header">CONSUMABLES</div>
+                            <div class="consumable-slots">
+                                <div class="consumable-slot">
+                                    <span class="consumable-icon">A</span>
+                                    <span class="consumable-name">Ammo</span>
+                                    <span class="consumable-count" id="ammo-count">60/60</span>
+                                </div>
+                                <div class="consumable-slot">
+                                    <span class="consumable-icon">+</span>
+                                    <span class="consumable-name">Health Packs</span>
+                                    <span class="consumable-count" id="health-pack-count">3</span>
+                                </div>
+                                <div class="consumable-slot">
+                                    <span class="consumable-icon">S</span>
+                                    <span class="consumable-name">Software</span>
+                                    <span class="consumable-count" id="software-count">2</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Shop & Inventory -->
+                    <div class="dive-shop">
+                        <div class="shop-tabs">
+                            <button class="shop-tab active" data-shop="buy">BUY</button>
+                            <button class="shop-tab" data-shop="armory">ARMORY</button>
+                            <button class="shop-tab" data-shop="mods">MODS</button>
+                            <button class="shop-tab" data-shop="tests">TESTS</button>
+                        </div>
+
+                        <!-- Buy Tab -->
+                        <div class="shop-panel active" id="shop-buy">
+                            <div class="shop-category">
+                                <div class="category-header">CONSUMABLES</div>
+                                <div class="shop-item" data-item="ammo">
+                                    <div class="item-info">
+                                        <span class="item-name">Ammo Pack</span>
+                                        <span class="item-desc">+30 rounds</span>
+                                    </div>
+                                    <span class="item-price">20 bits</span>
+                                    <button class="buy-btn">BUY</button>
+                                </div>
+                                <div class="shop-item" data-item="health">
+                                    <div class="item-info">
+                                        <span class="item-name">Health Pack</span>
+                                        <span class="item-desc">Restore 50% health</span>
+                                    </div>
+                                    <span class="item-price">35 bits</span>
+                                    <button class="buy-btn">BUY</button>
+                                </div>
+                                <div class="shop-item" data-item="shield">
+                                    <div class="item-info">
+                                        <span class="item-name">Shield Cell</span>
+                                        <span class="item-desc">Restore 50% shield</span>
+                                    </div>
+                                    <span class="item-price">25 bits</span>
+                                    <button class="buy-btn">BUY</button>
+                                </div>
+                            </div>
+                            <div class="shop-category">
+                                <div class="category-header">SOFTWARE</div>
+                                <div class="shop-item" data-item="firewall">
+                                    <div class="item-info">
+                                        <span class="item-name">Firewall Burst</span>
+                                        <span class="item-desc">Throwable - damages all nearby enemies</span>
+                                    </div>
+                                    <span class="item-price">50 bits</span>
+                                    <button class="buy-btn">BUY</button>
+                                </div>
+                                <div class="shop-item" data-item="decrypt">
+                                    <div class="item-info">
+                                        <span class="item-name">Decrypt Tool</span>
+                                        <span class="item-desc">Bypass locked terminals faster</span>
+                                    </div>
+                                    <span class="item-price">40 bits</span>
+                                    <button class="buy-btn">BUY</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Armory Tab -->
+                        <div class="shop-panel" id="shop-armory">
+                            <div class="shop-category">
+                                <div class="category-header">AVAILABLE WEAPONS</div>
+                                <div class="weapon-card" data-weapon="pistol">
+                                    <div class="weapon-card-info">
+                                        <span class="weapon-card-name">SYNC Pistol</span>
+                                        <span class="weapon-card-type">SIDEARM</span>
+                                        <span class="weapon-card-desc">Reliable. Accurate. Standard issue.</span>
+                                    </div>
+                                    <div class="weapon-card-stats">
+                                        <div class="wstat"><span>DMG</span><div class="wstat-bar"><div style="width:40%"></div></div></div>
+                                        <div class="wstat"><span>ROF</span><div class="wstat-bar"><div style="width:60%"></div></div></div>
+                                        <div class="wstat"><span>ACC</span><div class="wstat-bar"><div style="width:80%"></div></div></div>
+                                    </div>
+                                    <span class="weapon-owned">OWNED</span>
+                                </div>
+                                <div class="weapon-card locked" data-weapon="smg">
+                                    <div class="weapon-card-info">
+                                        <span class="weapon-card-name">Burst SMG</span>
+                                        <span class="weapon-card-type">PRIMARY</span>
+                                        <span class="weapon-card-desc">High fire rate. Close quarters.</span>
+                                    </div>
+                                    <div class="weapon-card-stats">
+                                        <div class="wstat"><span>DMG</span><div class="wstat-bar"><div style="width:35%"></div></div></div>
+                                        <div class="wstat"><span>ROF</span><div class="wstat-bar"><div style="width:90%"></div></div></div>
+                                        <div class="wstat"><span>ACC</span><div class="wstat-bar"><div style="width:50%"></div></div></div>
+                                    </div>
+                                    <button class="buy-btn weapon-buy">150 BITS</button>
+                                </div>
+                                <div class="weapon-card locked" data-weapon="rifle">
+                                    <div class="weapon-card-info">
+                                        <span class="weapon-card-name">Assault Rifle</span>
+                                        <span class="weapon-card-type">PRIMARY</span>
+                                        <span class="weapon-card-desc">Balanced. Versatile. Reliable.</span>
+                                    </div>
+                                    <div class="weapon-card-stats">
+                                        <div class="wstat"><span>DMG</span><div class="wstat-bar"><div style="width:55%"></div></div></div>
+                                        <div class="wstat"><span>ROF</span><div class="wstat-bar"><div style="width:65%"></div></div></div>
+                                        <div class="wstat"><span>ACC</span><div class="wstat-bar"><div style="width:70%"></div></div></div>
+                                    </div>
+                                    <button class="buy-btn weapon-buy">200 BITS</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mods Tab -->
+                        <div class="shop-panel" id="shop-mods">
+                            <div class="shop-category">
+                                <div class="category-header">AVATAR MODS</div>
+                                <div class="mod-card" data-mod="shield-boost">
+                                    <div class="mod-card-info">
+                                        <span class="mod-card-name">Shield Boost</span>
+                                        <span class="mod-card-desc">+25% shield capacity</span>
+                                    </div>
+                                    <span class="item-price">80 bits</span>
+                                    <button class="buy-btn">BUY</button>
+                                </div>
+                                <div class="mod-card" data-mod="quick-regen">
+                                    <div class="mod-card-info">
+                                        <span class="mod-card-name">Quick Regen</span>
+                                        <span class="mod-card-desc">Shield recharges faster</span>
+                                    </div>
+                                    <span class="item-price">100 bits</span>
+                                    <button class="buy-btn">BUY</button>
+                                </div>
+                            </div>
+                            <div class="shop-category">
+                                <div class="category-header">WEAPON MODS</div>
+                                <div class="mod-card" data-mod="extended-mag">
+                                    <div class="mod-card-info">
+                                        <span class="mod-card-name">Extended Mag</span>
+                                        <span class="mod-card-desc">+50% magazine size</span>
+                                    </div>
+                                    <span class="item-price">60 bits</span>
+                                    <button class="buy-btn">BUY</button>
+                                </div>
+                                <div class="mod-card" data-mod="damage-amp">
+                                    <div class="mod-card-info">
+                                        <span class="mod-card-name">Damage Amp</span>
+                                        <span class="mod-card-desc">+15% damage output</span>
+                                    </div>
+                                    <span class="item-price">90 bits</span>
+                                    <button class="buy-btn">BUY</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tests Tab (License Tests) -->
+                        <div class="shop-panel" id="shop-tests">
+                            <div class="shop-category">
+                                <div class="category-header">LICENSE TESTS</div>
+                                <p class="test-intro">Pass tests to prove your skill. Cash unlocks the license, bits pay for the test.</p>
+                                <div class="test-card" data-test="c">
+                                    <div class="test-info">
+                                        <span class="test-name grade-c">C-LICENSE TEST</span>
+                                        <span class="test-desc">Prove competence with C-grade devices</span>
+                                    </div>
+                                    <span class="test-cost">100 bits</span>
+                                    <button class="buy-btn test-btn">TAKE TEST</button>
+                                </div>
+                                <div class="test-card locked" data-test="b">
+                                    <div class="test-info">
+                                        <span class="test-name grade-b">B-LICENSE TEST</span>
+                                        <span class="test-desc">Requires C-License first</span>
+                                    </div>
+                                    <span class="test-cost">250 bits</span>
+                                    <button class="buy-btn test-btn" disabled>LOCKED</button>
+                                </div>
+                                <div class="test-card locked" data-test="a">
+                                    <div class="test-info">
+                                        <span class="test-name grade-a">A-LICENSE TEST</span>
+                                        <span class="test-desc">Requires B-License first</span>
+                                    </div>
+                                    <span class="test-cost">500 bits</span>
+                                    <button class="buy-btn test-btn" disabled>LOCKED</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CALENDAR TAB -->
+            <section id="calendar" class="tab-panel">
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button class="cal-nav" id="cal-prev">&lt;</button>
+                        <div class="cal-title">WEEK 1</div>
+                        <button class="cal-nav" id="cal-next">&gt;</button>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="cal-day today">
+                            <div class="day-header">
+                                <span class="day-name">MON</span>
+                                <span class="day-num">1</span>
+                            </div>
+                            <div class="day-content">
+                                <div class="day-dives">
+                                    <span class="dive-icon">D</span>
+                                    <span class="dive-count">2/2</span>
+                                </div>
+                                <div class="day-jobs">
+                                    <!-- Jobs go here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="cal-day">
+                            <div class="day-header">
+                                <span class="day-name">TUE</span>
+                                <span class="day-num">2</span>
+                            </div>
+                            <div class="day-content">
+                                <div class="day-dives">
+                                    <span class="dive-icon">D</span>
+                                    <span class="dive-count">2/2</span>
+                                </div>
+                                <div class="day-jobs"></div>
+                            </div>
+                        </div>
+                        <div class="cal-day">
+                            <div class="day-header">
+                                <span class="day-name">WED</span>
+                                <span class="day-num">3</span>
+                            </div>
+                            <div class="day-content">
+                                <div class="day-dives">
+                                    <span class="dive-icon">D</span>
+                                    <span class="dive-count">2/2</span>
+                                </div>
+                                <div class="day-jobs"></div>
+                            </div>
+                        </div>
+                        <div class="cal-day">
+                            <div class="day-header">
+                                <span class="day-name">THU</span>
+                                <span class="day-num">4</span>
+                            </div>
+                            <div class="day-content">
+                                <div class="day-dives">
+                                    <span class="dive-icon">D</span>
+                                    <span class="dive-count">2/2</span>
+                                </div>
+                                <div class="day-jobs"></div>
+                            </div>
+                        </div>
+                        <div class="cal-day">
+                            <div class="day-header">
+                                <span class="day-name">FRI</span>
+                                <span class="day-num">5</span>
+                            </div>
+                            <div class="day-content">
+                                <div class="day-dives">
+                                    <span class="dive-icon">D</span>
+                                    <span class="dive-count">2/2</span>
+                                </div>
+                                <div class="day-jobs"></div>
+                            </div>
+                        </div>
+                        <div class="cal-day weekend">
+                            <div class="day-header">
+                                <span class="day-name">SAT</span>
+                                <span class="day-num">6</span>
+                            </div>
+                            <div class="day-content">
+                                <div class="day-closed">CLOSED</div>
+                            </div>
+                        </div>
+                        <div class="cal-day weekend">
+                            <div class="day-header">
+                                <span class="day-name">SUN</span>
+                                <span class="day-num">7</span>
+                            </div>
+                            <div class="day-content">
+                                <div class="day-closed">CLOSED</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="calendar-sidebar">
+                        <div class="sidebar-section">
+                            <div class="sidebar-header">UPCOMING DEADLINES</div>
+                            <div class="deadline-list" id="deadline-list">
+                                <div class="empty-state">No pending deadlines</div>
+                            </div>
+                        </div>
+                        <div class="sidebar-section">
+                            <div class="sidebar-header">BILLS DUE</div>
+                            <div class="bills-preview">
+                                <div class="bill-item">
+                                    <span class="bill-name">Rent</span>
+                                    <span class="bill-due">Day 7</span>
+                                    <span class="bill-amount">$500</span>
+                                </div>
+                                <div class="bill-item">
+                                    <span class="bill-name">Utilities</span>
+                                    <span class="bill-due">Day 7</span>
+                                    <span class="bill-amount">$100</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PROBE TAB (Placeholder) -->
+            <section id="probe" class="tab-panel">
+                <div class="placeholder-container">
+                    <div class="placeholder-icon">*</div>
+                    <div class="placeholder-title">PROBE SYSTEM</div>
+                    <div class="placeholder-text">Coming soon. Build out the shop loop first.</div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="js/gameState.js"></script>
+    <script src="js/shop.js"></script>
+    <script src="js/shopOS.js"></script>
+    <script src="js/diveOS.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

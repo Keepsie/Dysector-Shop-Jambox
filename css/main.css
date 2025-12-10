@@ -1,0 +1,359 @@
+/* DYSECTOR Shop Prototype - Main Styles */
+
+:root {
+    --bg-dark: #0a0a0c;
+    --bg-darker: #050507;
+    --bg-card: #111115;
+    --bg-card-hover: #18181d;
+    --bg-input: #0d0d10;
+
+    --gold: #d4a843;
+    --gold-dim: #8b7355;
+    --cyan: #4ecdc4;
+    --cyan-dim: #2a7a74;
+    --red: #e74c3c;
+    --red-dim: #922f25;
+    --green: #27ae60;
+    --green-dim: #1e8449;
+    --purple: #9b59b6;
+    --purple-dim: #6c3483;
+    --blue: #3498db;
+    --blue-dim: #2471a3;
+
+    --text-primary: #e8e8e8;
+    --text-secondary: #888;
+    --text-dim: #555;
+    --text-bright: #fff;
+
+    --border: #2a2a30;
+    --border-light: #3a3a42;
+    --circuit: rgba(78, 205, 196, 0.08);
+
+    --font-display: 'Orbitron', sans-serif;
+    --font-body: 'Rajdhani', sans-serif;
+    --font-mono: 'Share Tech Mono', monospace;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.5;
+    overflow: hidden;
+}
+
+/* Circuit Pattern Background */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(90deg, var(--circuit) 1px, transparent 1px),
+        linear-gradient(var(--circuit) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Scanline Effect */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.05) 2px,
+        rgba(0, 0, 0, 0.05) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+}
+
+/* App Container */
+.app-container {
+    position: relative;
+    z-index: 1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ========================================
+   HEADER
+======================================== */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    background: var(--bg-darker);
+    border-bottom: 1px solid var(--border);
+}
+
+.header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.header-label {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: var(--cyan);
+}
+
+.header-version {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+}
+
+.header-right {
+    display: flex;
+    gap: 24px;
+}
+
+.header-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+}
+
+.stat-value {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold);
+}
+
+.stat-value.bits {
+    color: var(--cyan);
+}
+
+.stat-value.dives {
+    color: var(--green);
+}
+
+/* Fatigue states */
+.stat-value.fatigue-rested { color: var(--green); }
+.stat-value.fatigue-fine { color: var(--cyan); }
+.stat-value.fatigue-tired { color: var(--gold); }
+.stat-value.fatigue-exhausted { color: #e67e22; }
+.stat-value.fatigue-critical { color: var(--red); animation: pulse 1s infinite; }
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ========================================
+   MAIN TABS
+======================================== */
+.main-tabs {
+    display: flex;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+}
+
+.main-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.main-tab:hover:not(.disabled) {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+}
+
+.main-tab.active {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+    background: rgba(78, 205, 196, 0.05);
+}
+
+.main-tab.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.tab-icon {
+    font-family: var(--font-mono);
+    font-size: 16px;
+}
+
+.tab-label {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.tab-locked {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 2px 6px;
+    background: var(--text-dim);
+    color: var(--bg-dark);
+    position: absolute;
+    top: 8px;
+    right: 8px;
+}
+
+/* ========================================
+   TAB CONTENT
+======================================== */
+.tab-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+.tab-panel {
+    display: none;
+    height: 100%;
+}
+
+.tab-panel.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ========================================
+   COMMON ELEMENTS
+======================================== */
+.empty-state {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+}
+
+.placeholder-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-dim);
+}
+
+.placeholder-icon {
+    font-family: var(--font-mono);
+    font-size: 80px;
+    color: var(--border);
+    margin-bottom: 20px;
+}
+
+.placeholder-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+}
+
+.placeholder-text {
+    font-family: var(--font-mono);
+    font-size: 14px;
+}
+
+/* Grade Colors */
+.grade-e { color: var(--text-secondary); }
+.grade-c { color: var(--green); }
+.grade-b { color: var(--blue); }
+.grade-a { color: var(--gold); }
+
+/* Health Bar */
+.health-bar-container {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-darker);
+    border: 1px solid var(--border);
+    position: relative;
+}
+
+.health-bar {
+    height: 100%;
+    background: var(--green);
+    transition: width 0.3s ease;
+}
+
+.health-bar.low {
+    background: var(--red);
+}
+
+.health-bar.medium {
+    background: var(--gold);
+}
+
+/* Glitch effect for Null_Sector */
+.glitch {
+    animation: glitch 2s infinite;
+}
+
+@keyframes glitch {
+    0%, 90%, 100% { opacity: 1; transform: translate(0); }
+    91% { opacity: 0.8; transform: translate(-2px, 1px); }
+    92% { opacity: 0.8; transform: translate(2px, -1px); }
+    93% { opacity: 1; transform: translate(0); }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-darker);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-light);
+}

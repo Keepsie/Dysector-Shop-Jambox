@@ -1,0 +1,393 @@
+/* DYSECTOR Shop Prototype - Shop Tab Styles */
+
+/* ========================================
+   SHOP LAYOUT
+======================================== */
+.shop-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    height: 100%;
+    gap: 0;
+}
+
+/* ========================================
+   TEXT/DIALOGUE AREA (Left Side)
+======================================== */
+.shop-text-area {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-darker);
+    border-right: 1px solid var(--border);
+}
+
+.text-display {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.text-line {
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.text-line.system {
+    color: var(--text-dim);
+}
+
+.text-line.narrator {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.text-line.customer {
+    color: var(--cyan);
+}
+
+.text-line.customer::before {
+    content: '';
+}
+
+.text-line.player {
+    color: var(--green);
+}
+
+.text-line.player::before {
+    content: '> ';
+    color: var(--green-dim);
+}
+
+.text-line.alert {
+    color: var(--gold);
+}
+
+.text-line.error {
+    color: var(--red);
+}
+
+.text-line.success {
+    color: var(--green);
+}
+
+/* Customer name highlight */
+.customer-name {
+    color: var(--cyan);
+    font-weight: 600;
+}
+
+/* Device/item highlights */
+.item-highlight {
+    color: var(--gold);
+}
+
+.money-highlight {
+    color: var(--gold);
+    font-weight: 600;
+}
+
+/* ========================================
+   INPUT/OPTIONS AREA
+======================================== */
+.text-input-area {
+    padding: 16px 20px;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+}
+
+.input-prompt {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--cyan);
+    margin-bottom: 12px;
+}
+
+.input-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.option-btn {
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.option-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--cyan-dim);
+    color: var(--text-primary);
+}
+
+.option-btn:active {
+    background: rgba(78, 205, 196, 0.1);
+    border-color: var(--cyan);
+}
+
+.option-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.option-btn.primary {
+    border-color: var(--cyan-dim);
+    color: var(--cyan);
+}
+
+.option-btn.danger {
+    border-color: var(--red-dim);
+    color: var(--red);
+}
+
+.option-btn.success {
+    border-color: var(--green-dim);
+    color: var(--green);
+}
+
+/* Negotiation-specific options */
+.option-btn.negotiate {
+    border-color: var(--gold-dim);
+}
+
+.option-btn.negotiate:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
+/* ========================================
+   STATUS PANEL (Right Side)
+======================================== */
+.shop-status-panel {
+    background: var(--bg-card);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.status-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.status-section:last-child {
+    border-bottom: none;
+}
+
+.status-header {
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.status-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.status-value {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.status-value.open {
+    color: var(--green);
+}
+
+.status-value.closed {
+    color: var(--red);
+}
+
+/* ========================================
+   JOBS LIST
+======================================== */
+.jobs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.job-card {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    padding: 12px;
+}
+
+.job-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.job-device {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.job-deadline {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 2px 6px;
+    background: rgba(231, 76, 60, 0.2);
+    color: var(--red);
+}
+
+.job-deadline.safe {
+    background: rgba(39, 174, 96, 0.2);
+    color: var(--green);
+}
+
+.job-deadline.warning {
+    background: rgba(212, 168, 67, 0.2);
+    color: var(--gold);
+}
+
+.job-customer {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+}
+
+.job-status {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+/* ========================================
+   INVENTORY QUICK VIEW
+======================================== */
+.inventory-quick {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.inv-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+}
+
+.inv-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.inv-count {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* ========================================
+   CUSTOMER APPEARANCE
+======================================== */
+.customer-portrait {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--cyan-dim);
+    margin: 12px 0;
+}
+
+.portrait-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--bg-darker);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 24px;
+    color: var(--cyan);
+}
+
+.portrait-info {
+    flex: 1;
+}
+
+.portrait-name {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cyan);
+    margin-bottom: 2px;
+}
+
+.portrait-type {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+/* Device being shown */
+.device-preview {
+    padding: 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--gold-dim);
+    margin: 12px 0;
+}
+
+.device-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.device-preview-name {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gold);
+}
+
+.device-preview-grade {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    background: rgba(212, 168, 67, 0.2);
+}
+
+.device-preview-desc {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+}

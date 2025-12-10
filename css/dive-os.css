@@ -1,0 +1,613 @@
+/* DYSECTOR Shop Prototype - Dive OS Tab Styles */
+/* Avatar Loadout & Bits Shop */
+
+/* ========================================
+   DIVE OS CONTAINER
+======================================== */
+.dive-os-container {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    background: var(--bg-darker);
+}
+
+/* ========================================
+   LOADOUT PANEL (Left)
+======================================== */
+.dive-loadout {
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.loadout-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--bg-darker);
+    border-bottom: 1px solid var(--border);
+}
+
+.loadout-title {
+    font-family: var(--font-display);
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--text-secondary);
+}
+
+.loadout-bits {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cyan);
+}
+
+/* Avatar Display */
+.avatar-display {
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.avatar-figure {
+    width: 80px;
+    height: 100px;
+    background: var(--bg-input);
+    border: 2px solid var(--cyan-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-icon {
+    font-family: var(--font-mono);
+    font-size: 32px;
+    color: var(--cyan);
+}
+
+.avatar-stats {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+}
+
+.avatar-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-name {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+}
+
+.stat-bar {
+    height: 12px;
+    background: var(--bg-darker);
+    border: 1px solid var(--border);
+}
+
+.stat-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.stat-fill.shield {
+    background: var(--cyan);
+}
+
+.stat-fill.health {
+    background: var(--red);
+}
+
+/* Loadout Sections */
+.loadout-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.section-header {
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.slot-count {
+    font-family: var(--font-mono);
+    color: var(--cyan);
+}
+
+/* Mod Slots */
+.mod-slots {
+    display: flex;
+    gap: 8px;
+}
+
+.mod-slot {
+    flex: 1;
+    height: 50px;
+    background: var(--bg-input);
+    border: 1px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.mod-slot:hover {
+    border-color: var(--cyan-dim);
+    background: rgba(78, 205, 196, 0.05);
+}
+
+.mod-slot.empty .slot-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+}
+
+.mod-slot.filled {
+    border-style: solid;
+    border-color: var(--cyan-dim);
+    background: rgba(78, 205, 196, 0.1);
+}
+
+.mod-slot.small {
+    width: 36px;
+    height: 36px;
+    flex: none;
+}
+
+/* Weapon Slots */
+.weapon-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.weapon-slot {
+    padding: 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.weapon-slot:hover {
+    border-color: var(--cyan-dim);
+}
+
+.weapon-slot.empty {
+    border-style: dashed;
+    text-align: center;
+    padding: 20px 12px;
+}
+
+.weapon-slot.empty .slot-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.weapon-slot.empty .slot-hint {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    opacity: 0.6;
+}
+
+.weapon-slot.equipped {
+    border-color: var(--cyan-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.weapon-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.weapon-name {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.weapon-type {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+}
+
+.weapon-mods {
+    display: flex;
+    gap: 6px;
+}
+
+/* Consumable Slots */
+.consumable-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.consumable-slot {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+}
+
+.consumable-icon {
+    width: 28px;
+    height: 28px;
+    background: var(--bg-darker);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--cyan);
+}
+
+.consumable-name {
+    flex: 1;
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.consumable-count {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* ========================================
+   SHOP PANEL (Right)
+======================================== */
+.dive-shop {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.shop-tabs {
+    display: flex;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+}
+
+.shop-tab {
+    flex: 1;
+    padding: 14px 16px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.shop-tab:hover {
+    color: var(--text-primary);
+    background: var(--bg-card-hover);
+}
+
+.shop-tab.active {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+}
+
+/* Shop Panels */
+.shop-panel {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.shop-panel.active {
+    display: block;
+}
+
+.shop-category {
+    margin-bottom: 24px;
+}
+
+.shop-category:last-child {
+    margin-bottom: 0;
+}
+
+.category-header {
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Shop Items */
+.shop-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    transition: all 0.15s ease;
+}
+
+.shop-item:hover {
+    border-color: var(--cyan-dim);
+}
+
+.item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.item-name {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.item-desc {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.item-price {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cyan);
+}
+
+.buy-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--cyan-dim);
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.buy-btn:hover {
+    background: rgba(78, 205, 196, 0.15);
+    border-color: var(--cyan);
+}
+
+.buy-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Weapon Cards */
+.weapon-card {
+    padding: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    transition: all 0.15s ease;
+}
+
+.weapon-card:hover {
+    border-color: var(--cyan-dim);
+}
+
+.weapon-card.locked {
+    opacity: 0.7;
+}
+
+.weapon-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.weapon-card-name {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.weapon-card-type {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+}
+
+.weapon-card-desc {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.weapon-card-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 120px;
+}
+
+.wstat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wstat span {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    width: 24px;
+}
+
+.wstat-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-darker);
+    border: 1px solid var(--border);
+}
+
+.wstat-bar div {
+    height: 100%;
+    background: var(--cyan);
+}
+
+.weapon-owned {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--green);
+    align-self: center;
+    padding: 6px 12px;
+    border: 1px solid var(--green-dim);
+}
+
+.weapon-buy {
+    align-self: center;
+}
+
+/* Mod Cards */
+.mod-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    transition: all 0.15s ease;
+}
+
+.mod-card:hover {
+    border-color: var(--purple-dim);
+}
+
+.mod-card-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mod-card-name {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--purple);
+}
+
+.mod-card-desc {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+/* Test Cards */
+.test-intro {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+.test-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+    transition: all 0.15s ease;
+}
+
+.test-card:hover:not(.locked) {
+    border-color: var(--gold-dim);
+}
+
+.test-card.locked {
+    opacity: 0.5;
+}
+
+.test-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.test-name {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.test-desc {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.test-cost {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cyan);
+}
+
+.test-btn {
+    border-color: var(--gold-dim);
+    color: var(--gold);
+}
+
+.test-btn:hover:not(:disabled) {
+    background: rgba(212, 168, 67, 0.15);
+    border-color: var(--gold);
+}
