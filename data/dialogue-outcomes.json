@@ -1,0 +1,332 @@
+{
+  "job_complete": {
+    "success": {
+      "customer_pickup": [
+        "It's working! You're amazing!",
+        "Finally! Feels like new again.",
+        "You actually fixed it. I'm impressed.",
+        "Wow, it's even better than before.",
+        "Thank you so much. Lifesaver!",
+        "Everything's there. All my files. Thank you!",
+        "Fast work. I'll recommend you to friends.",
+        "This is why I come here. Great work.",
+        "You've got skills. It's perfect.",
+        "Worth every penny. Thanks!",
+        "I can't believe you saved it.",
+        "It's like magic. How'd you do that?",
+        "My faith in tech shops is restored.",
+        "Brilliant. Absolutely brilliant work.",
+        "I was worried but you delivered.",
+        "Quick and quality. Nice combo.",
+        "Tell me your secrets. This is amazing.",
+        "You've earned a repeat customer.",
+        "I'll definitely be back. Great service.",
+        "Five stars. If that was a thing here.",
+        "Miracle worker. That's what you are.",
+        "Everything I needed. Thank you.",
+        "Way better than the last place I tried.",
+        "Professional work. I appreciate it.",
+        "Not a single complaint. Perfect.",
+        "I was skeptical but you proved me wrong.",
+        "That was faster than I expected.",
+        "Quality work deserves quality praise.",
+        "You've got a customer for life.",
+        "I'll spread the word. You're good.",
+        "Exceeded my expectations honestly.",
+        "Smooth as the day I bought it.",
+        "All my data is intact. Relief!",
+        "You clearly know what you're doing.",
+        "I'll be back next time I break something.",
+        "Thanks for fitting me in.",
+        "Stellar work. Really.",
+        "It's purring like a kitten now.",
+        "Better than factory condition.",
+        "I owe you one. Seriously.",
+        "Consider me a loyal customer now.",
+        "This calls for a good review.",
+        "Happiness is a working device.",
+        "You've saved my week.",
+        "My productivity thanks you.",
+        "If it breaks again, I know where to go.",
+        "Worth the wait for quality like this.",
+        "I'll take 'miracle' for 500, thanks.",
+        "You're not just good, you're great.",
+        "My digital life thanks you."
+      ],
+      "player_deliver": [
+        "All fixed up. Good as new.",
+        "Here you go. Everything's working.",
+        "Done and dusted. Give it a try.",
+        "Fixed the issue. Should be smooth now.",
+        "Your {device} is ready. All good.",
+        "Managed to save everything. Here you go.",
+        "Trickier than expected but it's done.",
+        "All cleaned up and running well.",
+        "Problem solved. Should last you a while.",
+        "Here's your {device} back. Fully functional.",
+        "Got it working. Let me know if any issues.",
+        "All set. The problem won't come back.",
+        "Fixed and tested. You're good to go.",
+        "Better than I found it. Enjoy.",
+        "Repair complete. Payment when you're ready.",
+        "Done. Took some work but we got there.",
+        "Your {device} made it through surgery.",
+        "Back from the dead. Well, fixed anyway.",
+        "Sorted out the issue. All yours.",
+        "Finished ahead of schedule actually."
+      ]
+    },
+    "partial_success": {
+      "customer_reaction": [
+        "Most of it works... I guess that's something.",
+        "So I lost some data? How much?",
+        "It's working but not perfectly. Is this normal?",
+        "Better than nothing I suppose.",
+        "I'll take what I can get at this point.",
+        "Some files are gone? Which ones?",
+        "Functional but not pretty. Okay.",
+        "I can work with this. Thanks for trying.",
+        "That's... partially good news.",
+        "50% fixed is better than 0%, right?"
+      ],
+      "player_explain": [
+        "Got most of it working. Some data was unrecoverable.",
+        "Fixed the main issue but there was some collateral damage.",
+        "Good news and bad news situation here.",
+        "It works, but I couldn't save everything.",
+        "Partial recovery. Did what I could.",
+        "The hardware's fine but some software was too far gone.",
+        "Working, but you might notice some missing files.",
+        "Main functions restored. Some things couldn't be saved.",
+        "It's functional. Not perfect, but functional.",
+        "Recovered about 80%. The rest was corrupted beyond repair."
+      ]
+    }
+  },
+
+  "job_failed": {
+    "unfixable": {
+      "customer_reaction": [
+        "What do you mean you can't fix it?!",
+        "So it's just... dead? Forever?",
+        "I trusted you with this!",
+        "This is a disaster. My files...",
+        "You're telling me there's nothing you can do?",
+        "I paid for nothing then?",
+        "How is this possible? It was working before!",
+        "I can't believe this. I really can't.",
+        "So what am I supposed to do now?",
+        "This is the worst news I've gotten all week.",
+        "You're sure? Absolutely sure?",
+        "No no no. This can't be happening.",
+        "My entire life was on that thing.",
+        "I should've gone somewhere else.",
+        "This is a nightmare.",
+        "Please tell me you're joking.",
+        "I'm ruined. Completely ruined.",
+        "Can't you try harder?",
+        "What went wrong? How?",
+        "I need a minute. This is... a lot."
+      ],
+      "player_explain": [
+        "I'm sorry. The damage was too extensive.",
+        "Did everything I could. It's beyond repair.",
+        "Hardware failure. Nothing can bring it back.",
+        "The drive is completely dead. I'm sorry.",
+        "Tried every trick I know. It's gone.",
+        "Sometimes things are just too far gone.",
+        "Not the news you wanted. I'm sorry.",
+        "I hate delivering bad news, but it's unrecoverable.",
+        "The damage happened before you brought it in.",
+        "Even specialists couldn't fix this. I'm sorry.",
+        "Physical damage too severe. Nothing to be done.",
+        "I fought hard for it. Lost this one.",
+        "Zero recovery possible. I'm truly sorry.",
+        "Sometimes the tech just gives up.",
+        "Wish I had better news for you.",
+        "Not every battle can be won.",
+        "The corruption was complete. Nothing survived.",
+        "I don't charge for failures. But I'm sorry.",
+        "This one got away from me. Apologies.",
+        "Nothing but bad news here, unfortunately."
+      ]
+    },
+    "made_worse": {
+      "customer_reaction": [
+        "It was working before you touched it!",
+        "You made it worse?! How?!",
+        "I want a refund. And compensation.",
+        "This is unacceptable!",
+        "You call yourself a technician?!",
+        "I'm leaving a bad review everywhere.",
+        "You've cost me more than money now.",
+        "Unbelievable. Just unbelievable.",
+        "I want to speak to someone in charge.",
+        "You'll be hearing from me again."
+      ],
+      "player_apologize": [
+        "I... I'm sorry. Something went wrong.",
+        "This shouldn't have happened. I apologize.",
+        "Full refund. I'm so sorry.",
+        "I made an error. I take responsibility.",
+        "This is on me. I'm sorry.",
+        "Won't charge you. I messed up.",
+        "I don't know what happened. I'm sorry.",
+        "Let me make this right somehow.",
+        "This has never happened before. I apologize.",
+        "I understand if you're upset. I am too."
+      ]
+    }
+  },
+
+  "job_overdue": {
+    "customer_angry": [
+      "You said it would be ready by now!",
+      "I've been waiting forever. What's going on?",
+      "This is completely unacceptable.",
+      "I had plans that depended on this!",
+      "Your deadline means nothing apparently.",
+      "I'm done waiting. Where is it?",
+      "You promised! You PROMISED!",
+      "My patience has run out.",
+      "Every day without it costs me.",
+      "This is the last time I trust this place.",
+      "Excuses don't help me.",
+      "I should've gone somewhere professional.",
+      "How hard can it be?!",
+      "I want answers. Real ones.",
+      "My time is valuable too, you know.",
+      "Late is late. No excuse.",
+      "You're costing me clients.",
+      "I cleared my schedule for nothing.",
+      "This is business. Deadlines matter.",
+      "Never again. I'll find someone reliable."
+    ],
+    "customer_understanding": [
+      "Running behind? It happens I guess.",
+      "Just let me know when it's actually ready.",
+      "I figured something came up.",
+      "Is there a problem with my device?",
+      "Life happens. When can I expect it?",
+      "A heads up would've been nice, but okay.",
+      "Just don't forget about me.",
+      "I can wait a bit longer. Not forever though.",
+      "Keep me posted at least.",
+      "These things happen. What's the new ETA?"
+    ],
+    "player_apologize": [
+      "I'm sorry. It's taking longer than expected.",
+      "Hit some complications. Apologies for the delay.",
+      "You're right to be frustrated. I'm behind.",
+      "No excuse. I'm working on it.",
+      "Unforeseen issues. I'm sorry.",
+      "It's more complex than I thought.",
+      "I should've called. My apologies.",
+      "Working overtime on it. Almost there.",
+      "I take full responsibility for the delay.",
+      "You have every right to be upset."
+    ],
+    "player_excuse": [
+      "Parts took longer to arrive than expected.",
+      "Your device had hidden problems.",
+      "Had an emergency with another job.",
+      "The issue was more serious than it looked.",
+      "Waiting on a specific tool to arrive.",
+      "Previous technician made it complicated.",
+      "Software issues kept appearing.",
+      "Hardware was fighting me every step.",
+      "Needed to order a replacement part.",
+      "Testing revealed more problems."
+    ]
+  },
+
+  "returning_customer": {
+    "recognized_positive": [
+      "Hey! Good to see you again.",
+      "Welcome back! How's the old one treating you?",
+      "Ah, a familiar face. What's up?",
+      "Back again? Must like our work.",
+      "Good to see you. What brings you in?",
+      "Hey there! How's everything holding up?",
+      "Our favorite customer returns!",
+      "Welcome back. Need more help?",
+      "Knew we'd see you again. Hi!",
+      "The prodigal customer returns!"
+    ],
+    "recognized_negative": [
+      "Oh. You're back. Something wrong?",
+      "Back already? That's not good.",
+      "Hmm. Hopefully not the same issue.",
+      "Wasn't expecting you back so soon.",
+      "Another problem? Let's see.",
+      "This soon? What happened?",
+      "Back again... is the repair holding?",
+      "Let me guess - it broke again?",
+      "Uh oh. This doesn't look good.",
+      "The return of... trouble, I assume?"
+    ],
+    "customer_explains_return": [
+      "Different device this time.",
+      "New problem, unfortunately.",
+      "The repair held! This is a new issue.",
+      "It broke again. Same problem.",
+      "Something else went wrong.",
+      "Bringing you all my business now.",
+      "You did so well last time...",
+      "Family member's device this time.",
+      "Work device. Different from before.",
+      "I break a lot of things apparently."
+    ]
+  },
+
+  "general_chitchat": {
+    "small_talk": [
+      "Busy day?",
+      "Weather's something else today.",
+      "You do good work here.",
+      "Been in business long?",
+      "Quiet in here today.",
+      "Love the setup you've got.",
+      "Tech repair - tough gig?",
+      "You enjoy this work?",
+      "Any interesting cases lately?",
+      "How's business these days?"
+    ],
+    "player_responses": [
+      "Just another day in the shop.",
+      "It has its moments.",
+      "Never a dull moment with broken tech.",
+      "Keeps me busy, that's for sure.",
+      "Some days are crazier than others.",
+      "I've seen some things...",
+      "It's honest work.",
+      "Better than a desk job.",
+      "Every device has a story.",
+      "Pays the bills and keeps me thinking."
+    ]
+  },
+
+  "time_of_day": {
+    "morning": [
+      "Early bird, huh?",
+      "Morning! What've you got?",
+      "Fresh day, fresh problems.",
+      "Starting the day with tech troubles?",
+      "Coffee hasn't kicked in yet. Bear with me."
+    ],
+    "afternoon": [
+      "Afternoon! How can I help?",
+      "Mid-day crisis?",
+      "Perfect timing, just finished lunch.",
+      "Afternoon appointment or walk-in?",
+      "The afternoon rush begins."
+    ],
+    "evening": [
+      "Cutting it close! We close soon.",
+      "Evening! Quick visit?",
+      "End of day drop-off?",
+      "Just made it before close.",
+      "Burning the midnight oil?"
+    ]
+  }
+}

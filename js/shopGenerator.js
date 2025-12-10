@@ -6,13 +6,15 @@ const ShopGenerator = {
         VOID: 0,
         WALL: 1,
         FLOOR: 2,
-        SERVICE_COUNTER: 3,  // For device repairs
-        POS_COUNTER: 4,      // For buying items
-        TABLE: 5,
-        WORKBENCH: 6,
-        DOOR: 7,
-        BACKFLOOR: 8,
+        SERVICE_COUNTER: 3,  // For device repairs (blue)
+        POS_COUNTER: 4,      // For buying items (purple)
+        TABLE: 5,            // Display tables
+        WORKBENCH: 6,        // Repair area (back room)
+        DOOR: 7,             // Customer entrance (top)
+        BACKFLOOR: 8,        // Employee only floor
         SHELF: 9,            // Display shelves
+        SERVICE_WAIT: 10,    // Waiting area for service
+        POS_WAIT: 11,        // Waiting area for POS
     },
 
     // Seeded random number generator
@@ -78,16 +80,17 @@ const ShopGenerator = {
     },
 
     buildFloor(map, width, height) {
+        // Divider at 60% from top - front room is TOP (customers), back room is BOTTOM (employee)
         const dividerY = Math.floor(height * 0.6);
 
-        // Front room floor
+        // Front room floor (TOP - customer area)
         for (let y = 1; y < dividerY; y++) {
             for (let x = 1; x < width - 1; x++) {
                 map[y][x] = this.TILES.FLOOR;
             }
         }
 
-        // Back room floor
+        // Back room floor (BOTTOM - employee only, workbenches)
         for (let y = dividerY + 1; y < height - 1; y++) {
             for (let x = 1; x < width - 1; x++) {
                 map[y][x] = this.TILES.BACKFLOOR;
@@ -110,19 +113,19 @@ const ShopGenerator = {
     },
 
     buildDoor(map, width, height) {
-        // Door at bottom, random position
+        // Door at TOP - where customers enter
         const doorX = Math.floor(width / 2) + this.randomInt(-3, 3);
-        map[height - 1][doorX] = this.TILES.DOOR;
-        map[height - 1][doorX + 1] = this.TILES.DOOR;
+        map[0][doorX] = this.TILES.DOOR;
+        map[0][doorX + 1] = this.TILES.DOOR;
 
-        // Store door position for NPC spawning
-        this.doorPosition = { x: doorX, y: height - 2 };
+        // Store door position for NPC spawning (just inside door)
+        this.doorPosition = { x: doorX, y: 1 };
     },
 
     placeServiceCounter(map, width, height) {
         const dividerY = Math.floor(height * 0.6);
 
-        // Service counter on the left side, near divider
+        // Service counter (BLUE) on the left side, near divider
         const counterY = dividerY - 1;
         const counterStartX = 2 + this.randomInt(0, 2);
         const counterLength = 3 + this.randomInt(0, 2);
@@ -131,13 +134,23 @@ const ShopGenerator = {
             map[counterY][x] = this.TILES.SERVICE_COUNTER;
         }
 
+        // Place SERVICE waiting area in front of counter (towards door/top)
+        const waitY = counterY - 1;
+        if (waitY > 1) {
+            for (let x = counterStartX; x < counterStartX + counterLength && x < width / 2 - 1; x++) {
+                if (map[waitY][x] === this.TILES.FLOOR) {
+                    map[waitY][x] = this.TILES.SERVICE_WAIT;
+                }
+            }
+        }
+
         this.serviceCounterPos = { x: counterStartX + 1, y: counterY + 1 };
     },
 
     placePOSCounter(map, width, height) {
         const dividerY = Math.floor(height * 0.6);
 
-        // POS counter on the right side, near divider
+        // POS counter (PURPLE) on the right side, near divider
         const counterY = dividerY - 1;
         const counterEndX = width - 3 - this.randomInt(0, 2);
         const counterLength = 3 + this.randomInt(0, 2);
@@ -145,6 +158,16 @@ const ShopGenerator = {
 
         for (let x = counterStartX; x <= counterEndX && x > width / 2 + 1; x++) {
             map[counterY][x] = this.TILES.POS_COUNTER;
+        }
+
+        // Place POS waiting area in front of counter (towards door/top)
+        const waitY = counterY - 1;
+        if (waitY > 1) {
+            for (let x = counterStartX; x <= counterEndX && x > width / 2 + 1; x++) {
+                if (map[waitY][x] === this.TILES.FLOOR) {
+                    map[waitY][x] = this.TILES.POS_WAIT;
+                }
+            }
         }
 
         this.posCounterPos = { x: counterEndX - 1, y: counterY + 1 };
@@ -239,6 +262,8 @@ const ShopGenerator = {
             posCounter: [],
             tables: [],
             workbenches: [],
+            serviceWaitSpots: [],
+            posWaitSpots: [],
         };
 
         for (let y = 0; y < height; y++) {
@@ -260,13 +285,17 @@ const ShopGenerator = {
                     case this.TILES.WORKBENCH:
                         positions.workbenches.push({ x, y });
                         break;
+                    case this.TILES.SERVICE_WAIT:
+                        positions.serviceWaitSpots.push({ x, y });
+                        break;
+                    case this.TILES.POS_WAIT:
+                        positions.posWaitSpots.push({ x, y });
+                        break;
                 }
             }
         }
 
-        // Find spots adjacent to counters (where NPCs stand)
-        positions.serviceWaitSpots = this.findAdjacentFloor(map, positions.serviceCounter, width, height);
-        positions.posWaitSpots = this.findAdjacentFloor(map, positions.posCounter, width, height);
+        // Find browse spots adjacent to tables
         positions.browseSpots = this.findAdjacentFloor(map, positions.tables, width, height);
 
         return positions;

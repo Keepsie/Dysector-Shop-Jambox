@@ -80,10 +80,13 @@ const Shop = {
         // Show urgency hint
         if (npc.data.urgency?.id === 'desperate') {
             this.addText('They look stressed, desperate for help.', 'narrator');
+        } else if (npc.data.urgency?.id === 'flexible') {
+            this.addText('They seem relaxed, in no particular rush.', 'narrator');
         }
 
+        const greeting = DialogueSystem.getPlayerGreeting();
         this.setOptions([
-            { label: '"What seems to be the problem?"', action: 'greet', class: 'primary' },
+            { label: `"${greeting}"`, action: 'greet', class: 'primary' },
             { label: '"Sorry, not taking jobs right now."', action: 'dismiss_npc', class: 'danger' }
         ]);
     },
@@ -98,8 +101,8 @@ const Shop = {
         this.addText('', 'narrator');
         this.addText(`<span class="customer-name">${npc.data.name}</span> is ready to make a purchase.`, 'narrator');
 
-        // Generate what they want to buy
-        const wantsToBuy = this.generatePurchaseRequest();
+        // Generate what they want to buy using dialogue system
+        const wantsToBuy = DialogueSystem.getSaleRequest();
 
         this.addText(`"${wantsToBuy.dialogue}"`, 'customer');
         this.addText(`[SALE] ${wantsToBuy.item} - ${formatMoney(wantsToBuy.price)}`, 'system');
@@ -113,29 +116,13 @@ const Shop = {
         ]);
     },
 
-    generatePurchaseRequest() {
-        const items = [
-            { item: 'USB Cable', price: 15, dialogue: "Just need a charging cable." },
-            { item: 'Screen Protector', price: 25, dialogue: "Do you have screen protectors?" },
-            { item: 'Phone Case', price: 35, dialogue: "Looking for a phone case." },
-            { item: 'Memory Card', price: 45, dialogue: "Need more storage - got any memory cards?" },
-            { item: 'Bluetooth Earbuds', price: 80, dialogue: "Any wireless earbuds?" },
-            { item: 'Portable Charger', price: 60, dialogue: "Need a power bank for travel." },
-        ];
-        return items[Math.floor(Math.random() * items.length)];
-    },
-
     // Handle dismiss NPC
     dismissNPC() {
         if (this.currentNPC) {
             this.addText('"Sorry, can\'t help right now."', 'player');
             this.addText(`${this.currentNPC.data.name} leaves disappointed.`, 'narrator');
-            NPCSystem.dismissNPC(this.currentNPC.id);
         }
-        this.currentNPC = null;
-        this.currentCustomer = null;
-        this.interactionState = 'idle';
-        this.returnToIdle();
+        this.finishInteraction(false);
     },
 
     // Complete a sale
@@ -147,29 +134,25 @@ const Shop = {
         GameState.stats.totalEarnings = (GameState.stats.totalEarnings || 0) + this.currentSale.price;
 
         this.addText(`"Here you go. ${formatMoney(this.currentSale.price)}, please."`, 'player');
-        this.addText(`${this.currentNPC.data.name} pays and thanks you.`, 'narrator');
+        const thanks = DialogueSystem.getSaleComplete();
+        this.addText(`"${thanks}"`, 'customer');
         this.addText(`[+${formatMoney(this.currentSale.price)}]`, 'success');
 
-        NPCSystem.completeService(this.currentNPC.id);
         updateDisplays();
-
-        this.currentNPC = null;
-        this.currentSale = null;
-        this.interactionState = 'idle';
-        this.returnToIdle();
+        this.finishInteraction(true);
     },
 
     // Decline sale
     declineSale() {
-        this.addText('"Sorry, we\'re out of that."', 'player');
-        this.addText(`${this.currentNPC.data.name} shrugs and leaves.`, 'narrator');
+        if (!this.currentNPC) return;
 
-        NPCSystem.dismissNPC(this.currentNPC.id);
+        const playerLine = DialogueSystem.getOutOfStockPlayer();
+        const customerLine = DialogueSystem.getOutOfStockCustomer();
 
-        this.currentNPC = null;
-        this.currentSale = null;
-        this.interactionState = 'idle';
-        this.returnToIdle();
+        this.addText(`"${playerLine}"`, 'player');
+        this.addText(`"${customerLine}"`, 'customer');
+
+        this.finishInteraction(false);
     },
 
     // Try to upsell
@@ -179,21 +162,44 @@ const Shop = {
         const upsellPrice = Math.round(this.currentSale.price * 1.5);
         const accepts = Math.random() < 0.4;  // 40% chance
 
-        this.addText(`"Actually, I\'ve got something better for ${formatMoney(upsellPrice)}..."`, 'player');
+        this.addText(`"Actually, I've got something better for ${formatMoney(upsellPrice)}..."`, 'player');
 
         if (accepts) {
             this.currentSale.price = upsellPrice;
-            this.addText('"Hmm, okay, I\'ll take it."', 'customer');
+            const acceptLine = DialogueSystem.getUpsellAccept();
+            this.addText(`"${acceptLine}"`, 'customer');
             this.setOptions([
                 { label: '[Complete sale]', action: 'complete_sale', class: 'success' }
             ]);
         } else {
-            this.addText('"No thanks, I\'ll just take the original."', 'customer');
+            const rejectLine = DialogueSystem.getUpsellReject();
+            this.addText(`"${rejectLine}"`, 'customer');
             this.setOptions([
                 { label: '[Complete original sale]', action: 'complete_sale', class: 'success' },
                 { label: '"Nevermind then."', action: 'decline_sale', class: 'danger' }
             ]);
         }
+    },
+
+    // Unified function to finish any interaction and clear NPC
+    finishInteraction(satisfied = true) {
+        // Handle NPC system NPCs
+        if (this.currentNPC) {
+            if (satisfied) {
+                NPCSystem.completeService(this.currentNPC.id);
+            } else {
+                NPCSystem.dismissNPC(this.currentNPC.id);
+            }
+            this.currentNPC = null;
+        }
+
+        // Clear old references too (for backwards compat)
+        this.currentMapCustomer = null;
+        this.currentCustomer = null;
+        this.currentSale = null;
+        this.interactionState = 'idle';
+
+        this.returnToIdle();
     },
 
     bindEvents() {
@@ -598,47 +604,16 @@ const Shop = {
     greetCustomer() {
         this.interactionState = 'negotiating';
 
-        this.addText('"What can I help you with today?"', 'player');
+        const greeting = DialogueSystem.getPlayerGreeting();
+        this.addText(`"${greeting}"`, 'player');
 
         const c = this.currentCustomer;
         const problem = c.problem;
+        const deviceName = c.device.typeName.toLowerCase();
 
-        // Customer describes problem
-        const descriptions = {
-            'virus': [
-                `"My ${c.device.typeName.toLowerCase()} is acting weird. Pop-ups everywhere, running slow..."`,
-                `"I think I downloaded something bad. It's completely infected now."`,
-                `"Something's wrong. Programs opening by themselves, files disappearing..."`
-            ],
-            'corruption': [
-                `"I can't open any of my files anymore. They're all corrupted."`,
-                `"My work files are gone. The system says they're corrupted."`,
-                `"Everything was fine yesterday, now nothing works right."`
-            ],
-            'slowdown': [
-                `"It's so slow now. Takes forever to do anything."`,
-                `"Used to be fast, now it crawls. Can barely check email."`,
-                `"Performance has tanked. Something's eating all the resources."`
-            ],
-            'crash': [
-                `"It keeps crashing randomly. Lost work three times today."`,
-                `"Blue screens all the time now. Can't trust it anymore."`,
-                `"Freezes up, then crashes. Over and over."`
-            ],
-            'recovery': [
-                `"I need my files back. Photos, documents - everything important."`,
-                `"It won't boot anymore. I need the data recovered."`,
-                `"My backup failed and now this happened. Please tell me you can get my files."`
-            ],
-            'cleanup': [
-                `"It's full of junk. Bloatware, old programs, who knows what."`,
-                `"Just needs a good cleaning. Running out of space."`,
-                `"Can you just... make it feel new again?"`
-            ]
-        };
-
-        const lines = descriptions[problem.id] || [`"Something's wrong with my ${c.device.typeName.toLowerCase()}."`];
-        this.addText(lines[Math.floor(Math.random() * lines.length)], 'customer');
+        // Get problem description from dialogue system
+        const description = DialogueSystem.getProblemDescription(problem.id, deviceName);
+        this.addText(`"${description}"`, 'customer');
 
         this.setOptions([
             { label: '"Let me take a look at it."', action: 'ask_problem', class: 'primary' }
@@ -661,17 +636,13 @@ const Shop = {
         const gradeDisplay = c.device.grade.toUpperCase();
         this.addText(`[DEVICE] Grade: ${gradeDisplay} | Health: ${c.device.health}%`, 'system');
 
-        // Customer states deadline preference
+        // Customer states deadline preference using dialogue system
         const deadlineDay = GameState.currentDay + c.desiredDeadline;
         const deadlineDayName = GameState.dayNames[(deadlineDay - 1) % 7];
 
-        if (c.urgency.id === 'desperate') {
-            this.addText(`"I really need this back by ${deadlineDayName}. It's urgent. I'll pay extra for rush service."`, 'customer');
-        } else if (c.urgency.id === 'flexible') {
-            this.addText(`"No huge rush. ${deadlineDayName} would be nice, but I'm flexible if you need more time."`, 'customer');
-        } else {
-            this.addText(`"When can you have it done? I was hoping for ${deadlineDayName}."`, 'customer');
-        }
+        // Get urgency-specific dialogue from the system
+        const urgencyLine = DialogueSystem.getUrgencyInitial(c.urgency.id);
+        this.addText(`"${urgencyLine}" They mention ${deadlineDayName} as their preferred deadline.`, 'customer');
 
         this.addText(`[QUOTE] Repair price: <span class="money-highlight">${formatMoney(c.repairPrice)}</span>`, 'system');
 
@@ -691,11 +662,9 @@ const Shop = {
 
         this.addText(`"${GameState.dayNames[(deadline - 1) % 7]} it is. I'll have it ready."`, 'player');
 
-        if (c.urgency.id === 'desperate') {
-            this.addText('"Thank you so much! You\'re a lifesaver."', 'customer');
-        } else {
-            this.addText('"Sounds good. I\'ll be back then."', 'customer');
-        }
+        // Get job confirmed dialogue based on urgency
+        const confirmLine = DialogueSystem.getJobConfirmed(c.urgency.id);
+        this.addText(`"${confirmLine}"`, 'customer');
 
         this.setOptions([
             { label: '[Confirm job]', action: 'confirm_job', class: 'success' }
@@ -711,32 +680,31 @@ const Shop = {
 
         this.addText(`"I've got a full schedule. Best I can do is ${newDayName}."`, 'player');
 
-        // Customer reaction based on urgency
+        // Customer reaction based on urgency - use dialogue system
         if (c.urgency.id === 'desperate') {
             // Desperate customers don't like waiting
             const accepts = Math.random() < 0.3;
             if (accepts) {
                 c.negotiatedDeadline = newDeadline;
                 c.repairPrice = Math.round(c.repairPrice * 0.9); // Slight discount for wait
-                this.addText('"...Fine. But please, as fast as you can."', 'customer');
+                const acceptLine = DialogueSystem.getUrgencyAcceptCounter('desperate');
+                this.addText(`"${acceptLine}"`, 'customer');
                 this.addText(`[UPDATED] Price adjusted to ${formatMoney(c.repairPrice)}`, 'system');
                 this.setOptions([
                     { label: '[Confirm job]', action: 'confirm_job', class: 'success' }
                 ]);
             } else {
-                this.addText('"That\'s too long. I\'ll try somewhere else."', 'customer');
+                const rejectLine = DialogueSystem.getUrgencyRejectCounter('desperate');
+                this.addText(`"${rejectLine}"`, 'customer');
                 this.addText(`${c.name} leaves the shop.`, 'narrator');
-                if (this.currentMapCustomer && typeof ShopMap !== 'undefined') {
-                    ShopMap.customerLeave(this.currentMapCustomer.id);
-                }
-                this.currentMapCustomer = null;
-                this.returnToIdle();
+                this.finishInteraction(false);
             }
         } else if (c.urgency.id === 'flexible') {
             // Flexible customers are fine with it
             c.negotiatedDeadline = newDeadline;
             c.repairPrice = Math.round(c.repairPrice * 0.85); // Discount for flexibility
-            this.addText('"No problem, take your time. Any discount for the wait?"', 'customer');
+            const acceptLine = DialogueSystem.getUrgencyAcceptCounter('flexible');
+            this.addText(`"${acceptLine}"`, 'customer');
             this.addText(`[UPDATED] Price adjusted to ${formatMoney(c.repairPrice)}`, 'system');
             this.setOptions([
                 { label: '[Confirm job]', action: 'confirm_job', class: 'success' }
@@ -746,18 +714,16 @@ const Shop = {
             const accepts = Math.random() < 0.6;
             if (accepts) {
                 c.negotiatedDeadline = newDeadline;
-                this.addText('"Alright, I can wait. See you then."', 'customer');
+                const acceptLine = DialogueSystem.getUrgencyAcceptCounter('normal');
+                this.addText(`"${acceptLine}"`, 'customer');
                 this.setOptions([
                     { label: '[Confirm job]', action: 'confirm_job', class: 'success' }
                 ]);
             } else {
-                this.addText('"Hmm, that\'s later than I hoped. Let me think about it."', 'customer');
+                const rejectLine = DialogueSystem.getUrgencyRejectCounter('normal');
+                this.addText(`"${rejectLine}"`, 'customer');
                 this.addText(`${c.name} leaves, uncertain.`, 'narrator');
-                if (this.currentMapCustomer && typeof ShopMap !== 'undefined') {
-                    ShopMap.customerLeave(this.currentMapCustomer.id);
-                }
-                this.currentMapCustomer = null;
-                this.returnToIdle();
+                this.finishInteraction(false);
             }
         }
     },
@@ -775,13 +741,15 @@ const Shop = {
             // Desperate customers accept rush
             c.negotiatedDeadline = rushDeadline;
             c.repairPrice = rushPrice;
-            this.addText('"Done. Whatever it takes."', 'customer');
+            const acceptLine = DialogueSystem.getUrgencyAcceptRush('desperate');
+            this.addText(`"${acceptLine}"`, 'customer');
             this.setOptions([
                 { label: '[Confirm job]', action: 'confirm_job', class: 'success' }
             ]);
         } else if (c.urgency.id === 'flexible') {
             // Flexible customers decline rush
-            this.addText('"That\'s way more than I wanted to spend. I\'ll just wait."', 'customer');
+            const rejectLine = DialogueSystem.getUrgencyRejectRush('flexible');
+            this.addText(`"${rejectLine}"`, 'customer');
             // Revert to counter
             this.setOptions([
                 { label: '"Okay, regular timing then." [Accept original]', action: 'accept_deadline', class: 'success' },
@@ -793,12 +761,14 @@ const Shop = {
             if (accepts) {
                 c.negotiatedDeadline = rushDeadline;
                 c.repairPrice = rushPrice;
-                this.addText('"...Okay, fine. I really need it fixed."', 'customer');
+                const acceptLine = DialogueSystem.getUrgencyAcceptRush('normal');
+                this.addText(`"${acceptLine}"`, 'customer');
                 this.setOptions([
                     { label: '[Confirm job]', action: 'confirm_job', class: 'success' }
                 ]);
             } else {
-                this.addText('"That\'s steep. What about the regular timeline?"', 'customer');
+                const rejectLine = DialogueSystem.getUrgencyRejectRush('normal');
+                this.addText(`"${rejectLine}"`, 'customer');
                 this.setOptions([
                     { label: '"Sure, regular timing works."', action: 'accept_deadline', class: 'success' },
                     { label: '"Rush or I can\'t fit you in."', action: 'decline_job', class: 'danger' }
@@ -813,19 +783,13 @@ const Shop = {
 
         this.addText('"Sorry, I can\'t take this job right now."', 'player');
 
-        if (c.urgency.id === 'desperate') {
-            this.addText('"What? But I really need help! ...Fine."', 'customer');
-        } else {
-            this.addText('"Oh. Okay then."', 'customer');
-        }
+        // Get decline reaction based on urgency
+        const isDesperate = c.urgency?.id === 'desperate';
+        const reactionLine = DialogueSystem.getDeclineReaction(isDesperate);
+        this.addText(`"${reactionLine}"`, 'customer');
 
         this.addText(`${c.name} leaves the shop, disappointed.`, 'narrator');
-
-        if (this.currentMapCustomer && typeof ShopMap !== 'undefined') {
-            ShopMap.customerLeave(this.currentMapCustomer.id);
-        }
-        this.currentMapCustomer = null;
-        this.returnToIdle();
+        this.finishInteraction(false);
     },
 
     // Confirm and book the job
@@ -858,16 +822,10 @@ const Shop = {
 
         this.addText(`${c.name} hands over the ${c.device.typeName.toLowerCase()} and leaves.`, 'narrator');
 
-        // Make customer leave the map
-        if (this.currentMapCustomer && typeof ShopMap !== 'undefined') {
-            ShopMap.customerLeave(this.currentMapCustomer.id);
-        }
-        this.currentMapCustomer = null;
-
         // Update job display
         this.updateJobsDisplay();
 
-        this.returnToIdle();
+        this.finishInteraction(true);
     },
 
     // Update active jobs display

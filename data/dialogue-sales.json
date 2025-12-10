@@ -1,0 +1,311 @@
+{
+  "greetings": {
+    "customer": [
+      "Hey, you sell stuff here too right?",
+      "I'm looking to buy something.",
+      "Got a minute? I need to pick something up.",
+      "Hi there. Shopping today.",
+      "Just browsing... actually no, I need something specific.",
+      "You got accessories and stuff?",
+      "Need to grab something real quick.",
+      "Perfect, you're open. I need to buy...",
+      "This is the right place for tech stuff, yeah?",
+      "Hi! Looking for something."
+    ],
+    "player": [
+      "What can I get for you?",
+      "Looking for something specific?",
+      "Sure, what do you need?",
+      "Buying today? What are you after?",
+      "Let me know what you're looking for.",
+      "What can I help you find?",
+      "Shopping? Sure, what do you need?",
+      "I've got some things in stock. What's on your list?",
+      "What brings you to the sales counter?",
+      "Looking to buy? What do you need?"
+    ]
+  },
+
+  "requests": {
+    "cables": {
+      "items": [
+        { "name": "USB-C Cable", "price": 15 },
+        { "name": "Lightning Cable", "price": 20 },
+        { "name": "USB-A to USB-C Cable", "price": 12 },
+        { "name": "HDMI Cable", "price": 25 },
+        { "name": "Ethernet Cable", "price": 18 },
+        { "name": "USB Extension Cable", "price": 10 },
+        { "name": "DisplayPort Cable", "price": 30 },
+        { "name": "Aux Cable", "price": 8 },
+        { "name": "Fast Charging Cable", "price": 22 },
+        { "name": "Braided USB Cable", "price": 18 }
+      ],
+      "dialogue": [
+        "Just need a charging cable.",
+        "My cable stopped working. Need a replacement.",
+        "Got any good quality cables?",
+        "Lost my cable. Again. Need another one.",
+        "Looking for a cable that won't break in a month.",
+        "Need a longer cable for my setup.",
+        "My old cable is fraying. Time for a new one.",
+        "Do you have fast charging cables?",
+        "I keep breaking cables. Got a durable one?",
+        "Simple cable purchase today."
+      ]
+    },
+    "protection": {
+      "items": [
+        { "name": "Screen Protector", "price": 25 },
+        { "name": "Tempered Glass Protector", "price": 35 },
+        { "name": "Privacy Screen", "price": 45 },
+        { "name": "Camera Lens Protector", "price": 15 },
+        { "name": "Full Body Skin", "price": 40 },
+        { "name": "Matte Screen Protector", "price": 28 },
+        { "name": "Anti-Glare Protector", "price": 30 },
+        { "name": "Laptop Screen Protector", "price": 50 },
+        { "name": "Tablet Screen Protector", "price": 38 },
+        { "name": "UV Screen Protector", "price": 55 }
+      ],
+      "dialogue": [
+        "Do you have screen protectors?",
+        "I crack screens constantly. Need protection.",
+        "Looking for something to protect my screen.",
+        "Glass protector please. The good kind.",
+        "Privacy screen would be nice. Nosy coworkers.",
+        "My old protector is scratched to hell.",
+        "What's your best screen protector?",
+        "Something to keep my screen from shattering.",
+        "Tempered glass, do you carry it?",
+        "Need screen protection before I regret it."
+      ]
+    },
+    "cases": {
+      "items": [
+        { "name": "Phone Case - Basic", "price": 25 },
+        { "name": "Phone Case - Rugged", "price": 45 },
+        { "name": "Phone Case - Slim", "price": 30 },
+        { "name": "Phone Case - Clear", "price": 20 },
+        { "name": "Wallet Phone Case", "price": 40 },
+        { "name": "Laptop Sleeve", "price": 35 },
+        { "name": "Tablet Case", "price": 38 },
+        { "name": "Hard Shell Case", "price": 55 },
+        { "name": "Waterproof Case", "price": 65 },
+        { "name": "Kickstand Case", "price": 35 }
+      ],
+      "dialogue": [
+        "Looking for a phone case.",
+        "Need something to protect my device.",
+        "Got any good rugged cases?",
+        "I want a case but nothing bulky.",
+        "Clear case so I can see the color.",
+        "Dropped my phone too many times. Case time.",
+        "What cases do you have in stock?",
+        "Need a case with card slots.",
+        "Laptop sleeve? Something padded.",
+        "Tablet case for my kid. Durable."
+      ]
+    },
+    "storage": {
+      "items": [
+        { "name": "32GB Memory Card", "price": 25 },
+        { "name": "64GB Memory Card", "price": 40 },
+        { "name": "128GB Memory Card", "price": 65 },
+        { "name": "256GB Memory Card", "price": 95 },
+        { "name": "32GB USB Drive", "price": 20 },
+        { "name": "64GB USB Drive", "price": 35 },
+        { "name": "128GB USB Drive", "price": 55 },
+        { "name": "External SSD 500GB", "price": 120 },
+        { "name": "External SSD 1TB", "price": 180 },
+        { "name": "External HDD 2TB", "price": 90 }
+      ],
+      "dialogue": [
+        "Need more storage - got any memory cards?",
+        "Running out of space. Need external storage.",
+        "USB drive please. Big one.",
+        "Memory card for my camera.",
+        "Looking for an SSD. External.",
+        "Cheapest storage option you got?",
+        "Need to backup some files. USB drive?",
+        "My phone needs more space. SD card?",
+        "External hard drive. Lots of space.",
+        "Fast storage. SSD if you have it."
+      ]
+    },
+    "audio": {
+      "items": [
+        { "name": "Wired Earbuds", "price": 25 },
+        { "name": "Bluetooth Earbuds", "price": 80 },
+        { "name": "Bluetooth Earbuds - Premium", "price": 150 },
+        { "name": "Over-Ear Headphones", "price": 95 },
+        { "name": "Gaming Headset", "price": 120 },
+        { "name": "USB Microphone", "price": 75 },
+        { "name": "Portable Speaker", "price": 65 },
+        { "name": "Bluetooth Adapter", "price": 30 },
+        { "name": "DAC/Amp", "price": 85 },
+        { "name": "Earbuds with Mic", "price": 35 }
+      ],
+      "dialogue": [
+        "Any wireless earbuds?",
+        "My earbuds died. Need new ones.",
+        "Looking for headphones. Something decent.",
+        "Gaming headset? With a good mic.",
+        "Bluetooth earbuds please.",
+        "I need a microphone for calls.",
+        "Small speaker for my desk?",
+        "My headphone jack is broken. Bluetooth adapter?",
+        "Good sound quality earbuds?",
+        "Wired earbuds. Old school, I know."
+      ]
+    },
+    "power": {
+      "items": [
+        { "name": "Power Bank 5000mAh", "price": 35 },
+        { "name": "Power Bank 10000mAh", "price": 55 },
+        { "name": "Power Bank 20000mAh", "price": 80 },
+        { "name": "Fast Charger", "price": 40 },
+        { "name": "Wireless Charger", "price": 45 },
+        { "name": "Car Charger", "price": 25 },
+        { "name": "Multi-Port Charger", "price": 50 },
+        { "name": "Laptop Charger Universal", "price": 75 },
+        { "name": "USB Wall Adapter", "price": 20 },
+        { "name": "Solar Power Bank", "price": 95 }
+      ],
+      "dialogue": [
+        "Need a power bank for travel.",
+        "My phone dies too fast. Portable charger?",
+        "Fast charger. The quick charge kind.",
+        "Wireless charger for my desk.",
+        "Car charger please.",
+        "Battery pack. Big capacity.",
+        "I travel a lot. Need portable power.",
+        "Multi-port charger for the family.",
+        "Lost my charger. Need a universal one.",
+        "Something to keep my phone alive all day."
+      ]
+    },
+    "peripherals": {
+      "items": [
+        { "name": "Wireless Mouse", "price": 35 },
+        { "name": "Gaming Mouse", "price": 65 },
+        { "name": "Keyboard - Basic", "price": 40 },
+        { "name": "Mechanical Keyboard", "price": 95 },
+        { "name": "Webcam", "price": 70 },
+        { "name": "USB Hub", "price": 30 },
+        { "name": "Mouse Pad", "price": 15 },
+        { "name": "Laptop Stand", "price": 45 },
+        { "name": "Monitor Light Bar", "price": 55 },
+        { "name": "Wrist Rest", "price": 25 }
+      ],
+      "dialogue": [
+        "Need a new mouse. Wireless.",
+        "My keyboard is dying. Replacement?",
+        "Webcam for video calls.",
+        "USB hub? I need more ports.",
+        "Gaming mouse. Something responsive.",
+        "Mechanical keyboard if you have one.",
+        "Good mouse pad? Big one.",
+        "Laptop stand for ergonomics.",
+        "Simple keyboard. Nothing fancy.",
+        "Need peripherals for my new setup."
+      ]
+    },
+    "misc": {
+      "items": [
+        { "name": "Phone Stand", "price": 20 },
+        { "name": "Cable Organizer", "price": 15 },
+        { "name": "Cleaning Kit", "price": 18 },
+        { "name": "Privacy Webcam Cover", "price": 8 },
+        { "name": "Stylus Pen", "price": 30 },
+        { "name": "SIM Card Tool", "price": 5 },
+        { "name": "Thermal Paste", "price": 12 },
+        { "name": "Anti-Static Wrist Strap", "price": 10 },
+        { "name": "Tech Tool Kit", "price": 45 },
+        { "name": "Compressed Air Can", "price": 12 }
+      ],
+      "dialogue": [
+        "Got any phone stands?",
+        "My desk is a cable mess. Organizers?",
+        "Screen cleaning kit please.",
+        "Webcam cover. Paranoid, I know.",
+        "Stylus for my tablet.",
+        "Lost my SIM tool. Again.",
+        "Thermal paste for a build.",
+        "Cleaning supplies for electronics.",
+        "Little things. Organizing my setup.",
+        "Random tech stuff I keep forgetting to buy."
+      ]
+    }
+  },
+
+  "upsell": {
+    "accept": [
+      "Hmm, okay, I'll take it.",
+      "Sure, why not. Treat myself.",
+      "Alright, you convinced me.",
+      "Fine, I'll go with the better one.",
+      "You make a good point. I'll upgrade.",
+      "Okay okay, give me the good one.",
+      "Worth it I guess. Let's do it.",
+      "Sold. Give me the upgrade.",
+      "You're good at this. Fine, I'll take it.",
+      "Might as well get the better version."
+    ],
+    "reject": [
+      "No thanks, I'll just take the original.",
+      "Nah, the basic one is fine.",
+      "I'm good with what I asked for.",
+      "Don't need the fancy version.",
+      "Just the regular one please.",
+      "Trying to stay on budget.",
+      "The cheaper one is fine.",
+      "I'll stick with my original choice.",
+      "Not today. Maybe next time.",
+      "I know my needs. Original is fine."
+    ]
+  },
+
+  "sale_complete": [
+    "Thanks! Have a good one.",
+    "Perfect, exactly what I needed.",
+    "Appreciate it. See you around.",
+    "Great, thanks for the help.",
+    "This'll do the trick. Thanks!",
+    "Awesome. You're a lifesaver.",
+    "Nice doing business with you.",
+    "Thanks. Good shop you got here.",
+    "Sweet. I'll be back if I need more.",
+    "Cheers! Take care.",
+    "That was easy. Thanks!",
+    "Just what I was looking for.",
+    "You've got good stuff here.",
+    "Thanks for the quick service.",
+    "Perfect. Exactly what I needed."
+  ],
+
+  "out_of_stock": {
+    "customer": [
+      "Oh, you're out? That's unfortunate.",
+      "No stock? Alright, I'll try somewhere else.",
+      "Bummer. Okay, thanks anyway.",
+      "When do you get more in?",
+      "That's a shame. Maybe next time.",
+      "Seriously? Ugh. Fine.",
+      "I really needed that today...",
+      "Guess I'll order online then.",
+      "No worries. I'll check back later.",
+      "That's okay. Got anything similar?"
+    ],
+    "player": [
+      "Sorry, we're out of that.",
+      "Fresh out, unfortunately.",
+      "Not in stock right now. Sorry.",
+      "Just sold the last one earlier.",
+      "Shipment's coming but not today.",
+      "Can't help you there. Out of stock.",
+      "None left. Check back next week?",
+      "Don't have that one currently.",
+      "Sold out. Anything else I can help with?",
+      "Not available today. Sorry about that."
+    ]
+  }
+}

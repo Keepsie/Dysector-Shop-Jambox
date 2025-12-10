@@ -14,13 +14,17 @@ const ShopMap = {
         void: '#0a0a0a',           // Outside shop
         wall: '#1a1a2e',           // Walls
         floor: '#16213e',          // Walkable floor
-        serviceCounter: '#00fff5', // Cyan - service counter
-        posCounter: '#9b59b6',     // Purple - POS/sales counter
+        backfloor: '#0d1425',      // Darker floor for back room
+        serviceCounter: '#3498db', // BLUE - service counter (repairs)
+        posCounter: '#9b59b6',     // PURPLE - POS/sales counter
+        serviceWait: '#1a3a5c',    // Dark blue tint - service waiting
+        posWait: '#3d2a5c',        // Dark purple tint - POS waiting
         table: '#e94560',          // Magenta/pink - display tables
-        workbench: '#f0c929',      // Yellow - workbench area
+        workbench: '#f39c12',      // Orange - workbench area
         door: '#27ae60',           // Green - entrance
-        shelf: '#3498db',          // Blue - shelves
+        shelf: '#2ecc71',          // Lighter green - shelves
         player: '#ffffff',         // White - you
+        customer: '#f1c40f',       // YELLOW - customers/NPCs
     },
 
     // Use ShopGenerator tile types
@@ -75,16 +79,13 @@ const ShopMap = {
     },
 
     positionPlayer() {
-        // Put player at service counter by default
-        if (this.keyPositions.serviceWaitSpots && this.keyPositions.serviceWaitSpots.length > 0) {
-            // Find a spot behind the counter
-            const counterTiles = this.keyPositions.serviceCounter;
-            if (counterTiles.length > 0) {
-                const counterY = counterTiles[0].y;
-                this.player.x = counterTiles[Math.floor(counterTiles.length / 2)].x;
-                this.player.y = counterY - 1;  // Behind counter
-                this.player.location = 'service';
-            }
+        // Put player behind service counter (towards back room - higher Y)
+        const counterTiles = this.keyPositions.serviceCounter;
+        if (counterTiles && counterTiles.length > 0) {
+            const counterY = counterTiles[0].y;
+            this.player.x = counterTiles[Math.floor(counterTiles.length / 2)].x;
+            this.player.y = counterY + 1;  // Behind counter (towards back room)
+            this.player.location = 'service';
         }
     },
 
@@ -202,16 +203,22 @@ const ShopMap = {
 
         switch (tileType) {
             case T.SERVICE_COUNTER:
-                info = { name: 'SERVICE COUNTER', desc: 'Accept repair jobs here.', color: this.colors.serviceCounter };
+                info = { name: 'SERVICE COUNTER', desc: 'Accept repair jobs here. (BLUE)', color: this.colors.serviceCounter };
                 break;
             case T.POS_COUNTER:
-                info = { name: 'SALES COUNTER', desc: 'Sell items to customers here.', color: this.colors.posCounter };
+                info = { name: 'SALES COUNTER', desc: 'Sell items to customers here. (PURPLE)', color: this.colors.posCounter };
+                break;
+            case T.SERVICE_WAIT:
+                info = { name: 'SERVICE QUEUE', desc: 'Customers wait here for repairs.', color: this.colors.serviceWait };
+                break;
+            case T.POS_WAIT:
+                info = { name: 'SALES QUEUE', desc: 'Customers wait here to buy.', color: this.colors.posWait };
                 break;
             case T.TABLE:
                 info = { name: 'DISPLAY TABLE', desc: 'Customers browse here before approaching.', color: this.colors.table };
                 break;
             case T.WORKBENCH:
-                info = { name: 'WORKBENCH', desc: 'Repair devices here. Requires diving.', color: this.colors.workbench };
+                info = { name: 'WORKBENCH', desc: 'Repair devices here. Employee only.', color: this.colors.workbench };
                 break;
             case T.DOOR:
                 info = { name: 'ENTRANCE', desc: 'Customers enter and exit here.', color: this.colors.door };
@@ -223,8 +230,10 @@ const ShopMap = {
                 info = { name: 'WALL', desc: '', color: this.colors.wall };
                 break;
             case T.FLOOR:
+                info = { name: 'FLOOR', desc: 'Customer area.', color: this.colors.floor };
+                break;
             case T.BACKFLOOR:
-                info = { name: 'FLOOR', desc: 'Walkable area.', color: this.colors.floor };
+                info = { name: 'BACK ROOM', desc: 'Employee only area.', color: this.colors.backfloor };
                 break;
             default:
                 this.clearInfoPanel();
@@ -289,20 +298,31 @@ const ShopMap = {
             for (let x = 0; x < this.gridWidth; x++) {
                 const tile = this.map[y][x];
                 let color = this.colors.void;
+                let label = null;
 
                 switch (tile) {
                     case T.WALL:
                         color = this.colors.wall;
                         break;
                     case T.FLOOR:
-                    case T.BACKFLOOR:
                         color = this.colors.floor;
+                        break;
+                    case T.BACKFLOOR:
+                        color = this.colors.backfloor;
                         break;
                     case T.SERVICE_COUNTER:
                         color = this.colors.serviceCounter;
                         break;
                     case T.POS_COUNTER:
                         color = this.colors.posCounter;
+                        break;
+                    case T.SERVICE_WAIT:
+                        color = this.colors.serviceWait;
+                        label = 'W';
+                        break;
+                    case T.POS_WAIT:
+                        color = this.colors.posWait;
+                        label = 'W';
                         break;
                     case T.TABLE:
                         color = this.colors.table;
@@ -325,6 +345,14 @@ const ShopMap = {
                     this.tileSize - 2,
                     this.tileSize - 2
                 );
+
+                // Draw label on waiting tiles
+                if (label) {
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.font = 'bold 10px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, x * this.tileSize + this.tileSize / 2, y * this.tileSize + this.tileSize / 2 + 3);
+                }
             }
         }
 
@@ -341,13 +369,14 @@ const ShopMap = {
             );
         }
 
-        // Draw NPCs from NPC system
+        // Draw NPCs from NPC system - ALL CUSTOMERS ARE YELLOW
         for (const npc of NPCSystem.npcs) {
             const isWaiting = npc.state === NPCSystem.STATE.WAITING;
+            const isBeingServed = npc.state === NPCSystem.STATE.BEING_SERVED;
             const isSelected = this.selectedNPC && this.selectedNPC.id === npc.id;
 
-            // NPC color based on intent/state
-            ctx.fillStyle = npc.color;
+            // All customers are YELLOW
+            ctx.fillStyle = this.colors.customer;
             ctx.fillRect(
                 npc.x * this.tileSize + 3,
                 npc.y * this.tileSize + 3,
@@ -355,8 +384,8 @@ const ShopMap = {
                 this.tileSize - 6
             );
 
-            // Selection indicator
-            if (isSelected) {
+            // Selection indicator (white border)
+            if (isSelected || isBeingServed) {
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(
@@ -375,7 +404,7 @@ const ShopMap = {
                 ctx.fillText('!', npc.x * this.tileSize + this.tileSize / 2, npc.y * this.tileSize - 2);
             }
 
-            // Intent indicator (small letter)
+            // Intent indicator (small letter inside block)
             ctx.fillStyle = '#000';
             ctx.font = 'bold 9px monospace';
             ctx.textAlign = 'center';
