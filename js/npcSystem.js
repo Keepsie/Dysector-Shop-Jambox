@@ -2,9 +2,9 @@
 
 const NPCSystem = {
     npcs: [],
-    maxNPCs: 6,
+    maxNPCs: 4,           // Reduced - less overwhelming
     spawnTimer: 0,
-    spawnInterval: 3000,  // ms between spawn checks
+    spawnInterval: 5000,  // ms between spawn checks - slower spawns
 
     // NPC intent types
     INTENT: {
@@ -189,7 +189,7 @@ const NPCSystem = {
             this.spawnTimer += deltaTime;
             if (this.spawnTimer >= this.spawnInterval) {
                 this.spawnTimer = 0;
-                if (Math.random() < 0.3) {  // 30% chance each interval
+                if (Math.random() < 0.4) {  // 40% chance each interval (but interval is longer)
                     this.trySpawn();
                 }
             }
@@ -292,7 +292,8 @@ const NPCSystem = {
             if (tile === undefined) return false;
 
             const T = ShopGenerator.TILES;
-            const walkable = [T.FLOOR, T.BACKFLOOR, T.DOOR];
+            // Include wait areas as walkable - NPCs need to reach them!
+            const walkable = [T.FLOOR, T.BACKFLOOR, T.DOOR, T.SERVICE_WAIT, T.POS_WAIT];
             return walkable.includes(tile);
         }
         return true;

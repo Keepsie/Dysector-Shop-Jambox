@@ -116,6 +116,22 @@ const Shop = {
         ]);
     },
 
+    // Serve NPC from chat button (not map click)
+    serveNPCFromButton(npcId) {
+        const npc = NPCSystem.npcs.find(n => n.id == npcId);
+        if (!npc || npc.state !== NPCSystem.STATE.WAITING) return;
+
+        // Mark as being served
+        NPCSystem.serveNPC(npcId);
+
+        // Trigger appropriate dialogue
+        if (npc.intent === NPCSystem.INTENT.SERVICE) {
+            this.triggerServiceDialogue(npc);
+        } else if (npc.intent === NPCSystem.INTENT.BUY) {
+            this.triggerSaleDialogue(npc);
+        }
+    },
+
     // Handle dismiss NPC
     dismissNPC() {
         if (this.currentNPC) {
@@ -123,6 +139,23 @@ const Shop = {
             this.addText(`${this.currentNPC.data.name} leaves disappointed.`, 'narrator');
         }
         this.finishInteraction(false);
+    },
+
+    // Clear all remaining customers when closing up
+    clearRemainingCustomers() {
+        const waiting = [...NPCSystem.getWaitingAtService(), ...NPCSystem.getWaitingAtPOS()];
+
+        if (waiting.length > 0) {
+            this.addText('"Sorry folks, we\'re closed for the night."', 'player');
+            this.addText(`${waiting.length} customer(s) leave disappointed.`, 'narrator');
+
+            // Remove all waiting NPCs
+            for (const npc of waiting) {
+                NPCSystem.dismissNPC(npc.id);
+            }
+        }
+
+        this.showClosedOptions();
     },
 
     // Complete a sale
@@ -199,6 +232,12 @@ const Shop = {
         this.currentSale = null;
         this.interactionState = 'idle';
 
+        // Clear the map info panel and selection
+        if (typeof ShopMap !== 'undefined') {
+            ShopMap.selectedNPC = null;
+            ShopMap.clearInfoPanel();
+        }
+
         this.returnToIdle();
     },
 
@@ -209,7 +248,8 @@ const Shop = {
                 const btn = e.target.closest('.option-btn');
                 if (btn && !btn.classList.contains('disabled')) {
                     const action = btn.dataset.action;
-                    this.handleAction(action);
+                    const npcId = btn.dataset.npcId;
+                    this.handleAction(action, npcId);
                 }
             });
         }
@@ -244,6 +284,7 @@ const Shop = {
             const btn = document.createElement('button');
             btn.className = `option-btn ${opt.class || ''}`;
             btn.dataset.action = opt.action;
+            if (opt.npcId) btn.dataset.npcId = opt.npcId;
             if (opt.disabled) btn.classList.add('disabled');
             btn.innerHTML = `[${index + 1}] ${opt.label}`;
             this.optionsContainer.appendChild(btn);
@@ -251,10 +292,13 @@ const Shop = {
     },
 
     // Handle action
-    handleAction(action) {
+    handleAction(action, npcId = null) {
         switch (action) {
             case 'wait':
                 this.waitForCustomer();
+                break;
+            case 'serve_npc':
+                this.serveNPCFromButton(npcId);
                 break;
             case 'workbench':
                 this.goToWorkbench();
@@ -291,6 +335,9 @@ const Shop = {
                 break;
             case 'dismiss_npc':
                 this.dismissNPC();
+                break;
+            case 'clear_remaining':
+                this.clearRemainingCustomers();
                 break;
             case 'complete_sale':
                 this.completeSale();
@@ -378,7 +425,29 @@ const Shop = {
         // Start customer spawn timer
         this.startCustomerSpawning();
 
+        // Start idle refresh timer - updates serve buttons when NPCs arrive at counter
+        this.startIdleRefresh();
+
         this.returnToIdle();
+    },
+
+    // Refresh idle options periodically to show new waiting customers
+    startIdleRefresh() {
+        if (this.idleRefreshTimer) clearInterval(this.idleRefreshTimer);
+
+        this.idleRefreshTimer = setInterval(() => {
+            // Only refresh if idle and shop is open
+            if (this.interactionState === 'idle' && GameState.dayPhase === 'open') {
+                this.returnToIdle();
+            }
+        }, 1000);  // Check every second
+    },
+
+    stopIdleRefresh() {
+        if (this.idleRefreshTimer) {
+            clearInterval(this.idleRefreshTimer);
+            this.idleRefreshTimer = null;
+        }
     },
 
     // Return to idle state (during open hours)
@@ -387,14 +456,38 @@ const Shop = {
         this.currentCustomer = null;
 
         if (GameState.dayPhase === 'open') {
-            const waitingCount = typeof ShopMap !== 'undefined' ? ShopMap.getWaitingCount() : 0;
             const options = [];
 
-            if (waitingCount > 0) {
-                options.push({ label: `[Click a customer on the map to serve them]`, action: 'wait', disabled: true });
-            } else {
+            // Get waiting NPCs and show SERVE buttons for each
+            const waitingService = NPCSystem.getWaitingAtService();
+            const waitingPOS = NPCSystem.getWaitingAtPOS();
+
+            if (waitingService.length > 0) {
+                for (const npc of waitingService) {
+                    options.push({
+                        label: `Serve ${npc.data.name} (Repair)`,
+                        action: 'serve_npc',
+                        npcId: npc.id,
+                        class: 'primary'
+                    });
+                }
+            }
+
+            if (waitingPOS.length > 0) {
+                for (const npc of waitingPOS) {
+                    options.push({
+                        label: `Serve ${npc.data.name} (Sale)`,
+                        action: 'serve_npc',
+                        npcId: npc.id,
+                        class: 'success'
+                    });
+                }
+            }
+
+            if (options.length === 0) {
                 options.push({ label: '[Waiting for customers...]', action: 'wait', disabled: true });
             }
+
             options.push({ label: 'Go to workbench', action: 'workbench' });
             options.push({ label: 'Close shop early', action: 'close', class: 'danger' });
 
@@ -411,6 +504,36 @@ const Shop = {
         const fatigueLevel = FatigueSystem.getFatigueLevel();
 
         const options = [];
+
+        // First check if there are still customers waiting (shop just closed)
+        const waitingService = NPCSystem.getWaitingAtService();
+        const waitingPOS = NPCSystem.getWaitingAtPOS();
+
+        if (waitingService.length > 0 || waitingPOS.length > 0) {
+            this.addText('[Finishing up with remaining customers...]', 'system');
+
+            for (const npc of waitingService) {
+                options.push({
+                    label: `Serve ${npc.data.name} (Repair)`,
+                    action: 'serve_npc',
+                    npcId: npc.id,
+                    class: 'primary'
+                });
+            }
+
+            for (const npc of waitingPOS) {
+                options.push({
+                    label: `Serve ${npc.data.name} (Sale)`,
+                    action: 'serve_npc',
+                    npcId: npc.id,
+                    class: 'success'
+                });
+            }
+
+            options.push({ label: 'Send them away (close up)', action: 'clear_remaining', class: 'danger' });
+            this.setOptions(options);
+            return;
+        }
 
         // Dive option
         if (GameState.divesRemaining > 0 && GameState.workbenchSlots.some(s => s !== null)) {
@@ -432,7 +555,7 @@ const Shop = {
 
         // Sleep
         if (fatigueLevel === 'critical' || fatigueLevel === 'exhausted') {
-            options.push({ label: 'Go to sleep (end day)', action: 'sleep', class: 'success' });
+            options.push({ label: 'Go to sleep (end day)', action: 'success' });
         } else {
             options.push({ label: 'Go to sleep (end day)', action: 'sleep' });
         }
@@ -868,7 +991,23 @@ const Shop = {
     // Close shop early
     closeShopEarly() {
         this.stopCustomerSpawning();
+        this.stopIdleRefresh();
         TimeSystem.closeShopEarly();
+
+        // Clear out NPCs that aren't at counter yet
+        if (typeof NPCSystem !== 'undefined') {
+            const toRemove = [];
+            for (const npc of NPCSystem.npcs) {
+                // Only keep NPCs that are waiting or being served
+                if (npc.state !== NPCSystem.STATE.WAITING && npc.state !== NPCSystem.STATE.BEING_SERVED) {
+                    toRemove.push(npc.id);
+                }
+            }
+            // Remove them
+            for (const id of toRemove) {
+                NPCSystem.npcs = NPCSystem.npcs.filter(n => n.id !== id);
+            }
+        }
 
         this.addText('', 'narrator');
         this.addText('[SYSTEM] Shop closed early.', 'system');
