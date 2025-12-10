@@ -2,7 +2,7 @@
 
 const SaveSystem = {
     SAVE_KEY: 'dysector_shop_save',
-    VERSION: 4,  // Bumped for varied shelf placement
+    VERSION: 5,  // Bumped for path-safe shelf placement
 
     // Default new game state
     getDefaultState() {
@@ -140,6 +140,12 @@ const SaveSystem = {
         // Version 4: Varied shelf placement
         if (oldSave.version < 4) {
             console.log('[SAVE] Regenerating shop layout for v4 (varied shelves)');
+            oldSave.shop.layout = null;
+        }
+
+        // Version 5: Path-safe shelf placement
+        if (oldSave.version < 5) {
+            console.log('[SAVE] Regenerating shop layout for v5 (path-safe shelves)');
             oldSave.shop.layout = null;
         }
 

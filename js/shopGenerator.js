@@ -248,60 +248,45 @@ const ShopGenerator = {
 
     placeShelves(map, width, height) {
         const dividerY = Math.floor(height * 0.6);
+        const doorX = this.doorPosition?.x || Math.floor(width / 2);
 
-        // Shelves go along walls in customer area (between door and counters)
-        // Left wall shelves - varied lengths
-        const leftShelfY = 2;
-        const leftShelfLength = this.randomInt(2, 4);
+        // Keep a clear path from door (y=1) to counters (dividerY-1)
+        // Main aisle is around doorX +/- 2
+
+        // Left wall shelves - against the wall, not blocking paths
+        const leftShelfY = 3;  // Start lower to not block horizontal movement at y=2
+        const leftShelfLength = this.randomInt(2, 3);
         for (let y = leftShelfY; y < leftShelfY + leftShelfLength && y < dividerY - 3; y++) {
             if (map[y][1] === this.TILES.FLOOR) {
                 map[y][1] = this.TILES.SHELF;
             }
         }
 
-        // Right wall shelves - varied lengths
-        const rightShelfY = 2 + this.randomInt(0, 2);
-        const rightShelfLength = this.randomInt(2, 4);
+        // Right wall shelves - against the wall
+        const rightShelfY = 3 + this.randomInt(0, 2);
+        const rightShelfLength = this.randomInt(2, 3);
         for (let y = rightShelfY; y < rightShelfY + rightShelfLength && y < dividerY - 3; y++) {
             if (map[y][width - 2] === this.TILES.FLOOR) {
                 map[y][width - 2] = this.TILES.SHELF;
             }
         }
 
-        // Top wall shelves (near door but not blocking it) - random placement
-        const doorX = this.doorPosition?.x || Math.floor(width / 2);
-
-        // Left of door
-        if (this.random() > 0.3) {
-            const leftTopStart = 2 + this.randomInt(0, 2);
-            const leftTopLength = this.randomInt(2, 3);
-            for (let x = leftTopStart; x < leftTopStart + leftTopLength && x < doorX - 2; x++) {
-                if (map[1][x] === this.TILES.FLOOR) {
-                    map[1][x] = this.TILES.SHELF;
-                }
-            }
-        }
-
-        // Right of door
-        if (this.random() > 0.3) {
-            const rightTopStart = doorX + 2 + this.randomInt(0, 2);
-            const rightTopLength = this.randomInt(2, 3);
-            for (let x = rightTopStart; x < rightTopStart + rightTopLength && x < width - 2; x++) {
-                if (map[1][x] === this.TILES.FLOOR) {
-                    map[1][x] = this.TILES.SHELF;
-                }
-            }
-        }
-
-        // Maybe add a middle aisle shelf (freestanding)
+        // Maybe short shelf clusters on sides (not blocking center aisle)
+        // Left side cluster
         if (this.random() > 0.5) {
-            const midX = Math.floor(width / 2) + this.randomInt(-2, 2);
-            const midY = 3 + this.randomInt(0, 2);
-            const midLength = this.randomInt(2, 3);
-            for (let y = midY; y < midY + midLength && y < dividerY - 3; y++) {
-                if (map[y][midX] === this.TILES.FLOOR) {
-                    map[y][midX] = this.TILES.SHELF;
-                }
+            const clusterX = 3;  // Away from wall, but left of center
+            const clusterY = 4 + this.randomInt(0, 2);
+            if (clusterX < doorX - 3 && map[clusterY][clusterX] === this.TILES.FLOOR) {
+                map[clusterY][clusterX] = this.TILES.SHELF;
+            }
+        }
+
+        // Right side cluster
+        if (this.random() > 0.5) {
+            const clusterX = width - 4;  // Away from wall, but right of center
+            const clusterY = 4 + this.randomInt(0, 2);
+            if (clusterX > doorX + 3 && map[clusterY][clusterX] === this.TILES.FLOOR) {
+                map[clusterY][clusterX] = this.TILES.SHELF;
             }
         }
     },

@@ -78,7 +78,7 @@ const Shop = {
         this.addText(`<span class="customer-name">${npc.data.name}</span> approaches with a <span class="item-highlight">${npc.data.device.fullName}</span>.`, 'narrator');
 
         // Build job data for service interface
-        const problemDesc = DialogueSystem.getProblemDescription(npc.data.problem.id, npc.data.device.name);
+        const problemDesc = DialogueSystem.getProblemDescription(npc.data.problem.id, npc.data.device.typeName);
         const job = {
             device: npc.data.device.fullName,
             problemType: npc.data.problem.name,

@@ -147,6 +147,25 @@ const ServiceInterface = {
         ]);
     },
 
+    // Calculate price based on deadline
+    calculatePrice(daysOut) {
+        const base = this.currentJob.estimatedPrice;
+        const urgency = this.currentJob.urgency;
+
+        // Rush = premium, slow = potential discount
+        if (daysOut <= 1) {
+            return Math.round(base * 1.5);  // Rush premium +50%
+        } else if (daysOut <= 2) {
+            return Math.round(base * 1.2);  // Quick turnaround +20%
+        } else if (daysOut <= 4) {
+            return base;  // Standard price
+        } else if (daysOut <= 7) {
+            return Math.round(base * 0.9);  // Slow discount -10%
+        } else {
+            return Math.round(base * 0.8);  // Very slow discount -20%
+        }
+    },
+
     // Accept with selected date
     acceptWithDate(day) {
         this.selectedDate = day;
@@ -156,40 +175,38 @@ const ServiceInterface = {
         // Check if this deadline works for them
         let accepted = false;
         let response = '';
-        let priceMultiplier = 1.0;
+        const finalPrice = this.calculatePrice(daysOut);
 
         if (urgency.id === 'desperate') {
             if (daysOut <= 1) {
                 accepted = true;
                 response = DialogueSystem.getJobConfirmed('desperate');
-                priceMultiplier = 1.5;  // Rush premium
+            } else if (daysOut <= 2) {
+                // They'll grudgingly accept 2 days
+                accepted = true;
+                response = "Two days? I really need it sooner... but fine.";
             } else {
                 response = DialogueSystem.getUrgencyRejectCounter('desperate');
                 this.addDialogue('customer', `"${response}"`);
-                this.addDialogue('system', '[They need it sooner!]');
+                this.addDialogue('system', '[They need it sooner! Try tomorrow or today.]');
                 return;
             }
         } else if (urgency.id === 'normal') {
-            if (daysOut <= 4) {
+            if (daysOut <= 5) {
                 accepted = true;
                 response = DialogueSystem.getJobConfirmed('normal');
-                priceMultiplier = daysOut <= 1 ? 1.2 : 1.0;
             } else {
                 response = "That's a bit far out, but I guess it's fine...";
                 accepted = true;
-                priceMultiplier = 0.9;  // Discount for slow service
             }
         } else {  // flexible
             accepted = true;
             response = DialogueSystem.getJobConfirmed('flexible');
-            priceMultiplier = daysOut <= 2 ? 1.1 : 1.0;
         }
 
         if (accepted) {
             this.addDialogue('customer', `"${response}"`);
-
-            const finalPrice = Math.round(this.currentJob.estimatedPrice * priceMultiplier);
-            this.addDialogue('system', `[Job accepted - Due: ${day.label} - Est. $${finalPrice}]`);
+            this.addDialogue('system', `[Job accepted - Due: ${day.label} - $${finalPrice}]`);
 
             // Complete after brief delay
             setTimeout(() => {

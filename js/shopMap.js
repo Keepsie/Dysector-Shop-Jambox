@@ -24,7 +24,7 @@ const ShopMap = {
         door: '#27ae60',           // Green - entrance
         shelf: '#d4ac0d',          // Light yellow/gold - shelves
         player: '#ffffff',         // White - you
-        customer: '#f1c40f',       // YELLOW - customers/NPCs
+        customer: '#b0b0b0',       // Medium gray - customers/NPCs
     },
 
     // Use ShopGenerator tile types

@@ -202,8 +202,8 @@ const NPCSystem = {
             const npc = this.npcs[i];
             this.updateNPC(npc, deltaTime);
 
-            // Remove if left
-            if (npc.state === this.STATE.LEAVING && this.atTarget(npc)) {
+            // Remove if left (at door or past it - y <= 1)
+            if (npc.state === this.STATE.LEAVING && npc.y <= 1) {
                 this.npcs.splice(i, 1);
             }
         }
@@ -261,8 +261,12 @@ const NPCSystem = {
         const dx = npc.targetSpot.x - npc.x;
         const dy = npc.targetSpot.y - npc.y;
 
-        // Simple movement - prioritize larger distance
-        if (Math.abs(dx) > Math.abs(dy)) {
+        // At destination?
+        if (dx === 0 && dy === 0) return;
+
+        // NPCs can pass through each other - only tiles block movement
+        // Prioritize larger distance
+        if (Math.abs(dx) >= Math.abs(dy) && dx !== 0) {
             const newX = npc.x + Math.sign(dx);
             if (this.canWalk(newX, npc.y)) {
                 npc.x = newX;
@@ -278,11 +282,35 @@ const NPCSystem = {
             }
         }
 
-        // Try alternate direction if blocked
+        // If blocked, try alternate horizontal
         if (dx !== 0) {
             const newX = npc.x + Math.sign(dx);
             if (this.canWalk(newX, npc.y)) {
                 npc.x = newX;
+                return;
+            }
+        }
+
+        // Still blocked - try perpendicular moves to go around obstacle
+        if (dy === 0 || Math.abs(dx) > Math.abs(dy)) {
+            // Trying to go horizontal but blocked - try up or down
+            if (this.canWalk(npc.x, npc.y - 1)) {
+                npc.y -= 1;
+                return;
+            }
+            if (this.canWalk(npc.x, npc.y + 1)) {
+                npc.y += 1;
+                return;
+            }
+        } else {
+            // Trying to go vertical but blocked - try left or right
+            if (this.canWalk(npc.x - 1, npc.y)) {
+                npc.x -= 1;
+                return;
+            }
+            if (this.canWalk(npc.x + 1, npc.y)) {
+                npc.x += 1;
+                return;
             }
         }
     },
