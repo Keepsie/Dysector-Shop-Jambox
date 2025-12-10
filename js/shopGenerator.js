@@ -1,0 +1,296 @@
+/* DYSECTOR Shop Prototype - Procedural Shop Generator */
+
+const ShopGenerator = {
+    // Tile types
+    TILES: {
+        VOID: 0,
+        WALL: 1,
+        FLOOR: 2,
+        SERVICE_COUNTER: 3,  // For device repairs
+        POS_COUNTER: 4,      // For buying items
+        TABLE: 5,
+        WORKBENCH: 6,
+        DOOR: 7,
+        BACKFLOOR: 8,
+        SHELF: 9,            // Display shelves
+    },
+
+    // Seeded random number generator
+    seededRandom: null,
+
+    initRandom(seed) {
+        // Simple seeded PRNG (mulberry32)
+        this.seededRandom = () => {
+            let t = seed += 0x6D2B79F5;
+            t = Math.imul(t ^ t >>> 15, t | 1);
+            t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+    },
+
+    random() {
+        return this.seededRandom ? this.seededRandom() : Math.random();
+    },
+
+    randomInt(min, max) {
+        return Math.floor(this.random() * (max - min + 1)) + min;
+    },
+
+    // Main generation function
+    generate(seed, width = 20, height = 14) {
+        this.initRandom(seed);
+
+        const map = this.createEmptyMap(width, height);
+
+        // Build structure
+        this.buildWalls(map, width, height);
+        this.buildFloor(map, width, height);
+        this.buildDivider(map, width, height);
+        this.buildDoor(map, width, height);
+
+        // Place counters
+        this.placeServiceCounter(map, width, height);
+        this.placePOSCounter(map, width, height);
+
+        // Place furniture
+        this.placeDisplayTables(map, width, height);
+        this.placeWorkbenches(map, width, height);
+
+        return map;
+    },
+
+    createEmptyMap(width, height) {
+        return Array(height).fill(null).map(() =>
+            Array(width).fill(this.TILES.VOID)
+        );
+    },
+
+    buildWalls(map, width, height) {
+        // Outer walls
+        for (let x = 0; x < width; x++) {
+            map[0][x] = this.TILES.WALL;
+            map[height - 1][x] = this.TILES.WALL;
+        }
+        for (let y = 0; y < height; y++) {
+            map[y][0] = this.TILES.WALL;
+            map[y][width - 1] = this.TILES.WALL;
+        }
+    },
+
+    buildFloor(map, width, height) {
+        const dividerY = Math.floor(height * 0.6);
+
+        // Front room floor
+        for (let y = 1; y < dividerY; y++) {
+            for (let x = 1; x < width - 1; x++) {
+                map[y][x] = this.TILES.FLOOR;
+            }
+        }
+
+        // Back room floor
+        for (let y = dividerY + 1; y < height - 1; y++) {
+            for (let x = 1; x < width - 1; x++) {
+                map[y][x] = this.TILES.BACKFLOOR;
+            }
+        }
+    },
+
+    buildDivider(map, width, height) {
+        const dividerY = Math.floor(height * 0.6);
+
+        // Divider wall
+        for (let x = 1; x < width - 1; x++) {
+            map[dividerY][x] = this.TILES.WALL;
+        }
+
+        // Gap in divider (random position, but centered-ish)
+        const gapCenter = Math.floor(width / 2) + this.randomInt(-2, 2);
+        map[dividerY][gapCenter] = this.TILES.FLOOR;
+        map[dividerY][gapCenter + 1] = this.TILES.FLOOR;
+    },
+
+    buildDoor(map, width, height) {
+        // Door at bottom, random position
+        const doorX = Math.floor(width / 2) + this.randomInt(-3, 3);
+        map[height - 1][doorX] = this.TILES.DOOR;
+        map[height - 1][doorX + 1] = this.TILES.DOOR;
+
+        // Store door position for NPC spawning
+        this.doorPosition = { x: doorX, y: height - 2 };
+    },
+
+    placeServiceCounter(map, width, height) {
+        const dividerY = Math.floor(height * 0.6);
+
+        // Service counter on the left side, near divider
+        const counterY = dividerY - 1;
+        const counterStartX = 2 + this.randomInt(0, 2);
+        const counterLength = 3 + this.randomInt(0, 2);
+
+        for (let x = counterStartX; x < counterStartX + counterLength && x < width / 2 - 1; x++) {
+            map[counterY][x] = this.TILES.SERVICE_COUNTER;
+        }
+
+        this.serviceCounterPos = { x: counterStartX + 1, y: counterY + 1 };
+    },
+
+    placePOSCounter(map, width, height) {
+        const dividerY = Math.floor(height * 0.6);
+
+        // POS counter on the right side, near divider
+        const counterY = dividerY - 1;
+        const counterEndX = width - 3 - this.randomInt(0, 2);
+        const counterLength = 3 + this.randomInt(0, 2);
+        const counterStartX = counterEndX - counterLength;
+
+        for (let x = counterStartX; x <= counterEndX && x > width / 2 + 1; x++) {
+            map[counterY][x] = this.TILES.POS_COUNTER;
+        }
+
+        this.posCounterPos = { x: counterEndX - 1, y: counterY + 1 };
+    },
+
+    placeDisplayTables(map, width, height) {
+        const dividerY = Math.floor(height * 0.6);
+
+        // Random number of tables (2-4)
+        const numTables = this.randomInt(2, 4);
+
+        // Possible table positions (avoiding counters and door area)
+        const positions = [];
+
+        // Left side tables
+        positions.push({ x: 2, y: 2 });
+        positions.push({ x: 2, y: Math.floor(dividerY / 2) });
+
+        // Right side tables
+        positions.push({ x: width - 5, y: 2 });
+        positions.push({ x: width - 5, y: Math.floor(dividerY / 2) });
+
+        // Center tables (if room)
+        if (width > 16) {
+            positions.push({ x: Math.floor(width / 2) - 1, y: 2 });
+        }
+
+        // Shuffle and pick
+        this.shuffle(positions);
+
+        for (let i = 0; i < numTables && i < positions.length; i++) {
+            const pos = positions[i];
+            this.placeTable(map, pos.x, pos.y, width, height);
+        }
+    },
+
+    placeTable(map, startX, startY, width, height) {
+        // 2x2 table
+        const tableWidth = 2;
+        const tableHeight = 2;
+
+        for (let y = startY; y < startY + tableHeight && y < height - 2; y++) {
+            for (let x = startX; x < startX + tableWidth && x < width - 2; x++) {
+                if (map[y][x] === this.TILES.FLOOR) {
+                    map[y][x] = this.TILES.TABLE;
+                }
+            }
+        }
+    },
+
+    placeWorkbenches(map, width, height) {
+        const dividerY = Math.floor(height * 0.6);
+
+        // 2 workbenches in back room
+        // Left workbench
+        const leftX = 2 + this.randomInt(0, 2);
+        const benchY = dividerY + 2;
+
+        for (let y = benchY; y < benchY + 2 && y < height - 1; y++) {
+            for (let x = leftX; x < leftX + 2 && x < width / 2 - 1; x++) {
+                if (map[y][x] === this.TILES.BACKFLOOR) {
+                    map[y][x] = this.TILES.WORKBENCH;
+                }
+            }
+        }
+
+        // Right workbench
+        const rightX = width - 4 - this.randomInt(0, 2);
+
+        for (let y = benchY; y < benchY + 2 && y < height - 1; y++) {
+            for (let x = rightX; x < rightX + 2 && x < width - 1; x++) {
+                if (map[y][x] === this.TILES.BACKFLOOR) {
+                    map[y][x] = this.TILES.WORKBENCH;
+                }
+            }
+        }
+    },
+
+    shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(this.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    },
+
+    // Get key positions for NPC pathfinding
+    getKeyPositions(map, width, height) {
+        const positions = {
+            door: null,
+            serviceCounter: [],
+            posCounter: [],
+            tables: [],
+            workbenches: [],
+        };
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const tile = map[y][x];
+                switch (tile) {
+                    case this.TILES.DOOR:
+                        positions.door = { x, y };
+                        break;
+                    case this.TILES.SERVICE_COUNTER:
+                        positions.serviceCounter.push({ x, y });
+                        break;
+                    case this.TILES.POS_COUNTER:
+                        positions.posCounter.push({ x, y });
+                        break;
+                    case this.TILES.TABLE:
+                        positions.tables.push({ x, y });
+                        break;
+                    case this.TILES.WORKBENCH:
+                        positions.workbenches.push({ x, y });
+                        break;
+                }
+            }
+        }
+
+        // Find spots adjacent to counters (where NPCs stand)
+        positions.serviceWaitSpots = this.findAdjacentFloor(map, positions.serviceCounter, width, height);
+        positions.posWaitSpots = this.findAdjacentFloor(map, positions.posCounter, width, height);
+        positions.browseSpots = this.findAdjacentFloor(map, positions.tables, width, height);
+
+        return positions;
+    },
+
+    findAdjacentFloor(map, tiles, width, height) {
+        const spots = new Set();
+        const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+
+        for (const tile of tiles) {
+            for (const [dx, dy] of dirs) {
+                const nx = tile.x + dx;
+                const ny = tile.y + dy;
+                if (nx > 0 && nx < width - 1 && ny > 0 && ny < height - 1) {
+                    if (map[ny][nx] === this.TILES.FLOOR || map[ny][nx] === this.TILES.BACKFLOOR) {
+                        spots.add(`${nx},${ny}`);
+                    }
+                }
+            }
+        }
+
+        return Array.from(spots).map(s => {
+            const [x, y] = s.split(',').map(Number);
+            return { x, y };
+        });
+    },
+};

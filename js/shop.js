@@ -66,6 +66,136 @@ const Shop = {
         this.addText(`[A customer is waiting at the counter]`, 'system');
     },
 
+    // Called when player interacts with SERVICE customer
+    triggerServiceDialogue(npc) {
+        if (this.interactionState !== 'idle') return;
+
+        this.currentNPC = npc;
+        this.currentCustomer = npc.data;
+        this.interactionState = 'negotiating';
+
+        this.addText('', 'narrator');
+        this.addText(`<span class="customer-name">${npc.data.name}</span> approaches with a <span class="item-highlight">${npc.data.device.fullName}</span>.`, 'narrator');
+
+        // Show urgency hint
+        if (npc.data.urgency?.id === 'desperate') {
+            this.addText('They look stressed, desperate for help.', 'narrator');
+        }
+
+        this.setOptions([
+            { label: '"What seems to be the problem?"', action: 'greet', class: 'primary' },
+            { label: '"Sorry, not taking jobs right now."', action: 'dismiss_npc', class: 'danger' }
+        ]);
+    },
+
+    // Called when player interacts with BUY customer
+    triggerSaleDialogue(npc) {
+        if (this.interactionState !== 'idle') return;
+
+        this.currentNPC = npc;
+        this.interactionState = 'selling';
+
+        this.addText('', 'narrator');
+        this.addText(`<span class="customer-name">${npc.data.name}</span> is ready to make a purchase.`, 'narrator');
+
+        // Generate what they want to buy
+        const wantsToBuy = this.generatePurchaseRequest();
+
+        this.addText(`"${wantsToBuy.dialogue}"`, 'customer');
+        this.addText(`[SALE] ${wantsToBuy.item} - ${formatMoney(wantsToBuy.price)}`, 'system');
+
+        this.currentSale = wantsToBuy;
+
+        this.setOptions([
+            { label: `"That'll be ${formatMoney(wantsToBuy.price)}." [Sell]`, action: 'complete_sale', class: 'success' },
+            { label: '"Sorry, out of stock."', action: 'decline_sale' },
+            { label: '"Actually, let me show you something better..." [Upsell]', action: 'upsell', class: 'negotiate' }
+        ]);
+    },
+
+    generatePurchaseRequest() {
+        const items = [
+            { item: 'USB Cable', price: 15, dialogue: "Just need a charging cable." },
+            { item: 'Screen Protector', price: 25, dialogue: "Do you have screen protectors?" },
+            { item: 'Phone Case', price: 35, dialogue: "Looking for a phone case." },
+            { item: 'Memory Card', price: 45, dialogue: "Need more storage - got any memory cards?" },
+            { item: 'Bluetooth Earbuds', price: 80, dialogue: "Any wireless earbuds?" },
+            { item: 'Portable Charger', price: 60, dialogue: "Need a power bank for travel." },
+        ];
+        return items[Math.floor(Math.random() * items.length)];
+    },
+
+    // Handle dismiss NPC
+    dismissNPC() {
+        if (this.currentNPC) {
+            this.addText('"Sorry, can\'t help right now."', 'player');
+            this.addText(`${this.currentNPC.data.name} leaves disappointed.`, 'narrator');
+            NPCSystem.dismissNPC(this.currentNPC.id);
+        }
+        this.currentNPC = null;
+        this.currentCustomer = null;
+        this.interactionState = 'idle';
+        this.returnToIdle();
+    },
+
+    // Complete a sale
+    completeSale() {
+        if (!this.currentSale || !this.currentNPC) return;
+
+        GameState.cash += this.currentSale.price;
+        GameState.stats = GameState.stats || {};
+        GameState.stats.totalEarnings = (GameState.stats.totalEarnings || 0) + this.currentSale.price;
+
+        this.addText(`"Here you go. ${formatMoney(this.currentSale.price)}, please."`, 'player');
+        this.addText(`${this.currentNPC.data.name} pays and thanks you.`, 'narrator');
+        this.addText(`[+${formatMoney(this.currentSale.price)}]`, 'success');
+
+        NPCSystem.completeService(this.currentNPC.id);
+        updateDisplays();
+
+        this.currentNPC = null;
+        this.currentSale = null;
+        this.interactionState = 'idle';
+        this.returnToIdle();
+    },
+
+    // Decline sale
+    declineSale() {
+        this.addText('"Sorry, we\'re out of that."', 'player');
+        this.addText(`${this.currentNPC.data.name} shrugs and leaves.`, 'narrator');
+
+        NPCSystem.dismissNPC(this.currentNPC.id);
+
+        this.currentNPC = null;
+        this.currentSale = null;
+        this.interactionState = 'idle';
+        this.returnToIdle();
+    },
+
+    // Try to upsell
+    tryUpsell() {
+        if (!this.currentSale || !this.currentNPC) return;
+
+        const upsellPrice = Math.round(this.currentSale.price * 1.5);
+        const accepts = Math.random() < 0.4;  // 40% chance
+
+        this.addText(`"Actually, I\'ve got something better for ${formatMoney(upsellPrice)}..."`, 'player');
+
+        if (accepts) {
+            this.currentSale.price = upsellPrice;
+            this.addText('"Hmm, okay, I\'ll take it."', 'customer');
+            this.setOptions([
+                { label: '[Complete sale]', action: 'complete_sale', class: 'success' }
+            ]);
+        } else {
+            this.addText('"No thanks, I\'ll just take the original."', 'customer');
+            this.setOptions([
+                { label: '[Complete original sale]', action: 'complete_sale', class: 'success' },
+                { label: '"Nevermind then."', action: 'decline_sale', class: 'danger' }
+            ]);
+        }
+    },
+
     bindEvents() {
         // Bind option buttons via delegation
         if (this.optionsContainer) {
@@ -152,6 +282,18 @@ const Shop = {
                 break;
             case 'dismiss_customer':
                 this.dismissCustomer();
+                break;
+            case 'dismiss_npc':
+                this.dismissNPC();
+                break;
+            case 'complete_sale':
+                this.completeSale();
+                break;
+            case 'decline_sale':
+                this.declineSale();
+                break;
+            case 'upsell':
+                this.tryUpsell();
                 break;
             case 'open_shop':
                 this.openShop();

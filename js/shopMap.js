@@ -11,52 +11,81 @@ const ShopMap = {
 
     // Colors - cyberpunk bit style
     colors: {
-        void: '#0a0a0a',        // Outside shop
-        wall: '#1a1a2e',        // Walls
-        floor: '#16213e',       // Walkable floor
-        counter: '#00fff5',     // Cyan - service counter
-        table: '#e94560',       // Magenta/pink - display tables
-        workbench: '#f0c929',   // Yellow - workbench area
-        door: '#27ae60',        // Green - entrance
-        player: '#ffffff',      // White - you
-        customer: '#ff6b35',    // Orange - customers
-        customerWaiting: '#ff9f1c', // Brighter orange - customer at counter
+        void: '#0a0a0a',           // Outside shop
+        wall: '#1a1a2e',           // Walls
+        floor: '#16213e',          // Walkable floor
+        serviceCounter: '#00fff5', // Cyan - service counter
+        posCounter: '#9b59b6',     // Purple - POS/sales counter
+        table: '#e94560',          // Magenta/pink - display tables
+        workbench: '#f0c929',      // Yellow - workbench area
+        door: '#27ae60',           // Green - entrance
+        shelf: '#3498db',          // Blue - shelves
+        player: '#ffffff',         // White - you
     },
 
-    // Tile types
-    TILES: {
-        VOID: 0,
-        WALL: 1,
-        FLOOR: 2,
-        COUNTER: 3,
-        TABLE: 4,
-        WORKBENCH: 5,
-        DOOR: 6,
-        BACKFLOOR: 7  // Back room floor
+    // Use ShopGenerator tile types
+    get TILES() {
+        return ShopGenerator.TILES;
     },
 
     // Shop layout map
     map: null,
+    shopSeed: null,
+    keyPositions: null,
 
     // Entities
-    player: { x: 9, y: 5, atCounter: true },
-    customers: [],
-    maxCustomers: 4,
+    player: { x: 9, y: 5, location: 'service' },  // 'service' or 'pos'
 
     // Interaction
-    selectedCustomer: null,
+    selectedNPC: null,
     hoveredTile: null,
-
-    // Spots where customers can go
-    browsingSpots: [],
-    counterSpots: [],
 
     init() {
         this.createCanvas();
-        this.buildMap();
-        this.findSpots();
+
+        // Check for saved game or generate new
+        if (SaveSystem.hasSave()) {
+            const save = SaveSystem.load();
+            if (save && save.shop.layout) {
+                this.map = save.shop.layout;
+                this.shopSeed = save.shop.seed;
+                this.gridWidth = save.shop.width;
+                this.gridHeight = save.shop.height;
+            } else {
+                this.generateNewShop();
+            }
+        } else {
+            this.generateNewShop();
+        }
+
+        this.keyPositions = ShopGenerator.getKeyPositions(this.map, this.gridWidth, this.gridHeight);
+        this.positionPlayer();
+
+        // Initialize NPC system
+        NPCSystem.init(this, this.keyPositions);
+
         this.bindEvents();
         this.startRenderLoop();
+    },
+
+    generateNewShop(seed = null) {
+        this.shopSeed = seed || Date.now();
+        this.map = ShopGenerator.generate(this.shopSeed, this.gridWidth, this.gridHeight);
+        this.keyPositions = ShopGenerator.getKeyPositions(this.map, this.gridWidth, this.gridHeight);
+    },
+
+    positionPlayer() {
+        // Put player at service counter by default
+        if (this.keyPositions.serviceWaitSpots && this.keyPositions.serviceWaitSpots.length > 0) {
+            // Find a spot behind the counter
+            const counterTiles = this.keyPositions.serviceCounter;
+            if (counterTiles.length > 0) {
+                const counterY = counterTiles[0].y;
+                this.player.x = counterTiles[Math.floor(counterTiles.length / 2)].x;
+                this.player.y = counterY - 1;  // Behind counter
+                this.player.location = 'service';
+            }
+        }
     },
 
     createCanvas() {
@@ -70,129 +99,6 @@ const ShopMap = {
         container.appendChild(this.canvas);
 
         this.ctx = this.canvas.getContext('2d');
-    },
-
-    buildMap() {
-        // Initialize with void
-        this.map = Array(this.gridHeight).fill(null).map(() =>
-            Array(this.gridWidth).fill(this.TILES.VOID)
-        );
-
-        const T = this.TILES;
-
-        // Build shop outline (walls)
-        // Front room: rows 1-8, cols 1-18
-        // Back room: rows 9-12, cols 1-18
-
-        // Outer walls
-        for (let x = 0; x < this.gridWidth; x++) {
-            this.map[0][x] = T.WALL;  // Top wall
-            this.map[this.gridHeight - 1][x] = T.WALL;  // Bottom wall
-        }
-        for (let y = 0; y < this.gridHeight; y++) {
-            this.map[y][0] = T.WALL;  // Left wall
-            this.map[y][this.gridWidth - 1] = T.WALL;  // Right wall
-        }
-
-        // Floor - front room
-        for (let y = 1; y <= 7; y++) {
-            for (let x = 1; x < this.gridWidth - 1; x++) {
-                this.map[y][x] = T.FLOOR;
-            }
-        }
-
-        // Divider wall between front and back (with gap for door)
-        for (let x = 1; x < this.gridWidth - 1; x++) {
-            this.map[8][x] = T.WALL;
-        }
-        // Gap in divider
-        this.map[8][9] = T.FLOOR;
-        this.map[8][10] = T.FLOOR;
-
-        // Floor - back room
-        for (let y = 9; y <= 12; y++) {
-            for (let x = 1; x < this.gridWidth - 1; x++) {
-                this.map[y][x] = T.BACKFLOOR;
-            }
-        }
-
-        // Door at bottom center
-        this.map[this.gridHeight - 1][9] = T.DOOR;
-        this.map[this.gridHeight - 1][10] = T.DOOR;
-
-        // Counter (where player stands to serve)
-        // Horizontal counter near back of front room
-        for (let x = 7; x <= 12; x++) {
-            this.map[6][x] = T.COUNTER;
-        }
-
-        // Display tables in front room
-        // Table 1 - left side
-        this.map[2][3] = T.TABLE;
-        this.map[2][4] = T.TABLE;
-        this.map[3][3] = T.TABLE;
-        this.map[3][4] = T.TABLE;
-
-        // Table 2 - right side
-        this.map[2][15] = T.TABLE;
-        this.map[2][16] = T.TABLE;
-        this.map[3][15] = T.TABLE;
-        this.map[3][16] = T.TABLE;
-
-        // Table 3 - center left
-        this.map[4][5] = T.TABLE;
-        this.map[4][6] = T.TABLE;
-
-        // Table 4 - center right
-        this.map[4][13] = T.TABLE;
-        this.map[4][14] = T.TABLE;
-
-        // Workbenches in back room
-        this.map[10][3] = T.WORKBENCH;
-        this.map[10][4] = T.WORKBENCH;
-        this.map[11][3] = T.WORKBENCH;
-        this.map[11][4] = T.WORKBENCH;
-
-        this.map[10][15] = T.WORKBENCH;
-        this.map[10][16] = T.WORKBENCH;
-        this.map[11][15] = T.WORKBENCH;
-        this.map[11][16] = T.WORKBENCH;
-    },
-
-    findSpots() {
-        const T = this.TILES;
-
-        // Find spots adjacent to tables (browsing spots)
-        this.browsingSpots = [];
-        this.counterSpots = [];
-
-        for (let y = 1; y < this.gridHeight - 1; y++) {
-            for (let x = 1; x < this.gridWidth - 1; x++) {
-                // Check if floor tile adjacent to table
-                if (this.map[y][x] === T.FLOOR) {
-                    const adjacent = this.getAdjacentTiles(x, y);
-                    if (adjacent.some(t => t.type === T.TABLE)) {
-                        this.browsingSpots.push({ x, y });
-                    }
-                    if (adjacent.some(t => t.type === T.COUNTER)) {
-                        this.counterSpots.push({ x, y });
-                    }
-                }
-            }
-        }
-    },
-
-    getAdjacentTiles(x, y) {
-        const tiles = [];
-        const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-        for (const [dx, dy] of dirs) {
-            const nx = x + dx;
-            const ny = y + dy;
-            if (nx >= 0 && nx < this.gridWidth && ny >= 0 && ny < this.gridHeight) {
-                tiles.push({ x: nx, y: ny, type: this.map[ny][nx] });
-            }
-        }
-        return tiles;
     },
 
     bindEvents() {
@@ -215,11 +121,11 @@ const ShopMap = {
     handleClick(e) {
         const tile = this.getTileAt(e);
 
-        // Check if clicked on a customer
-        const customer = this.customers.find(c => c.x === tile.x && c.y === tile.y);
-        if (customer) {
-            this.selectCustomer(customer);
-            this.showCustomerInfo(customer);
+        // Check if clicked on an NPC
+        const npc = NPCSystem.getNPCAt(tile.x, tile.y);
+        if (npc) {
+            this.selectedNPC = npc;
+            this.showNPCInfo(npc);
             return;
         }
 
@@ -236,29 +142,36 @@ const ShopMap = {
         }
     },
 
-    showCustomerInfo(customer) {
+    showNPCInfo(npc) {
         const panel = document.getElementById('map-info-panel');
         if (!panel) return;
 
-        const isWaiting = customer.state === 'waiting';
+        const isWaiting = npc.state === NPCSystem.STATE.WAITING;
         const statusText = {
             'entering': 'Entering shop...',
             'browsing': 'Browsing',
             'toCounter': 'Heading to counter...',
             'waiting': 'Waiting at counter!',
+            'beingServed': 'Being served',
             'leaving': 'Leaving...'
-        }[customer.state] || customer.state;
+        }[npc.state] || npc.state;
+
+        const intentText = {
+            'service': 'Needs repair service',
+            'buy': 'Wants to buy something',
+            'browse': 'Just browsing'
+        }[npc.intent] || '';
 
         panel.innerHTML = `
             <div class="map-info-customer">
                 <div class="customer-info-left">
-                    <div class="customer-info-name">${customer.data.name}</div>
-                    <div class="customer-info-device">${customer.data.device.fullName}</div>
+                    <div class="customer-info-name">${npc.data.name}</div>
+                    <div class="customer-info-device">${intentText}</div>
                     <div class="customer-info-status">${statusText}</div>
                 </div>
                 <div class="customer-info-right">
-                    <button class="interact-btn" ${isWaiting ? '' : 'disabled'} onclick="ShopMap.interactWithCustomer('${customer.id}')">
-                        ${isWaiting ? 'TALK' : 'BUSY'}
+                    <button class="interact-btn" ${isWaiting ? '' : 'disabled'} onclick="ShopMap.interactWithNPC('${npc.id}')">
+                        ${isWaiting ? 'SERVE' : 'BUSY'}
                     </button>
                 </div>
             </div>
@@ -288,8 +201,11 @@ const ShopMap = {
         let info = { name: '', desc: '', color: '#333' };
 
         switch (tileType) {
-            case T.COUNTER:
-                info = { name: 'SERVICE COUNTER', desc: 'Where you serve customers.', color: this.colors.counter };
+            case T.SERVICE_COUNTER:
+                info = { name: 'SERVICE COUNTER', desc: 'Accept repair jobs here.', color: this.colors.serviceCounter };
+                break;
+            case T.POS_COUNTER:
+                info = { name: 'SALES COUNTER', desc: 'Sell items to customers here.', color: this.colors.posCounter };
                 break;
             case T.TABLE:
                 info = { name: 'DISPLAY TABLE', desc: 'Customers browse here before approaching.', color: this.colors.table };
@@ -299,6 +215,9 @@ const ShopMap = {
                 break;
             case T.DOOR:
                 info = { name: 'ENTRANCE', desc: 'Customers enter and exit here.', color: this.colors.door };
+                break;
+            case T.SHELF:
+                info = { name: 'SHELF', desc: 'Display items for sale.', color: this.colors.shelf };
                 break;
             case T.WALL:
                 info = { name: 'WALL', desc: '', color: this.colors.wall };
@@ -333,165 +252,25 @@ const ShopMap = {
         `;
     },
 
-    interactWithCustomer(customerId) {
-        const customer = this.customers.find(c => c.id == customerId);
-        if (customer && customer.state === 'waiting') {
-            this.selectCustomer(customer);
+    interactWithNPC(npcId) {
+        const npc = NPCSystem.npcs.find(n => n.id == npcId);
+        if (npc && npc.state === NPCSystem.STATE.WAITING) {
+            this.selectedNPC = npc;
+            NPCSystem.serveNPC(npcId);
+
+            // Trigger dialogue based on intent
+            if (typeof Shop !== 'undefined') {
+                if (npc.intent === NPCSystem.INTENT.SERVICE) {
+                    Shop.triggerServiceDialogue(npc);
+                } else if (npc.intent === NPCSystem.INTENT.BUY) {
+                    Shop.triggerSaleDialogue(npc);
+                }
+            }
         }
     },
 
     handleHover(e) {
         this.hoveredTile = this.getTileAt(e);
-    },
-
-    selectCustomer(customer) {
-        this.selectedCustomer = customer;
-
-        // Trigger dialogue in Shop system
-        if (typeof Shop !== 'undefined' && Shop.triggerCustomerDialogue) {
-            Shop.triggerCustomerDialogue(customer);
-        }
-    },
-
-    // Spawn a new customer
-    spawnCustomer(customerData) {
-        if (this.customers.length >= this.maxCustomers) return null;
-
-        // Start at door
-        const customer = {
-            id: Date.now(),
-            x: 9,
-            y: this.gridHeight - 2,  // Just inside door
-            data: customerData,
-            state: 'entering',  // entering, browsing, waiting, leaving
-            targetSpot: null,
-            path: [],
-            moveTimer: 0
-        };
-
-        // Pick a browsing spot
-        const availableSpots = this.browsingSpots.filter(spot =>
-            !this.customers.some(c => c.targetSpot && c.targetSpot.x === spot.x && c.targetSpot.y === spot.y)
-        );
-
-        if (availableSpots.length > 0) {
-            customer.targetSpot = availableSpots[Math.floor(Math.random() * availableSpots.length)];
-            customer.state = 'entering';
-        }
-
-        this.customers.push(customer);
-        return customer;
-    },
-
-    // Remove customer
-    removeCustomer(customerId) {
-        const index = this.customers.findIndex(c => c.id === customerId);
-        if (index !== -1) {
-            this.customers.splice(index, 1);
-        }
-        if (this.selectedCustomer && this.selectedCustomer.id === customerId) {
-            this.selectedCustomer = null;
-        }
-    },
-
-    // Update customer positions
-    update(deltaTime) {
-        for (const customer of this.customers) {
-            customer.moveTimer += deltaTime;
-
-            if (customer.moveTimer < 300) continue;  // Move every 300ms
-            customer.moveTimer = 0;
-
-            if (customer.state === 'entering' || customer.state === 'browsing') {
-                this.moveCustomerToward(customer, customer.targetSpot);
-
-                // Check if reached target
-                if (customer.x === customer.targetSpot.x && customer.y === customer.targetSpot.y) {
-                    if (customer.state === 'entering') {
-                        customer.state = 'browsing';
-                        // After browsing, go to counter
-                        setTimeout(() => {
-                            if (customer.state === 'browsing') {
-                                customer.state = 'toCounter';
-                                const counterSpot = this.counterSpots[Math.floor(Math.random() * this.counterSpots.length)];
-                                customer.targetSpot = counterSpot;
-                            }
-                        }, 2000 + Math.random() * 3000);
-                    }
-                }
-            } else if (customer.state === 'toCounter') {
-                this.moveCustomerToward(customer, customer.targetSpot);
-
-                if (customer.x === customer.targetSpot.x && customer.y === customer.targetSpot.y) {
-                    customer.state = 'waiting';
-                    // Notify shop that customer is waiting
-                    if (typeof Shop !== 'undefined' && Shop.customerReady) {
-                        Shop.customerReady(customer);
-                    }
-                }
-            } else if (customer.state === 'leaving') {
-                // Move toward door
-                const doorSpot = { x: 9, y: this.gridHeight - 2 };
-                this.moveCustomerToward(customer, doorSpot);
-
-                if (customer.y >= this.gridHeight - 2) {
-                    this.removeCustomer(customer.id);
-                }
-            }
-        }
-    },
-
-    moveCustomerToward(customer, target) {
-        if (!target) return;
-
-        const dx = target.x - customer.x;
-        const dy = target.y - customer.y;
-
-        // Simple movement - prefer X then Y
-        if (dx !== 0) {
-            const newX = customer.x + Math.sign(dx);
-            if (this.isWalkable(newX, customer.y)) {
-                customer.x = newX;
-                return;
-            }
-        }
-        if (dy !== 0) {
-            const newY = customer.y + Math.sign(dy);
-            if (this.isWalkable(customer.x, newY)) {
-                customer.y = newY;
-                return;
-            }
-        }
-
-        // If blocked, try alternate direction
-        if (dy !== 0) {
-            const newY = customer.y + Math.sign(dy);
-            if (this.isWalkable(customer.x, newY)) {
-                customer.y = newY;
-                return;
-            }
-        }
-        if (dx !== 0) {
-            const newX = customer.x + Math.sign(dx);
-            if (this.isWalkable(newX, customer.y)) {
-                customer.x = newX;
-            }
-        }
-    },
-
-    isWalkable(x, y) {
-        if (x < 0 || x >= this.gridWidth || y < 0 || y >= this.gridHeight) return false;
-        const tile = this.map[y][x];
-        const T = this.TILES;
-        return tile === T.FLOOR || tile === T.BACKFLOOR || tile === T.DOOR;
-    },
-
-    // Make customer leave
-    customerLeave(customerId) {
-        const customer = this.customers.find(c => c.id === customerId);
-        if (customer) {
-            customer.state = 'leaving';
-        }
     },
 
     // Render
@@ -519,8 +298,11 @@ const ShopMap = {
                     case T.BACKFLOOR:
                         color = this.colors.floor;
                         break;
-                    case T.COUNTER:
-                        color = this.colors.counter;
+                    case T.SERVICE_COUNTER:
+                        color = this.colors.serviceCounter;
+                        break;
+                    case T.POS_COUNTER:
+                        color = this.colors.posCounter;
                         break;
                     case T.TABLE:
                         color = this.colors.table;
@@ -530,6 +312,9 @@ const ShopMap = {
                         break;
                     case T.DOOR:
                         color = this.colors.door;
+                        break;
+                    case T.SHELF:
+                        color = this.colors.shelf;
                         break;
                 }
 
@@ -556,15 +341,16 @@ const ShopMap = {
             );
         }
 
-        // Draw customers
-        for (const customer of this.customers) {
-            const isWaiting = customer.state === 'waiting';
-            const isSelected = this.selectedCustomer && this.selectedCustomer.id === customer.id;
+        // Draw NPCs from NPC system
+        for (const npc of NPCSystem.npcs) {
+            const isWaiting = npc.state === NPCSystem.STATE.WAITING;
+            const isSelected = this.selectedNPC && this.selectedNPC.id === npc.id;
 
-            ctx.fillStyle = isWaiting ? this.colors.customerWaiting : this.colors.customer;
+            // NPC color based on intent/state
+            ctx.fillStyle = npc.color;
             ctx.fillRect(
-                customer.x * this.tileSize + 3,
-                customer.y * this.tileSize + 3,
+                npc.x * this.tileSize + 3,
+                npc.y * this.tileSize + 3,
                 this.tileSize - 6,
                 this.tileSize - 6
             );
@@ -574,8 +360,8 @@ const ShopMap = {
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(
-                    customer.x * this.tileSize + 2,
-                    customer.y * this.tileSize + 2,
+                    npc.x * this.tileSize + 2,
+                    npc.y * this.tileSize + 2,
                     this.tileSize - 4,
                     this.tileSize - 4
                 );
@@ -586,8 +372,16 @@ const ShopMap = {
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 12px monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText('!', customer.x * this.tileSize + this.tileSize / 2, customer.y * this.tileSize - 2);
+                ctx.fillText('!', npc.x * this.tileSize + this.tileSize / 2, npc.y * this.tileSize - 2);
             }
+
+            // Intent indicator (small letter)
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 9px monospace';
+            ctx.textAlign = 'center';
+            const intentLetter = npc.intent === NPCSystem.INTENT.SERVICE ? 'S' :
+                                 npc.intent === NPCSystem.INTENT.BUY ? 'B' : '?';
+            ctx.fillText(intentLetter, npc.x * this.tileSize + this.tileSize / 2, npc.y * this.tileSize + this.tileSize / 2 + 3);
         }
 
         // Draw player
@@ -600,7 +394,7 @@ const ShopMap = {
         );
 
         // Player marker
-        ctx.fillStyle = this.colors.counter;
+        ctx.fillStyle = '#000';
         ctx.font = 'bold 10px monospace';
         ctx.textAlign = 'center';
         ctx.fillText('P', this.player.x * this.tileSize + this.tileSize / 2, this.player.y * this.tileSize + this.tileSize / 2 + 3);
@@ -613,7 +407,10 @@ const ShopMap = {
             const deltaTime = time - this.lastTime;
             this.lastTime = time;
 
-            this.update(deltaTime);
+            // Update NPC system
+            const isShopOpen = typeof GameState !== 'undefined' && GameState.shopOpen;
+            NPCSystem.update(deltaTime, isShopOpen);
+
             this.render();
 
             requestAnimationFrame(loop);
@@ -621,14 +418,19 @@ const ShopMap = {
         requestAnimationFrame(loop);
     },
 
-    // Get customer count for UI
+    // Get customer count for UI - now uses NPCSystem
     getCustomerCount() {
-        return this.customers.length;
+        return NPCSystem.getCount();
     },
 
     getWaitingCount() {
-        return this.customers.filter(c => c.state === 'waiting').length;
-    }
+        return NPCSystem.getWaitingCount();
+    },
+
+    // Get NPC at tile
+    getNPCAt(x, y) {
+        return NPCSystem.getNPCAt(x, y);
+    },
 };
 
 // Initialize when DOM ready
