@@ -105,7 +105,16 @@ const NPCSystem = {
     },
 
     setInitialTarget(npc) {
-        // BUY customers go to shelves OR display tables to browse and pick items
+        // SERVICE customers go straight to counter - they have a broken device to fix
+        // They know why they're here, no need to browse
+        if (npc.intent === this.INTENT.SERVICE) {
+            this.setCounterTarget(npc);
+            npc.intentRevealed = true;  // They're obviously here for service
+            return;
+        }
+
+        // BUY customers MUST go to shelves/tables first to pick items
+        // They can't go to counter without something to buy
         if (npc.intent === this.INTENT.BUY && typeof InventorySystem !== 'undefined') {
             // Combine shelf and display table spots
             const shelfSpots = this.getShelfBrowseSpots();
@@ -117,36 +126,19 @@ const NPCSystem = {
                 npc.browsingShelf = npc.targetSpot.type === 'shelf';
                 npc.browsingTable = npc.targetSpot.type === 'table';
                 return;
-            }
-        }
-
-        // ALL customers (including SERVICE) should browse first before going to counter
-        // This makes the shop feel more alive and gives player time to notice them
-        if (this.positions.browseSpots && this.positions.browseSpots.length > 0) {
-            const availableSpots = this.positions.browseSpots.filter(spot =>
-                !this.npcs.some(other =>
-                    other.id !== npc.id &&
-                    other.targetSpot &&
-                    other.targetSpot.x === spot.x &&
-                    other.targetSpot.y === spot.y
-                )
-            );
-
-            if (availableSpots.length > 0) {
-                npc.targetSpot = availableSpots[Math.floor(Math.random() * availableSpots.length)];
+            } else {
+                // No shelves/tables to browse - BUY customer leaves (nothing to buy)
+                console.log(`[NPC] ${npc.data.name} (BUY) leaving - no browse spots available`);
+                npc.state = this.STATE.LEAVING;
+                npc.targetSpot = this.positions.door;
                 return;
             }
         }
 
-        // Also check for shelf/table browse spots for SERVICE customers who want to look around
-        if (npc.intent === this.INTENT.SERVICE) {
-            const shelfSpots = this.getShelfBrowseSpots();
-            const tableSpots = this.getDisplayTableBrowseSpots();
-            const allBrowseSpots = [...shelfSpots, ...tableSpots];
-
-            if (allBrowseSpots.length > 0) {
-                // Pick a random spot - SERVICE customers just browse, don't pick items
-                const availableSpots = allBrowseSpots.filter(spot =>
+        // BROWSE customers (window shoppers) just look around at general browse spots
+        if (npc.intent === this.INTENT.BROWSE) {
+            if (this.positions.browseSpots && this.positions.browseSpots.length > 0) {
+                const availableSpots = this.positions.browseSpots.filter(spot =>
                     !this.npcs.some(other =>
                         other.id !== npc.id &&
                         other.targetSpot &&
@@ -157,15 +149,16 @@ const NPCSystem = {
 
                 if (availableSpots.length > 0) {
                     npc.targetSpot = availableSpots[Math.floor(Math.random() * availableSpots.length)];
-                    // SERVICE customers don't pick items, they just browse then go to counter
-                    npc.browsingShelf = false;
-                    npc.browsingTable = false;
                     return;
                 }
             }
+            // No browse spots - just leave
+            npc.state = this.STATE.LEAVING;
+            npc.targetSpot = this.positions.door;
+            return;
         }
 
-        // Fallback: go directly to counter (only if no browse spots available at all)
+        // Fallback for SERVICE (shouldn't reach here, but just in case)
         this.setCounterTarget(npc);
     },
 
@@ -304,7 +297,43 @@ const NPCSystem = {
 
             // Remove if left (at door or past it - y <= 1)
             if (npc.state === this.STATE.LEAVING && npc.y <= 1) {
+                // If NPC was holding an item they didn't buy, return it to inventory
+                this.returnItemToInventory(npc);
                 this.npcs.splice(i, 1);
+            }
+        }
+    },
+
+    // Return item to shelf/table if NPC leaves without buying
+    returnItemToInventory(npc) {
+        if (!npc.selectedItem || !npc.selectedItem.alreadyRemovedFromInventory) return;
+
+        const item = npc.selectedItem;
+        console.log(`[NPC] ${npc.data.name} left without buying - returning ${item.name} to inventory`);
+
+        if (item.fromTable && item.tableKey) {
+            // Return to display table
+            const table = InventorySystem.displayTables[item.tableKey];
+            if (table) {
+                if (table.item && table.item.itemId === item.itemId) {
+                    table.item.quantity++;
+                } else if (!table.item) {
+                    // Table is now empty, put item back
+                    const itemData = InventorySystem.getItem(item.itemId);
+                    table.item = { itemId: item.itemId, quantity: 1, price: item.price };
+                }
+            }
+        } else if (item.shelfKey) {
+            // Return to shelf
+            const shelf = InventorySystem.shelves[item.shelfKey];
+            if (shelf) {
+                const existingSlot = shelf.items.find(i => i.itemId === item.itemId);
+                if (existingSlot) {
+                    existingSlot.quantity++;
+                } else {
+                    // Item slot was removed, add it back
+                    shelf.items.push({ itemId: item.itemId, quantity: 1, price: item.price });
+                }
             }
         }
     },
@@ -495,10 +524,13 @@ const NPCSystem = {
         const shelfKey = `${npc.targetSpot.shelfX},${npc.targetSpot.shelfY}`;
         const shelf = InventorySystem.shelves[shelfKey];
 
-        if (shelf && shelf.items.length > 0) {
+        // Find first item with quantity > 0
+        const availableItem = shelf?.items.find(i => i.quantity > 0);
+
+        if (shelf && availableItem) {
             // Check prices - customer has a max they'll pay
-            const item = InventorySystem.getItem(shelf.items[0].itemId);
-            const shelfPrice = shelf.items[0].price;
+            const item = InventorySystem.getItem(availableItem.itemId);
+            const shelfPrice = availableItem.price;
             const marketPrice = item?.marketPrice || shelfPrice;
 
             // Customer tolerance: random 5-35% over market (varies per customer)
@@ -506,17 +538,24 @@ const NPCSystem = {
             const maxWillPay = marketPrice * (1 + tolerance);
 
             if (shelfPrice <= maxWillPay) {
-                // They'll buy it - store selected item and go to POS
+                // They'll buy it - IMMEDIATELY remove from shelf (they're holding it now)
+                availableItem.quantity--;
+                if (availableItem.quantity <= 0) {
+                    shelf.items = shelf.items.filter(i => i.itemId !== availableItem.itemId);
+                }
+
+                // Store what they picked up
                 npc.selectedItem = {
                     shelfKey: shelfKey,
-                    itemId: shelf.items[0].itemId,
+                    itemId: availableItem.itemId,
                     price: shelfPrice,
-                    name: item?.name || 'Item'
+                    name: item?.name || 'Item',
+                    alreadyRemovedFromInventory: true  // Flag so checkout doesn't double-remove
                 };
                 npc.browsingShelf = false;
                 npc.intentRevealed = true;
                 this.setCounterTarget(npc);
-                console.log(`[NPC] ${npc.data.name} picked ${npc.selectedItem.name} at $${shelfPrice}`);
+                console.log(`[NPC] ${npc.data.name} picked up ${npc.selectedItem.name} at $${shelfPrice} (removed from shelf)`);
             } else {
                 // Too expensive - leave annoyed or browse elsewhere
                 console.log(`[NPC] ${npc.data.name} thinks $${shelfPrice} is too expensive for ${item?.name}`);
@@ -569,18 +608,26 @@ const NPCSystem = {
             const maxWillPay = marketPrice * (1 + tolerance);
 
             if (tablePrice <= maxWillPay) {
-                // They'll buy it
+                // They'll buy it - IMMEDIATELY remove from table (they're holding it now)
+                const pickedItemId = table.item.itemId;
+                table.item.quantity--;
+                if (table.item.quantity <= 0) {
+                    table.item = null;
+                }
+
+                // Store what they picked up
                 npc.selectedItem = {
                     tableKey: tableKey,
-                    itemId: table.item.itemId,
+                    itemId: pickedItemId,
                     price: tablePrice,
                     name: item?.name || 'Item',
-                    fromTable: true
+                    fromTable: true,
+                    alreadyRemovedFromInventory: true  // Flag so checkout doesn't double-remove
                 };
                 npc.browsingTable = false;
                 npc.intentRevealed = true;
                 this.setCounterTarget(npc);
-                console.log(`[NPC] ${npc.data.name} picked ${npc.selectedItem.name} from display at $${tablePrice}`);
+                console.log(`[NPC] ${npc.data.name} picked up ${npc.selectedItem.name} from display at $${tablePrice} (removed from table)`);
             } else {
                 // Too expensive
                 console.log(`[NPC] ${npc.data.name} thinks $${tablePrice} is too expensive for ${item?.name}`);

@@ -161,12 +161,19 @@ const CustomerNames = {
 
 // Problem types
 const ProblemTypes = [
+    // Dive required (serious issues)
     { id: 'virus', name: 'Virus Infection', severity: 'medium', needsDive: true, description: 'System infected with malware' },
     { id: 'corruption', name: 'Data Corruption', severity: 'hard', needsDive: true, description: 'Critical files corrupted' },
-    { id: 'slowdown', name: 'System Slowdown', severity: 'easy', needsDive: false, description: 'Performance degradation' },
     { id: 'crash', name: 'Frequent Crashes', severity: 'medium', needsDive: true, description: 'System instability' },
     { id: 'recovery', name: 'Data Recovery', severity: 'hard', needsDive: true, description: 'Customer needs files recovered' },
-    { id: 'cleanup', name: 'System Cleanup', severity: 'easy', needsDive: false, description: 'Junk and bloatware removal' }
+
+    // Workbench repairs (common everyday issues)
+    { id: 'slowdown', name: 'System Slowdown', severity: 'easy', needsDive: false, description: 'Performance degradation' },
+    { id: 'cleanup', name: 'System Cleanup', severity: 'easy', needsDive: false, description: 'Junk and bloatware removal' },
+    { id: 'dust', name: 'Overheating', severity: 'easy', needsDive: false, description: 'Needs cleaning and thermal paste' },
+    { id: 'driver', name: 'Driver Issues', severity: 'easy', needsDive: false, description: 'Outdated or broken drivers' },
+    { id: 'update', name: 'Failed Updates', severity: 'medium', needsDive: false, description: 'System updates stuck or broken' },
+    { id: 'startup', name: 'Slow Boot', severity: 'easy', needsDive: false, description: 'Takes forever to start up' },
 ];
 
 // Urgency types (affects customer patience)
@@ -228,7 +235,25 @@ function generateProblem(device) {
         availableProblems = availableProblems.filter(p => p.severity !== 'hard');
     }
 
-    const problem = availableProblems[Math.floor(Math.random() * availableProblems.length)];
+    // Weight selection: 60% workbench, 40% dive (workbench issues are more common)
+    const workbenchProblems = availableProblems.filter(p => !p.needsDive);
+    const diveProblems = availableProblems.filter(p => p.needsDive);
+
+    let problem;
+    if (workbenchProblems.length > 0 && diveProblems.length > 0) {
+        // Weighted selection
+        if (Math.random() < 0.6) {
+            // 60% chance workbench
+            problem = workbenchProblems[Math.floor(Math.random() * workbenchProblems.length)];
+        } else {
+            // 40% chance dive
+            problem = diveProblems[Math.floor(Math.random() * diveProblems.length)];
+        }
+    } else {
+        // Fallback to any available
+        problem = availableProblems[Math.floor(Math.random() * availableProblems.length)];
+    }
+
     return { ...problem };
 }
 

@@ -93,12 +93,32 @@ const ProbeSystem = {
         const gradeDifficulty = { 'e': 'easy', 'c': 'easy', 'b': 'medium', 'a': 'hard' };
         this.difficulty = gradeDifficulty[job.device?.grade] || 'easy';
 
-        // Pick a random game
-        const games = ['memory', 'launch', 'pipes', 'packet'];
-        const randomGame = games[Math.floor(Math.random() * games.length)];
+        // Match minigame to problem type for thematic consistency
+        // Based on CLI Minigames guide:
+        // - Memory Match: Data Recovery (finding/matching files)
+        // - Probe Launch: Diagnostic Scan (scanning system)
+        // - Hex Pipes: Bypass/Routing (rerouting paths)
+        // - Packet Hunt: Hacking/Access (finding anomalies)
+        const problemToGame = {
+            'slowdown': 'launch',    // Diagnostic scan to find bottleneck
+            'cleanup': 'packet',     // Hunt for junk files/bloatware
+            'dust': 'pipes',         // Reroute airflow/thermal paths
+            'driver': 'memory',      // Find and match correct driver files
+            'update': 'pipes',       // Route update packages through system
+            'startup': 'launch',     // Scan boot sequence diagnostics
+        };
+
+        const problemId = job.problem?.id;
+        let selectedGame = problemToGame[problemId];
+
+        // Fallback to random if problem not mapped
+        if (!selectedGame) {
+            const games = ['memory', 'launch', 'pipes', 'packet'];
+            selectedGame = games[Math.floor(Math.random() * games.length)];
+        }
 
         this.setStatus(`REPAIRING: ${job.device?.fullName} | ${job.problem?.name}`);
-        this.startGame(randomGame);
+        this.startGame(selectedGame);
     },
 
     bindEvents() {
@@ -270,7 +290,7 @@ const ProbeSystem = {
             ctx.fillStyle = this.colors.text;
             ctx.font = '12px "Share Tech Mono", monospace';
             ctx.fillText('Accept workbench jobs from customers', w / 2, h / 2 + 40);
-            ctx.fillText('(Slowdown, Cleanup issues)', w / 2, h / 2 + 60);
+            ctx.fillText('(Slowdown, Cleanup, Overheating, Drivers, Updates, Slow Boot)', w / 2, h / 2 + 60);
         }
     },
 

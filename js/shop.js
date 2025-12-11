@@ -163,12 +163,17 @@ const Shop = {
             itemName = npc.selectedItem.name;
             price = npc.selectedItem.price;
 
-            // Remove item from inventory
-            if (npc.selectedItem.fromTable) {
-                InventorySystem.purchaseFromDisplayTable(npc.selectedItem.tableKey);
-            } else {
-                InventorySystem.purchaseFromShelf(npc.selectedItem.shelfKey, npc.selectedItem.itemId);
+            // Only remove from inventory if not already removed when they picked it up
+            if (!npc.selectedItem.alreadyRemovedFromInventory) {
+                if (npc.selectedItem.fromTable) {
+                    InventorySystem.purchaseFromDisplayTable(npc.selectedItem.tableKey);
+                } else {
+                    InventorySystem.purchaseFromShelf(npc.selectedItem.shelfKey, npc.selectedItem.itemId);
+                }
             }
+            // Track stats for daily summary
+            GameState.dailyStats = GameState.dailyStats || {};
+            GameState.dailyStats.itemsSold = (GameState.dailyStats.itemsSold || 0) + 1;
         } else {
             // Fallback: generate random item (shouldn't happen with new flow)
             const wantsToBuy = DialogueSystem.getSaleRequest();

@@ -96,12 +96,18 @@ const ServiceInterface = {
     calculateMarketRate(job) {
         // Base rate by problem type
         const baseRates = {
+            // Dive required
             'virus': 45,
             'corruption': 60,
-            'slowdown': 30,
             'crash': 50,
             'recovery': 80,
+            // Workbench
+            'slowdown': 30,
             'cleanup': 25,
+            'dust': 20,
+            'driver': 25,
+            'update': 35,
+            'startup': 25,
         };
 
         let base = baseRates[job.problem?.id] || 40;
