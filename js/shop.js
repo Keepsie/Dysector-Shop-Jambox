@@ -732,14 +732,13 @@ const Shop = {
     },
 
     spawnCustomerOnMap() {
-        const customerData = generateCustomer();
-        if (typeof ShopMap !== 'undefined' && typeof ShopMap.addCustomer === 'function') {
-            ShopMap.addCustomer(customerData);
-            this.addText('The door chimes. A customer walks in.', 'narrator');
-        } else {
-            // Customer generation without map spawning for now
-            console.log('[SHOP] Customer generated (no map spawn):', customerData.name);
-            this.addText('The door chimes. A customer walks in.', 'narrator');
+        // Use NPCSystem to spawn - it handles its own customer generation
+        if (typeof NPCSystem !== 'undefined') {
+            const npc = NPCSystem.trySpawn();
+            if (npc) {
+                this.addText('The door chimes. A customer walks in.', 'narrator');
+            }
+            // If trySpawn returns null (full or door blocked), no message
         }
     },
 

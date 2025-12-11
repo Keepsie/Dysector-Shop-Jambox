@@ -136,6 +136,10 @@ const ServiceInterface = {
             // Check what jobs are already scheduled this day
             const existingJobs = (GameState.activeJobs || []).filter(j => j.deadline === dayNum).length;
 
+            // Check what bills are due this day
+            const billsThisDay = (GameState.bills || []).filter(b => !b.paid && b.dueDay === dayNum);
+            const totalCharges = billsThisDay.reduce((sum, b) => sum + b.amount, 0);
+
             this.calendarDays.push({
                 day: dayNum,
                 label: isToday ? 'TODAY' : isTomorrow ? 'TOMORROW' : `Day ${dayNum}`,
@@ -144,6 +148,8 @@ const ServiceInterface = {
                 isTomorrow: isTomorrow,
                 daysOut: i,
                 existingJobs: existingJobs,
+                billCount: billsThisDay.length,
+                totalCharges: totalCharges,
                 available: !isToday || currentHour < 18,
             });
         }
@@ -368,13 +374,26 @@ const ServiceInterface = {
             ctx.fillText(this.currentNPC.data.name, L.dialogue.x + 140, L.dialogue.y + 18);
         }
 
-        // Job info line
+        // Service type - BIG and visible
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 14px monospace';
+        ctx.fillText(this.currentJob.problemType.toUpperCase(), L.dialogue.x + 10, L.dialogue.y + 38);
+
+        // Device and urgency on next line
         ctx.fillStyle = '#888';
-        ctx.font = '10px monospace';
-        ctx.fillText(`${this.currentJob.device} | ${this.currentJob.problemType} | ${this.currentJob.urgency.id.toUpperCase()}`, L.dialogue.x + 10, L.dialogue.y + 34);
+        ctx.font = '11px monospace';
+        ctx.fillText(this.currentJob.device, L.dialogue.x + 10, L.dialogue.y + 54);
+
+        // Urgency badge
+        const urgency = this.currentJob.urgency.id.toUpperCase();
+        const urgColor = urgency === 'DESPERATE' ? '#e74c3c' : urgency === 'NORMAL' ? '#f39c12' : '#2ecc71';
+        ctx.fillStyle = urgColor;
+        ctx.font = 'bold 11px monospace';
+        const deviceWidth = ctx.measureText(this.currentJob.device).width;
+        ctx.fillText(urgency, L.dialogue.x + 20 + deviceWidth, L.dialogue.y + 54);
 
         // Dialogue lines
-        let lineY = L.dialogue.y + 55;
+        let lineY = L.dialogue.y + 75;
         ctx.font = '11px monospace';
         for (const line of this.dialogueLines) {
             ctx.fillStyle = line.type === 'customer' ? '#f1c40f' :
@@ -586,11 +605,18 @@ const ServiceInterface = {
             ctx.textAlign = 'left';
             ctx.fillText(day.label, cellX + 5, cellY + 14);
 
-            // Job count
+            // Job count and charges on same line
+            let infoX = cellX + 5;
             if (day.existingJobs > 0) {
                 ctx.fillStyle = '#e74c3c';
                 ctx.font = '9px monospace';
-                ctx.fillText(`${day.existingJobs} job${day.existingJobs > 1 ? 's' : ''}`, cellX + 5, cellY + 25);
+                ctx.fillText(`${day.existingJobs}J`, infoX, cellY + 25);
+                infoX += ctx.measureText(`${day.existingJobs}J`).width + 6;
+            }
+            if (day.totalCharges > 0) {
+                ctx.fillStyle = '#f39c12';
+                ctx.font = '9px monospace';
+                ctx.fillText(`-$${day.totalCharges}`, infoX, cellY + 25);
             }
         });
     },
