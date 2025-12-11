@@ -403,9 +403,10 @@ const InventorySystem = {
             return;
         }
 
-        // Calculate what we need to buy
-        // Each shelf slot gets ~3 items, each table gets ~2
-        const itemsNeeded = (slotsToFill * 3) + (tablesToFill * 2);
+        // Calculate what we need to buy (randomize quantities a bit)
+        // Each shelf slot gets 2-5 items, each table gets 1-3
+        const itemsNeeded = (slotsToFill * (2 + Math.floor(Math.random() * 4))) +
+                           (tablesToFill * (1 + Math.floor(Math.random() * 3)));
 
         // Check what's in backstock already
         const currentBackstock = this.backstock.reduce((sum, b) => sum + b.quantity, 0);
@@ -416,14 +417,21 @@ const InventorySystem = {
 
         // Buy a variety of items if needed
         if (toBuy > 0) {
-            // Pick random cheap items to buy
-            const cheapItems = [...this.ITEMS].sort((a, b) => a.costPrice - b.costPrice);
+            // Shuffle items for variety, but prefer affordable ones
+            const affordableItems = this.ITEMS.filter(item => canAfford(item.costPrice));
+            // Shuffle the array
+            for (let i = affordableItems.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [affordableItems[i], affordableItems[j]] = [affordableItems[j], affordableItems[i]];
+            }
+
             let remaining = toBuy;
 
-            for (const item of cheapItems) {
+            for (const item of affordableItems) {
                 if (remaining <= 0) break;
 
-                const buyQty = Math.min(remaining, 5); // Buy up to 5 of each
+                // Random quantity per item type (2-7)
+                const buyQty = Math.min(remaining, 2 + Math.floor(Math.random() * 6));
                 const cost = item.costPrice * buyQty;
 
                 if (canAfford(cost)) {
@@ -443,14 +451,28 @@ const InventorySystem = {
             }
         }
 
+        // Shuffle backstock for variety in placement
+        const shuffledBackstock = [...this.backstock];
+        for (let i = shuffledBackstock.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledBackstock[i], shuffledBackstock[j]] = [shuffledBackstock[j], shuffledBackstock[i]];
+        }
+
         // Now place items from backstock
         let itemsPlaced = 0;
 
+        // Shuffle shelf entries for varied placement
+        const shelfEntries = Object.entries(this.shelves);
+        for (let i = shelfEntries.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shelfEntries[i], shelfEntries[j]] = [shelfEntries[j], shelfEntries[i]];
+        }
+
         // Stock shelves from backstock
-        for (const [key, shelf] of Object.entries(this.shelves)) {
+        for (const [key, shelf] of shelfEntries) {
             if (shelf.items.length >= shelf.maxSlots) continue;
 
-            for (const bs of this.backstock) {
+            for (const bs of shuffledBackstock) {
                 if (bs.quantity <= 0) continue;
                 if (shelf.items.some(s => s.itemId === bs.itemId)) continue;
                 if (shelf.items.length >= shelf.maxSlots) break;
@@ -458,31 +480,51 @@ const InventorySystem = {
                 const itemData = this.getItem(bs.itemId);
                 if (!itemData) continue;
 
-                const toPlace = Math.min(bs.quantity, 3);
-                const price = itemData.marketPrice;
+                // Random quantity per shelf slot (2-5)
+                const toPlace = Math.min(bs.quantity, 2 + Math.floor(Math.random() * 4));
+                // Slight price variation (-5% to +10% of market)
+                const priceVariation = 0.95 + Math.random() * 0.15;
+                const price = Math.round(itemData.marketPrice * priceVariation);
 
                 shelf.items.push({ itemId: bs.itemId, quantity: toPlace, price: price });
                 bs.quantity -= toPlace;
                 itemsPlaced += toPlace;
+
+                // Update original backstock
+                const original = this.backstock.find(b => b.itemId === bs.itemId);
+                if (original) original.quantity = bs.quantity;
             }
         }
 
         // Stock display tables from backstock
-        for (const [key, table] of Object.entries(this.displayTables)) {
+        const tableEntries = Object.entries(this.displayTables);
+        for (let i = tableEntries.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [tableEntries[i], tableEntries[j]] = [tableEntries[j], tableEntries[i]];
+        }
+
+        for (const [key, table] of tableEntries) {
             if (table.item) continue;
 
-            for (const bs of this.backstock) {
+            for (const bs of shuffledBackstock) {
                 if (bs.quantity <= 0) continue;
 
                 const itemData = this.getItem(bs.itemId);
                 if (!itemData) continue;
 
-                const toPlace = Math.min(bs.quantity, 2);
-                const price = itemData.marketPrice;
+                // Random quantity (1-3)
+                const toPlace = Math.min(bs.quantity, 1 + Math.floor(Math.random() * 3));
+                // Slight price variation
+                const priceVariation = 0.95 + Math.random() * 0.15;
+                const price = Math.round(itemData.marketPrice * priceVariation);
 
                 table.item = { itemId: bs.itemId, quantity: toPlace, price: price };
                 bs.quantity -= toPlace;
                 itemsPlaced += toPlace;
+
+                // Update original backstock
+                const original = this.backstock.find(b => b.itemId === bs.itemId);
+                if (original) original.quantity = bs.quantity;
                 break;
             }
         }

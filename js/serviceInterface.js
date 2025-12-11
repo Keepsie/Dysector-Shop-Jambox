@@ -626,8 +626,9 @@ const ServiceInterface = {
             if (day.existingJobs > 0) {
                 ctx.fillStyle = '#e74c3c';
                 ctx.font = '9px monospace';
-                ctx.fillText(`${day.existingJobs}J`, infoX, cellY + 25);
-                infoX += ctx.measureText(`${day.existingJobs}J`).width + 6;
+                const jobText = day.existingJobs === 1 ? '1 job' : `${day.existingJobs} jobs`;
+                ctx.fillText(jobText, infoX, cellY + 25);
+                infoX += ctx.measureText(jobText).width + 6;
             }
             if (day.totalCharges > 0) {
                 ctx.fillStyle = '#f39c12';

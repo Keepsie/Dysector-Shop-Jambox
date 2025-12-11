@@ -401,17 +401,21 @@ const NPCSystem = {
         if (dx === 0 && dy === 0) {
             npc.stuckCount = 0;
             npc.totalStuckTime = 0;
+            npc.sidestepDir = null;  // Reset sidestep when reaching target
             return;
         }
 
         // Track if we actually moved this tick
         let moved = false;
+        const lastX = npc.x;
+        const lastY = npc.y;
 
         // Try direct path first (NPCs can overlap each other - no NPC collision)
         if (Math.abs(dx) >= Math.abs(dy) && dx !== 0) {
             if (this.canWalk(npc.x + Math.sign(dx), npc.y)) {
                 npc.x += Math.sign(dx);
                 moved = true;
+                npc.sidestepDir = null;  // Reset sidestep on successful direct move
             }
         }
 
@@ -419,6 +423,7 @@ const NPCSystem = {
             if (this.canWalk(npc.x, npc.y + Math.sign(dy))) {
                 npc.y += Math.sign(dy);
                 moved = true;
+                npc.sidestepDir = null;
             }
         }
 
@@ -427,56 +432,73 @@ const NPCSystem = {
             if (this.canWalk(npc.x + Math.sign(dx), npc.y)) {
                 npc.x += Math.sign(dx);
                 moved = true;
+                npc.sidestepDir = null;
             }
         }
 
         // If stuck on furniture, try going AROUND it
+        // Use remembered sidestep direction to avoid oscillation
         if (!moved) {
-            // Try perpendicular directions to get around obstacle
-            const perpDirs = [];
+            let perpDirs = [];
             if (Math.abs(dx) >= Math.abs(dy)) {
                 // Blocked horizontally, try vertical to go around
-                perpDirs.push([0, -1], [0, 1]);
+                perpDirs = [[0, -1], [0, 1]];
             } else {
                 // Blocked vertically, try horizontal to go around
-                perpDirs.push([-1, 0], [1, 0]);
+                perpDirs = [[-1, 0], [1, 0]];
+            }
+
+            // If we have a remembered sidestep direction, try that first
+            if (npc.sidestepDir) {
+                const preferred = perpDirs.find(d => d[0] === npc.sidestepDir[0] && d[1] === npc.sidestepDir[1]);
+                if (preferred) {
+                    perpDirs = [preferred, ...perpDirs.filter(d => d !== preferred)];
+                }
             }
 
             for (const [ddx, ddy] of perpDirs) {
                 if (this.canWalk(npc.x + ddx, npc.y + ddy)) {
                     npc.x += ddx;
                     npc.y += ddy;
+                    npc.sidestepDir = [ddx, ddy];  // Remember which way we sidestepped
                     moved = true;
                     break;
                 }
             }
         }
 
+        // Detect oscillation (moved back to where we just were)
+        if (moved && npc.lastX === npc.x && npc.lastY === npc.y) {
+            // We're oscillating - force a different direction or teleport
+            npc.stuckCount += 3;  // Accelerate stuck counter
+        }
+
+        // Remember last position for oscillation detection
+        npc.lastX = lastX;
+        npc.lastY = lastY;
+
         // Track stuck status
         if (moved) {
-            npc.stuckCount = 0;
+            npc.stuckCount = Math.max(0, npc.stuckCount - 1);  // Slowly reduce stuck count
             npc.totalStuckTime = 0;
         } else {
             npc.stuckCount++;
             npc.totalStuckTime += npc.moveSpeed;
+        }
 
-            // Quick escape after 1 second of being stuck
-            if (npc.totalStuckTime > 1000 && npc.state !== this.STATE.WAITING) {
-                npc.totalStuckTime = 0;
-
-                // Emergency teleport after a few stuck attempts
-                if (npc.stuckCount > 5) {
-                    // Teleport one step toward target
-                    if (Math.abs(dx) > Math.abs(dy)) {
-                        npc.x += Math.sign(dx);
-                    } else if (dy !== 0) {
-                        npc.y += Math.sign(dy);
-                    } else if (dx !== 0) {
-                        npc.x += Math.sign(dx);
-                    }
-                    npc.stuckCount = 0;
-                }
+        // Emergency escape after being stuck too long
+        if (npc.stuckCount > 8 && npc.state !== this.STATE.WAITING) {
+            // Teleport one step toward target, ignoring obstacles
+            if (Math.abs(dx) > Math.abs(dy)) {
+                npc.x += Math.sign(dx);
+            } else if (dy !== 0) {
+                npc.y += Math.sign(dy);
+            } else if (dx !== 0) {
+                npc.x += Math.sign(dx);
             }
+            npc.stuckCount = 0;
+            npc.sidestepDir = null;
+            console.log(`[NPC] ${npc.data.name} emergency teleport to escape stuck`);
         }
     },
 

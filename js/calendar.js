@@ -68,7 +68,7 @@ const Calendar = {
                         <div class="day-closed">CLOSED</div>
                     ` : `
                         <div class="day-summary ${hasIssue ? 'warning' : ''}">
-                            ${jobCount > 0 ? `<span class="summary-jobs" title="${jobCount} job${jobCount > 1 ? 's' : ''} due">${jobCount}J</span>` : ''}
+                            ${jobCount > 0 ? `<span class="summary-jobs" title="${jobCount} job${jobCount > 1 ? 's' : ''} due">🔧${jobCount}</span>` : ''}
                             ${billCount > 0 ? `<span class="summary-bills" title="$${totalCharges} in bills">$${totalCharges}</span>` : ''}
                         </div>
                         <div class="day-jobs">
