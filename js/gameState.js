@@ -3,7 +3,7 @@
 const GameState = {
     // Resources
     cash: 2500,
-    bits: 150,
+    bits: 0,  // Start with 0 - earn from diving/combat
     divesRemaining: 2,
     divesMax: 2,
 
@@ -34,7 +34,18 @@ const GameState = {
     // Stats
     customersToday: 0,
     totalRepairs: 0,
-    reputation: 3.5, // out of 5
+    reputation: 0, // out of 5 - start at 0, build it up!
+
+    // Daily tracking (reset each day)
+    dailyStats: {
+        moneyEarned: 0,
+        moneySpent: 0,
+        itemsSold: 0,
+        servicesCompleted: 0,
+        customersServed: 0,
+        goodTransactions: 0,  // Fair prices, on time
+        badTransactions: 0,   // Overpriced, late, refused
+    },
 
     // Licenses owned
     licenses: {
@@ -447,6 +458,7 @@ function canAfford(amount) {
 function spendCash(amount) {
     if (canAfford(amount)) {
         GameState.cash -= amount;
+        GameState.dailyStats.moneySpent += amount;
         updateDisplays();
         return true;
     }
@@ -455,6 +467,7 @@ function spendCash(amount) {
 
 function earnCash(amount) {
     GameState.cash += amount;
+    GameState.dailyStats.moneyEarned += amount;
     updateDisplays();
 }
 

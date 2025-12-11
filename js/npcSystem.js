@@ -608,6 +608,11 @@ const NPCSystem = {
             npc.state = this.STATE.LEAVING;
             npc.targetSpot = this.positions.door;
             npc.color = '#27ae60';  // Green - satisfied
+
+            // Track for daily stats
+            GameState.dailyStats.servicesCompleted++;
+            GameState.dailyStats.customersServed++;
+            GameState.dailyStats.goodTransactions++;
         }
     },
 
@@ -618,6 +623,9 @@ const NPCSystem = {
             npc.state = this.STATE.LEAVING;
             npc.targetSpot = this.positions.door;
             npc.color = '#e74c3c';  // Red - unhappy
+
+            // Track for daily stats
+            GameState.dailyStats.badTransactions++;
         }
     },
 

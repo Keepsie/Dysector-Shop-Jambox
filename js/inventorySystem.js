@@ -9,28 +9,49 @@ const InventorySystem = {
 
     // Item catalog - what can be sold
     // costPrice = what you pay wholesale, marketPrice = what customers expect to pay
+    // license = required license to buy ('e' = starter, 'c', 'b', 'a')
     ITEMS: [
-        { id: 'cable_usb', name: 'USB Cable', category: 'cables', costPrice: 5, marketPrice: 8, icon: 'C' },
-        { id: 'cable_hdmi', name: 'HDMI Cable', category: 'cables', costPrice: 9, marketPrice: 15, icon: 'C' },
-        { id: 'cable_power', name: 'Power Cable', category: 'cables', costPrice: 7, marketPrice: 12, icon: 'C' },
-        { id: 'adapter_usbc', name: 'USB-C Adapter', category: 'adapters', costPrice: 12, marketPrice: 20, icon: 'A' },
-        { id: 'adapter_display', name: 'Display Adapter', category: 'adapters', costPrice: 15, marketPrice: 25, icon: 'A' },
-        { id: 'mouse_basic', name: 'Basic Mouse', category: 'peripherals', costPrice: 8, marketPrice: 15, icon: 'M' },
-        { id: 'mouse_gaming', name: 'Gaming Mouse', category: 'peripherals', costPrice: 28, marketPrice: 45, icon: 'M' },
-        { id: 'keyboard_basic', name: 'Basic Keyboard', category: 'peripherals', costPrice: 14, marketPrice: 25, icon: 'K' },
-        { id: 'keyboard_mech', name: 'Mechanical Keyboard', category: 'peripherals', costPrice: 50, marketPrice: 80, icon: 'K' },
-        { id: 'headset_basic', name: 'Basic Headset', category: 'audio', costPrice: 18, marketPrice: 30, icon: 'H' },
-        { id: 'headset_gaming', name: 'Gaming Headset', category: 'audio', costPrice: 40, marketPrice: 65, icon: 'H' },
-        { id: 'flash_16gb', name: '16GB Flash Drive', category: 'storage', costPrice: 5, marketPrice: 10, icon: 'F' },
-        { id: 'flash_64gb', name: '64GB Flash Drive', category: 'storage', costPrice: 10, marketPrice: 18, icon: 'F' },
-        { id: 'ssd_256', name: '256GB SSD', category: 'storage', costPrice: 28, marketPrice: 45, icon: 'S' },
-        { id: 'ssd_512', name: '512GB SSD', category: 'storage', costPrice: 42, marketPrice: 70, icon: 'S' },
-        { id: 'ram_8gb', name: '8GB RAM', category: 'components', costPrice: 20, marketPrice: 35, icon: 'R' },
-        { id: 'ram_16gb', name: '16GB RAM', category: 'components', costPrice: 35, marketPrice: 60, icon: 'R' },
-        { id: 'cooler_fan', name: 'CPU Cooler', category: 'components', costPrice: 18, marketPrice: 30, icon: 'X' },
-        { id: 'thermal_paste', name: 'Thermal Paste', category: 'supplies', costPrice: 4, marketPrice: 8, icon: 'T' },
-        { id: 'cleaning_kit', name: 'Cleaning Kit', category: 'supplies', costPrice: 8, marketPrice: 15, icon: 'T' },
+        // E-License (starter) - Basic items
+        { id: 'cable_usb', name: 'USB Cable', category: 'cables', costPrice: 5, marketPrice: 8, icon: 'C', license: 'e' },
+        { id: 'cable_hdmi', name: 'HDMI Cable', category: 'cables', costPrice: 9, marketPrice: 15, icon: 'C', license: 'e' },
+        { id: 'cable_power', name: 'Power Cable', category: 'cables', costPrice: 7, marketPrice: 12, icon: 'C', license: 'e' },
+        { id: 'adapter_usbc', name: 'USB-C Adapter', category: 'adapters', costPrice: 12, marketPrice: 20, icon: 'A', license: 'e' },
+        { id: 'mouse_basic', name: 'Basic Mouse', category: 'peripherals', costPrice: 8, marketPrice: 15, icon: 'M', license: 'e' },
+        { id: 'keyboard_basic', name: 'Basic Keyboard', category: 'peripherals', costPrice: 14, marketPrice: 25, icon: 'K', license: 'e' },
+        { id: 'flash_16gb', name: '16GB Flash Drive', category: 'storage', costPrice: 5, marketPrice: 10, icon: 'F', license: 'e' },
+        { id: 'thermal_paste', name: 'Thermal Paste', category: 'supplies', costPrice: 4, marketPrice: 8, icon: 'T', license: 'e' },
+        { id: 'cleaning_kit', name: 'Cleaning Kit', category: 'supplies', costPrice: 8, marketPrice: 15, icon: 'T', license: 'e' },
+
+        // C-License - Mid-tier items
+        { id: 'adapter_display', name: 'Display Adapter', category: 'adapters', costPrice: 15, marketPrice: 25, icon: 'A', license: 'c' },
+        { id: 'headset_basic', name: 'Basic Headset', category: 'audio', costPrice: 18, marketPrice: 30, icon: 'H', license: 'c' },
+        { id: 'flash_64gb', name: '64GB Flash Drive', category: 'storage', costPrice: 10, marketPrice: 18, icon: 'F', license: 'c' },
+        { id: 'ram_8gb', name: '8GB RAM', category: 'components', costPrice: 20, marketPrice: 35, icon: 'R', license: 'c' },
+        { id: 'cooler_fan', name: 'CPU Cooler', category: 'components', costPrice: 18, marketPrice: 30, icon: 'X', license: 'c' },
+
+        // B-License - Higher tier items
+        { id: 'mouse_gaming', name: 'Gaming Mouse', category: 'peripherals', costPrice: 28, marketPrice: 45, icon: 'M', license: 'b' },
+        { id: 'keyboard_mech', name: 'Mechanical Keyboard', category: 'peripherals', costPrice: 50, marketPrice: 80, icon: 'K', license: 'b' },
+        { id: 'headset_gaming', name: 'Gaming Headset', category: 'audio', costPrice: 40, marketPrice: 65, icon: 'H', license: 'b' },
+        { id: 'ssd_256', name: '256GB SSD', category: 'storage', costPrice: 28, marketPrice: 45, icon: 'S', license: 'b' },
+        { id: 'ram_16gb', name: '16GB RAM', category: 'components', costPrice: 35, marketPrice: 60, icon: 'R', license: 'b' },
+
+        // A-License - Premium items
+        { id: 'ssd_512', name: '512GB SSD', category: 'storage', costPrice: 42, marketPrice: 70, icon: 'S', license: 'a' },
     ],
+
+    // Check if player has required license for item
+    hasLicenseFor(itemId) {
+        const item = this.getItem(itemId);
+        if (!item) return false;
+
+        const license = item.license || 'e';
+        if (license === 'e') return true;
+        if (license === 'c') return GameState.licenses.c || GameState.licenses.b || GameState.licenses.a;
+        if (license === 'b') return GameState.licenses.b || GameState.licenses.a;
+        if (license === 'a') return GameState.licenses.a;
+        return false;
+    },
 
     // Get item by ID
     getItem(itemId) {
@@ -318,6 +339,17 @@ const InventorySystem = {
 
         if (item.quantity <= 0) {
             shelf.items = shelf.items.filter(i => i.itemId !== itemId);
+        }
+
+        // Track for daily stats
+        GameState.dailyStats.itemsSold++;
+        GameState.dailyStats.customersServed++;
+        // Good transaction if price is fair (within 30% of market)
+        const marketPrice = itemData?.marketPrice || item.price;
+        if (item.price <= marketPrice * 1.3) {
+            GameState.dailyStats.goodTransactions++;
+        } else {
+            GameState.dailyStats.badTransactions++;  // Overpriced
         }
 
         return {

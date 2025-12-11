@@ -691,13 +691,121 @@ const Shop = {
     },
 
     goToSleep() {
-        this.addText('', 'narrator');
-        this.addText('You head to bed. Tomorrow is another day...', 'narrator');
+        // Calculate daily summary and review changes
+        const stats = GameState.dailyStats;
+        const netProfit = stats.moneyEarned - stats.moneySpent;
 
-        // Brief pause then advance day
-        setTimeout(() => {
-            FatigueSystem.sleep();
-        }, 1000);
+        // Calculate review change based on transactions
+        // Good transactions boost rep, bad ones hurt it
+        let reviewChange = 0;
+        if (stats.goodTransactions > 0 || stats.badTransactions > 0) {
+            const totalTrans = stats.goodTransactions + stats.badTransactions;
+            const goodRatio = stats.goodTransactions / totalTrans;
+            // -0.5 to +0.5 based on ratio, scaled by transaction count
+            reviewChange = (goodRatio - 0.5) * Math.min(totalTrans / 5, 1);
+        }
+        // Bonus for completing services
+        if (stats.servicesCompleted > 0) {
+            reviewChange += stats.servicesCompleted * 0.1;
+        }
+        // Small boost just for being open and selling stuff
+        if (stats.itemsSold > 0) {
+            reviewChange += 0.05;
+        }
+
+        // Apply review change (clamp 0-5)
+        const oldRep = GameState.reputation;
+        GameState.reputation = Math.max(0, Math.min(5, GameState.reputation + reviewChange));
+        const newRep = GameState.reputation;
+
+        // Show daily summary
+        this.showDailySummary(stats, netProfit, oldRep, newRep);
+    },
+
+    showDailySummary(stats, netProfit, oldRep, newRep) {
+        const repChange = newRep - oldRep;
+        const repArrow = repChange > 0 ? '▲' : repChange < 0 ? '▼' : '–';
+        const repColor = repChange > 0 ? 'var(--green)' : repChange < 0 ? 'var(--red)' : 'var(--text-dim)';
+
+        const summaryHtml = `
+            <div style="background: var(--bg-dark); border: 2px solid var(--primary); padding: 20px; border-radius: 8px; max-width: 350px; margin: 20px auto; font-family: var(--font-mono);">
+                <h2 style="color: var(--primary); margin: 0 0 15px 0; text-align: center;">DAY ${GameState.currentDay} SUMMARY</h2>
+
+                <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                        <span style="color: var(--text-dim);">Money Earned:</span>
+                        <span style="color: var(--green);">+$${stats.moneyEarned}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                        <span style="color: var(--text-dim);">Money Spent:</span>
+                        <span style="color: var(--red);">-$${stats.moneySpent}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin: 5px 0; font-weight: bold;">
+                        <span>Net Profit:</span>
+                        <span style="color: ${netProfit >= 0 ? 'var(--green)' : 'var(--red)'};">${netProfit >= 0 ? '+' : ''}$${netProfit}</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                        <span style="color: var(--text-dim);">Items Sold:</span>
+                        <span>${stats.itemsSold}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                        <span style="color: var(--text-dim);">Services Completed:</span>
+                        <span>${stats.servicesCompleted}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                        <span style="color: var(--text-dim);">Customers Served:</span>
+                        <span>${stats.customersServed}</span>
+                    </div>
+                </div>
+
+                <div style="text-align: center;">
+                    <div style="color: var(--text-dim); margin-bottom: 5px;">SHOP RATING</div>
+                    <div style="font-size: 24px;">
+                        <span style="color: var(--yellow);">${'★'.repeat(Math.floor(newRep))}${'☆'.repeat(5 - Math.floor(newRep))}</span>
+                    </div>
+                    <div style="color: ${repColor}; font-size: 14px;">
+                        ${repArrow} ${Math.abs(repChange).toFixed(2)} (${newRep.toFixed(2)}/5.00)
+                    </div>
+                </div>
+
+                <button id="sleep-continue-btn" style="width: 100%; margin-top: 20px; padding: 10px; background: var(--primary); border: none; color: var(--bg-dark); font-weight: bold; cursor: pointer; border-radius: 4px;">
+                    CONTINUE TO NEXT DAY
+                </button>
+            </div>
+        `;
+
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'daily-summary-overlay';
+        overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999;';
+        overlay.innerHTML = summaryHtml;
+        document.body.appendChild(overlay);
+
+        // Continue button
+        document.getElementById('sleep-continue-btn').addEventListener('click', () => {
+            overlay.remove();
+            this.resetDailyStats();
+            this.addText('', 'narrator');
+            this.addText('You head to bed. Tomorrow is another day...', 'narrator');
+            setTimeout(() => {
+                FatigueSystem.sleep();
+            }, 500);
+        });
+    },
+
+    resetDailyStats() {
+        GameState.dailyStats = {
+            moneyEarned: 0,
+            moneySpent: 0,
+            itemsSold: 0,
+            servicesCompleted: 0,
+            customersServed: 0,
+            goodTransactions: 0,
+            badTransactions: 0,
+        };
     },
 
     // ========================================
@@ -714,10 +822,13 @@ const Shop = {
                 typeof ShopMap.maxCustomers !== 'undefined' &&
                 ShopMap.customers.length >= ShopMap.maxCustomers) return;
 
-            // Random chance of customer (higher early, lower late)
+            // Random chance of customer based on reputation
+            // 0 stars = very few customers, 5 stars = busy shop
             const hourProgress = (GameState.currentHour - GameState.businessHoursStart) /
                                 (GameState.businessHoursEnd - GameState.businessHoursStart);
-            const baseChance = 0.2; // 20% check every few seconds
+            const reputation = GameState.reputation || 0;
+            // Base 5% + up to 25% from reputation (0-5 stars)
+            const baseChance = 0.05 + (reputation / 5) * 0.25;
             const timeModifier = hourProgress < 0.5 ? 1.2 : 0.8; // Busier in morning
 
             if (Math.random() < baseChance * timeModifier) {

@@ -100,6 +100,9 @@ const ShopOS = {
             </div>
         `;
 
+        // License display names
+        const licenseNames = { 'e': 'E', 'c': 'C', 'b': 'B', 'a': 'A' };
+
         // Render each category
         for (const [catId, catItems] of Object.entries(categories)) {
             html += `<div class="supplier-section">
@@ -110,17 +113,37 @@ const ShopOS = {
                     ? InventorySystem.getBackstockQuantity(item.id)
                     : 0;
 
-                html += `
-                    <div class="supplier-item">
-                        <div class="supplier-item-info">
-                            <div class="supplier-item-name">${item.name}</div>
-                            <div class="supplier-item-desc">Sell for ~$${item.marketPrice} | In stock: ${inStock}</div>
+                const hasLicense = typeof InventorySystem !== 'undefined'
+                    ? InventorySystem.hasLicenseFor(item.id)
+                    : true;
+
+                const licReq = item.license || 'e';
+                const licBadge = licReq !== 'e' ? `<span style="color: ${hasLicense ? 'var(--green)' : 'var(--red)'}; font-size: 10px;">[${licenseNames[licReq]}-LIC]</span> ` : '';
+
+                if (hasLicense) {
+                    html += `
+                        <div class="supplier-item">
+                            <div class="supplier-item-info">
+                                <div class="supplier-item-name">${licBadge}${item.name}</div>
+                                <div class="supplier-item-desc">Sell for ~$${item.marketPrice} | In stock: ${inStock}</div>
+                            </div>
+                            <div class="supplier-item-price">$${item.costPrice}</div>
+                            <button class="supplier-buy-btn" data-item-id="${item.id}" data-cost="${item.costPrice}">BUY</button>
+                            <button class="supplier-buy-btn" data-item-id="${item.id}" data-cost="${item.costPrice * 5}" data-qty="5">x5</button>
                         </div>
-                        <div class="supplier-item-price">$${item.costPrice}</div>
-                        <button class="supplier-buy-btn" data-item-id="${item.id}" data-cost="${item.costPrice}">BUY</button>
-                        <button class="supplier-buy-btn" data-item-id="${item.id}" data-cost="${item.costPrice * 5}" data-qty="5">x5</button>
-                    </div>
-                `;
+                    `;
+                } else {
+                    html += `
+                        <div class="supplier-item" style="opacity: 0.5;">
+                            <div class="supplier-item-info">
+                                <div class="supplier-item-name">${licBadge}${item.name}</div>
+                                <div class="supplier-item-desc" style="color: var(--red);">Requires ${licenseNames[licReq]}-License to purchase</div>
+                            </div>
+                            <div class="supplier-item-price">$${item.costPrice}</div>
+                            <button class="supplier-buy-btn" disabled style="opacity: 0.3;">LOCKED</button>
+                        </div>
+                    `;
+                }
             }
 
             html += `</div>`;
@@ -170,36 +193,97 @@ const ShopOS = {
 
     // Liquidation Pallets App - mystery device boxes
     renderLiquidation() {
+        const hasCLicense = GameState.licenses.c || GameState.licenses.b || GameState.licenses.a;
+        const hasBLicense = GameState.licenses.b || GameState.licenses.a;
+        const hasALicense = GameState.licenses.a;
+
+        // Small Pallet - requires C license
+        let smallPalletHtml;
+        if (hasCLicense) {
+            smallPalletHtml = `
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name"><span style="color: var(--green); font-size: 10px;">[C-LIC]</span> Small Pallet</div>
+                        <div class="supplier-item-desc">3-5 mystery devices, assorted condition</div>
+                    </div>
+                    <div class="supplier-item-price">$1,000</div>
+                    <button class="supplier-buy-btn" data-item="pallet-small" data-cost="1000">BUY</button>
+                </div>
+            `;
+        } else {
+            smallPalletHtml = `
+                <div class="supplier-item" style="opacity: 0.5;">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name"><span style="color: var(--red); font-size: 10px;">[C-LIC]</span> Small Pallet</div>
+                        <div class="supplier-item-desc" style="color: var(--red);">Requires C-License to purchase</div>
+                    </div>
+                    <div class="supplier-item-price">$1,000</div>
+                    <button class="supplier-buy-btn" disabled style="opacity: 0.3;">LOCKED</button>
+                </div>
+            `;
+        }
+
+        // Medium Pallet - requires B license
+        let mediumPalletHtml;
+        if (hasBLicense) {
+            mediumPalletHtml = `
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name"><span style="color: var(--green); font-size: 10px;">[B-LIC]</span> Medium Pallet</div>
+                        <div class="supplier-item-desc">6-10 mystery devices, better odds</div>
+                    </div>
+                    <div class="supplier-item-price">$2,000</div>
+                    <button class="supplier-buy-btn" data-item="pallet-medium" data-cost="2000">BUY</button>
+                </div>
+            `;
+        } else {
+            mediumPalletHtml = `
+                <div class="supplier-item" style="opacity: 0.5;">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name"><span style="color: var(--red); font-size: 10px;">[B-LIC]</span> Medium Pallet</div>
+                        <div class="supplier-item-desc" style="color: var(--red);">Requires B-License to purchase</div>
+                    </div>
+                    <div class="supplier-item-price">$2,000</div>
+                    <button class="supplier-buy-btn" disabled style="opacity: 0.3;">LOCKED</button>
+                </div>
+            `;
+        }
+
+        // Premium Pallet - requires A license
+        let premiumPalletHtml;
+        if (hasALicense) {
+            premiumPalletHtml = `
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name"><span style="color: var(--green); font-size: 10px;">[A-LIC]</span> Premium Pallet</div>
+                        <div class="supplier-item-desc">8-12 devices, guaranteed B+ grades</div>
+                    </div>
+                    <div class="supplier-item-price">$5,000</div>
+                    <button class="supplier-buy-btn" data-item="pallet-premium" data-cost="5000">BUY</button>
+                </div>
+            `;
+        } else {
+            premiumPalletHtml = `
+                <div class="supplier-item" style="opacity: 0.5;">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name"><span style="color: var(--red); font-size: 10px;">[A-LIC]</span> Premium Pallet</div>
+                        <div class="supplier-item-desc" style="color: var(--red);">Requires A-License to purchase</div>
+                    </div>
+                    <div class="supplier-item-price">$5,000</div>
+                    <button class="supplier-buy-btn" disabled style="opacity: 0.3;">LOCKED</button>
+                </div>
+            `;
+        }
+
         this.windowContent.innerHTML = `
             <div class="supplier-section">
                 <div class="supplier-header">MYSTERY PALLETS</div>
                 <div style="padding: 8px; color: var(--text-dim); font-size: 11px; margin-bottom: 10px;">
                     Buy pallets of mystery devices. Fix them up and resell, or use for parts!
                 </div>
-                <div class="supplier-item">
-                    <div class="supplier-item-info">
-                        <div class="supplier-item-name">Small Pallet</div>
-                        <div class="supplier-item-desc">3-5 mystery devices, assorted condition</div>
-                    </div>
-                    <div class="supplier-item-price">$300</div>
-                    <button class="supplier-buy-btn" data-item="pallet-small" data-cost="300">BUY</button>
-                </div>
-                <div class="supplier-item">
-                    <div class="supplier-item-info">
-                        <div class="supplier-item-name">Medium Pallet</div>
-                        <div class="supplier-item-desc">6-10 mystery devices, better odds</div>
-                    </div>
-                    <div class="supplier-item-price">$600</div>
-                    <button class="supplier-buy-btn" data-item="pallet-medium" data-cost="600">BUY</button>
-                </div>
-                <div class="supplier-item">
-                    <div class="supplier-item-info">
-                        <div class="supplier-item-name">Premium Pallet</div>
-                        <div class="supplier-item-desc">8-12 devices, guaranteed B+ grades</div>
-                    </div>
-                    <div class="supplier-item-price">$1,200</div>
-                    <button class="supplier-buy-btn" data-item="pallet-premium" data-cost="1200">BUY</button>
-                </div>
+                ${smallPalletHtml}
+                ${mediumPalletHtml}
+                ${premiumPalletHtml}
             </div>
 
             <div class="supplier-section">
@@ -212,14 +296,25 @@ const ShopOS = {
                     <div class="supplier-item-price">$50</div>
                     <button class="supplier-buy-btn" data-item="cases" data-cost="50">BUY</button>
                 </div>
+                ${hasCLicense ? `
                 <div class="supplier-item">
                     <div class="supplier-item-info">
-                        <div class="supplier-item-name">Stim Drink</div>
+                        <div class="supplier-item-name"><span style="color: var(--green); font-size: 10px;">[C-LIC]</span> Stim Drink</div>
                         <div class="supplier-item-desc">Emergency dive charge (+1 dive)</div>
                     </div>
-                    <div class="supplier-item-price">$75</div>
-                    <button class="supplier-buy-btn" data-item="stim" data-cost="75">BUY</button>
+                    <div class="supplier-item-price">$250</div>
+                    <button class="supplier-buy-btn" data-item="stim" data-cost="250">BUY</button>
                 </div>
+                ` : `
+                <div class="supplier-item" style="opacity: 0.5;">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name"><span style="color: var(--red); font-size: 10px;">[C-LIC]</span> Stim Drink</div>
+                        <div class="supplier-item-desc" style="color: var(--red);">Requires C-License to purchase</div>
+                    </div>
+                    <div class="supplier-item-price">$250</div>
+                    <button class="supplier-buy-btn" disabled style="opacity: 0.3;">LOCKED</button>
+                </div>
+                `}
             </div>
         `;
 
@@ -297,9 +392,9 @@ const ShopOS = {
     renderLicenses() {
         const licenses = [
             { id: 'e', name: 'E-License', desc: 'Entry-level device certification', cashCost: 0, bitsCost: 0, owned: GameState.licenses.e },
-            { id: 'c', name: 'C-License', desc: 'Common device certification', cashCost: 500, bitsCost: 100, owned: GameState.licenses.c },
-            { id: 'b', name: 'B-License', desc: 'Business-grade device certification', cashCost: 1500, bitsCost: 250, owned: GameState.licenses.b },
-            { id: 'a', name: 'A-License', desc: 'Premium device certification', cashCost: 5000, bitsCost: 500, owned: GameState.licenses.a }
+            { id: 'c', name: 'C-License', desc: 'Common device certification', cashCost: 1500, bitsCost: 5000, owned: GameState.licenses.c },
+            { id: 'b', name: 'B-License', desc: 'Business-grade device certification', cashCost: 4000, bitsCost: 15000, owned: GameState.licenses.b },
+            { id: 'a', name: 'A-License', desc: 'Premium device certification', cashCost: 10000, bitsCost: 50000, owned: GameState.licenses.a }
         ];
 
         let html = '';
@@ -344,10 +439,11 @@ const ShopOS = {
     },
 
     purchaseLicense(licenseId) {
+        // Licenses should be major milestones - bits come from kills so they add up
         const costs = {
-            'c': { cash: 500, bits: 100 },
-            'b': { cash: 1500, bits: 250 },
-            'a': { cash: 5000, bits: 500 }
+            'c': { cash: 1500, bits: 5000 },    // First upgrade - several dives worth
+            'b': { cash: 4000, bits: 15000 },   // Mid-game goal
+            'a': { cash: 10000, bits: 50000 }   // Late game achievement
         };
 
         const cost = costs[licenseId];
