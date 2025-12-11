@@ -56,58 +56,91 @@
     border-bottom: 1px solid var(--border);
 }
 
-.probe-game-list {
+.probe-job-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
 }
 
-.probe-game-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.probe-job-item {
     padding: 10px 12px;
     background: var(--bg-light);
     border: 1px solid var(--border);
-    color: var(--text);
     cursor: pointer;
     transition: all 0.2s ease;
-    text-align: left;
 }
 
-.probe-game-btn:hover {
+.probe-job-item:hover {
     background: var(--bg-card);
-    border-color: var(--cyan);
+    border-color: var(--green);
 }
 
-.probe-game-btn.active {
-    background: var(--cyan);
+.probe-job-item.active {
+    background: var(--green);
     color: var(--bg-dark);
-    border-color: var(--cyan);
+    border-color: var(--green);
 }
 
-.probe-game-icon {
-    font-size: 18px;
-    width: 24px;
-    text-align: center;
-}
-
-.probe-game-name {
+.probe-job-device {
     font-family: var(--font-display);
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 1px;
     font-weight: bold;
+    color: var(--text);
 }
 
-.probe-game-desc {
+.probe-job-item.active .probe-job-device {
+    color: var(--bg-dark);
+}
+
+.probe-job-problem {
     font-family: var(--font-mono);
     font-size: 10px;
     color: var(--text-dim);
-    margin-left: auto;
+    margin-top: 2px;
 }
 
-.probe-game-btn.active .probe-game-desc {
+.probe-job-item.active .probe-job-problem {
     color: var(--bg-dark);
+}
+
+.probe-job-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+}
+
+.probe-job-deadline {
+    color: var(--text-dim);
+}
+
+.probe-job-deadline.urgent {
+    color: var(--red);
+}
+
+.probe-job-deadline.soon {
+    color: var(--gold);
+}
+
+.probe-job-price {
+    color: var(--green);
+}
+
+.probe-job-item.active .probe-job-deadline,
+.probe-job-item.active .probe-job-price {
+    color: var(--bg-dark);
+}
+
+.probe-empty {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-align: center;
+    padding: 20px 10px;
 }
 
 .probe-difficulty {

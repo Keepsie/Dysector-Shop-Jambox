@@ -173,18 +173,35 @@ const Calendar = {
                         <div style="color: var(--green); font-size: 14px; font-weight: bold;">✓ REPAIR COMPLETE</div>
                         <div style="color: var(--text-dim); font-size: 11px;">Waiting for customer pickup</div>
                     </div>
-                ` : `
+                ` : needsDive ? `
                     <div style="margin-bottom: 15px;">
-                        <div style="color: var(--text-dim); font-size: 11px; margin-bottom: 10px;">Choose how to repair:</div>
+                        <div style="color: var(--red); font-size: 11px; margin-bottom: 10px; padding: 8px; background: rgba(231,76,60,0.1); border-radius: 4px;">
+                            ⚠ DEEP INFECTION - Requires Dive to fully repair
+                        </div>
 
-                        <button id="job-workbench-btn" style="width: 100%; padding: 12px; margin-bottom: 8px; background: var(--bg-light); border: 1px solid var(--border); color: var(--text); cursor: pointer; border-radius: 4px; text-align: left;">
-                            <div style="font-weight: bold;">🔧 WORKBENCH (Probe)</div>
-                            <div style="font-size: 11px; color: var(--text-dim);">Manual diagnostics - No charge cost</div>
-                        </button>
-
-                        <button id="job-dive-btn" style="width: 100%; padding: 12px; background: ${diveCharges > 0 ? 'var(--primary)' : 'var(--bg-light)'}; border: 1px solid ${diveCharges > 0 ? 'var(--primary)' : 'var(--border)'}; color: ${diveCharges > 0 ? 'var(--bg-dark)' : 'var(--text-dim)'}; cursor: ${diveCharges > 0 ? 'pointer' : 'not-allowed'}; border-radius: 4px; text-align: left;" ${diveCharges <= 0 ? 'disabled' : ''}>
+                        <button id="job-dive-btn" style="width: 100%; padding: 12px; margin-bottom: 8px; background: ${diveCharges > 0 ? 'var(--primary)' : 'var(--bg-light)'}; border: 1px solid ${diveCharges > 0 ? 'var(--primary)' : 'var(--border)'}; color: ${diveCharges > 0 ? 'var(--bg-dark)' : 'var(--text-dim)'}; cursor: ${diveCharges > 0 ? 'pointer' : 'not-allowed'}; border-radius: 4px; text-align: left;" ${diveCharges <= 0 ? 'disabled' : ''}>
                             <div style="font-weight: bold;">⚡ DIVE INTO DEVICE</div>
                             <div style="font-size: 11px;">70% success rate - Uses 1 dive charge (${diveCharges} left)</div>
+                        </button>
+
+                        <div style="color: var(--text-dim); font-size: 10px; text-align: center; margin-top: 8px;">
+                            Workbench can only scan - not fix deep infections
+                        </div>
+                    </div>
+                ` : `
+                    <div style="margin-bottom: 15px;">
+                        <div style="color: var(--green); font-size: 11px; margin-bottom: 10px; padding: 8px; background: rgba(46,204,113,0.1); border-radius: 4px;">
+                            ✓ SURFACE ISSUE - Can be fixed at Workbench
+                        </div>
+
+                        <button id="job-workbench-btn" style="width: 100%; padding: 12px; margin-bottom: 8px; background: var(--green); border: 1px solid var(--green); color: var(--bg-dark); cursor: pointer; border-radius: 4px; text-align: left;">
+                            <div style="font-weight: bold;">🔧 WORKBENCH (Probe)</div>
+                            <div style="font-size: 11px;">Manual diagnostics - No charge cost</div>
+                        </button>
+
+                        <button id="job-dive-btn" style="width: 100%; padding: 12px; background: ${diveCharges > 0 ? 'var(--bg-light)' : 'var(--bg-light)'}; border: 1px solid var(--border); color: var(--text-dim); cursor: ${diveCharges > 0 ? 'pointer' : 'not-allowed'}; border-radius: 4px; text-align: left;" ${diveCharges <= 0 ? 'disabled' : ''}>
+                            <div style="font-weight: bold;">⚡ DIVE (Overkill)</div>
+                            <div style="font-size: 11px;">Uses dive charge - better saved for deep infections (${diveCharges} left)</div>
                         </button>
                     </div>
                 `}
@@ -209,13 +226,18 @@ const Calendar = {
         });
 
         if (!isComplete) {
-            document.getElementById('job-workbench-btn').addEventListener('click', () => {
-                overlay.remove();
-                this.startWorkbench(job);
-            });
+            // Workbench button only exists for non-dive jobs
+            const workbenchBtn = document.getElementById('job-workbench-btn');
+            if (workbenchBtn) {
+                workbenchBtn.addEventListener('click', () => {
+                    overlay.remove();
+                    this.startWorkbench(job);
+                });
+            }
 
+            // Dive button
             const diveBtn = document.getElementById('job-dive-btn');
-            if (diveCharges > 0) {
+            if (diveBtn && diveCharges > 0) {
                 diveBtn.addEventListener('click', () => {
                     overlay.remove();
                     this.startDive(job);
@@ -225,9 +247,17 @@ const Calendar = {
     },
 
     startWorkbench(job) {
-        // TODO: Launch probe mini-game
-        // For now, just show a placeholder
-        alert('Workbench/Probe system coming soon!\n\nThis will be a 2D mini-game for manual repairs.');
+        // Switch to Probe tab
+        const probeTab = document.querySelector('[data-tab="probe"]');
+        if (probeTab) {
+            probeTab.click();
+        }
+
+        // Select the job in the probe system (starts the game)
+        if (typeof ProbeSystem !== 'undefined') {
+            ProbeSystem.renderJobList();
+            ProbeSystem.selectJob(job);
+        }
     },
 
     startDive(job) {
