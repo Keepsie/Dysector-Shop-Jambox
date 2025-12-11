@@ -140,6 +140,7 @@ const NPCSystem = {
                 console.log(`[NPC] ${npc.data.name} (BUY) leaving - no browse spots available`);
                 npc.state = this.STATE.LEAVING;
                 npc.targetSpot = this.positions.door;
+                npc.silent = true;  // Don't announce - they're leaving immediately
                 return;
             }
         }

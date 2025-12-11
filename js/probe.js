@@ -990,14 +990,11 @@ class HexPipesGame {
         this.attempts = 0;
         this.maxAttempts = attempts[difficulty];
 
-        // Start and end positions
-        this.startPos = { x: 0, y: Math.floor(this.gridH / 2) };
-        this.endPos = { x: this.gridW - 1, y: Math.floor(this.gridH / 2) };
+        // Randomize start and end positions on opposite sides
+        this.startPos = { x: 0, y: Math.floor(Math.random() * this.gridH) };
+        this.endPos = { x: this.gridW - 1, y: Math.floor(Math.random() * this.gridH) };
 
-        // Generate a solvable puzzle by:
-        // 1. Create a valid path from start to end
-        // 2. Set correct pipe types along path
-        // 3. Randomize rotations (player must fix them)
+        // Generate a solvable puzzle
         this.generateSolvablePuzzle();
 
         this.system.setStatus(`HEX PIPES | Click tiles to rotate | Connect I/O to END (${this.maxAttempts} attempts)`);
@@ -1010,69 +1007,74 @@ class HexPipesGame {
         for (let y = 0; y < this.gridH; y++) {
             this.grid[y] = [];
             for (let x = 0; x < this.gridW; x++) {
-                this.grid[y][x] = { type: 0, rotation: 0, needsConnection: [] };
+                this.grid[y][x] = { type: 0, rotation: 0, onPath: false };
             }
         }
 
-        // Generate a random path from start to end
+        // Generate path using proper pathfinding
         const path = this.generatePath();
         this.solutionPath = path;
 
-        // For each cell in path, determine what connections it needs
+        // Place correct pipes along the path
         for (let i = 0; i < path.length; i++) {
             const curr = path[i];
             const prev = path[i - 1];
             const next = path[i + 1];
 
-            const needs = [];
+            // Determine which directions this cell needs to connect
+            const connections = [];
+
+            if (i === 0) {
+                // Start cell needs a left opening (entry from outside)
+                connections.push('left');
+            }
+            if (i === path.length - 1) {
+                // End cell needs a right opening (exit to outside)
+                connections.push('right');
+            }
 
             // Connection to previous cell
             if (prev) {
-                if (prev.x < curr.x) needs.push('left');
-                if (prev.x > curr.x) needs.push('right');
-                if (prev.y < curr.y) needs.push('up');
-                if (prev.y > curr.y) needs.push('down');
-            } else {
-                // Start cell - needs left connection (entry point)
-                needs.push('left');
+                if (prev.x < curr.x) connections.push('left');
+                else if (prev.x > curr.x) connections.push('right');
+                else if (prev.y < curr.y) connections.push('up');
+                else if (prev.y > curr.y) connections.push('down');
             }
 
             // Connection to next cell
             if (next) {
-                if (next.x < curr.x) needs.push('left');
-                if (next.x > curr.x) needs.push('right');
-                if (next.y < curr.y) needs.push('up');
-                if (next.y > curr.y) needs.push('down');
-            } else {
-                // End cell - needs right connection (exit point)
-                needs.push('right');
+                if (next.x < curr.x) connections.push('left');
+                else if (next.x > curr.x) connections.push('right');
+                else if (next.y < curr.y) connections.push('up');
+                else if (next.y > curr.y) connections.push('down');
             }
 
-            // Find a pipe type and rotation that provides these connections
-            const { type, rotation } = this.findPipeFor(needs);
+            // Find pipe that matches these connections
+            const { type, rotation } = this.findPipeFor(connections);
             this.grid[curr.y][curr.x] = {
                 type: type,
                 rotation: rotation,
-                solution: rotation  // Store solution for debugging
+                solutionRotation: rotation,
+                onPath: true
             };
         }
 
         // Fill non-path cells with random pipes
         for (let y = 0; y < this.gridH; y++) {
             for (let x = 0; x < this.gridW; x++) {
-                if (!path.some(p => p.x === x && p.y === y)) {
+                if (!this.grid[y][x].onPath) {
                     this.grid[y][x] = {
                         type: Math.floor(Math.random() * 3),
-                        rotation: Math.floor(Math.random() * 4)
+                        rotation: Math.floor(Math.random() * 4),
+                        onPath: false
                     };
                 }
             }
         }
 
-        // Now scramble all rotations (player must solve)
+        // Scramble all rotations
         for (let y = 0; y < this.gridH; y++) {
             for (let x = 0; x < this.gridW; x++) {
-                // Random rotation offset (1-3 so it's different from solution)
                 const scramble = 1 + Math.floor(Math.random() * 3);
                 this.grid[y][x].rotation = (this.grid[y][x].rotation + scramble) % 4;
             }
@@ -1080,63 +1082,73 @@ class HexPipesGame {
     }
 
     generatePath() {
-        // Simple path generation: go right, sometimes go up/down
-        const path = [];
-        let x = this.startPos.x;
-        let y = this.startPos.y;
+        // Use BFS to find a valid path, with some randomness for variety
+        const start = this.startPos;
+        const end = this.endPos;
 
-        path.push({ x, y });
+        const queue = [[{ ...start }]];
+        const visited = new Set();
+        visited.add(`${start.x},${start.y}`);
 
-        while (x < this.endPos.x) {
-            // Decide next move
-            const canGoUp = y > 0 && !path.some(p => p.x === x && p.y === y - 1);
-            const canGoDown = y < this.gridH - 1 && !path.some(p => p.x === x && p.y === y + 1);
-            const mustGoRight = x === this.endPos.x - 1; // Must reach end
+        const directions = [
+            { dx: 1, dy: 0 },  // right (preferred)
+            { dx: 0, dy: -1 }, // up
+            { dx: 0, dy: 1 },  // down
+            { dx: -1, dy: 0 }  // left (less preferred)
+        ];
 
-            let move;
-            if (mustGoRight || Math.random() < 0.6) {
-                // Go right
-                x++;
-                move = { x, y };
-            } else if (canGoUp && (!canGoDown || Math.random() < 0.5)) {
-                // Go up then right
-                y--;
-                path.push({ x, y });
-                x++;
-                move = { x, y };
-            } else if (canGoDown) {
-                // Go down then right
-                y++;
-                path.push({ x, y });
-                x++;
-                move = { x, y };
-            } else {
-                // Just go right
-                x++;
-                move = { x, y };
+        while (queue.length > 0) {
+            const path = queue.shift();
+            const current = path[path.length - 1];
+
+            if (current.x === end.x && current.y === end.y) {
+                return path;
             }
 
-            path.push(move);
+            // Shuffle directions for variety, but bias toward right
+            const shuffled = [...directions].sort(() => Math.random() - 0.4);
+
+            for (const { dx, dy } of shuffled) {
+                const nx = current.x + dx;
+                const ny = current.y + dy;
+                const key = `${nx},${ny}`;
+
+                if (nx >= 0 && nx < this.gridW && ny >= 0 && ny < this.gridH && !visited.has(key)) {
+                    visited.add(key);
+                    queue.push([...path, { x: nx, y: ny }]);
+                }
+            }
         }
 
-        return path;
+        // Fallback: straight line if BFS fails
+        const fallback = [];
+        for (let x = start.x; x <= end.x; x++) {
+            fallback.push({ x, y: start.y });
+        }
+        if (start.y !== end.y) {
+            const dir = end.y > start.y ? 1 : -1;
+            for (let y = start.y + dir; dir > 0 ? y <= end.y : y >= end.y; y += dir) {
+                fallback.push({ x: end.x, y });
+            }
+        }
+        return fallback;
     }
 
-    findPipeFor(needs) {
-        // Pipe types and their base exits:
-        // 0: straight - left, right
-        // 1: corner - left, up
-        // 2: t-junction - left, right, up
+    findPipeFor(connections) {
+        // Pipe types:
+        // 0: straight - connects 2 opposite sides
+        // 1: corner/elbow - connects 2 adjacent sides
+        // 2: t-junction - connects 3 sides
 
         const pipeExits = {
-            0: ['left', 'right'],
-            1: ['left', 'up'],
-            2: ['left', 'right', 'up']
+            0: ['left', 'right'],      // straight horizontal
+            1: ['left', 'up'],         // corner
+            2: ['left', 'right', 'up'] // T-junction
         };
 
         const dirs = ['up', 'right', 'down', 'left'];
 
-        // Try each pipe type and rotation
+        // Try to find exact match first
         for (let type = 0; type < 3; type++) {
             for (let rot = 0; rot < 4; rot++) {
                 const exits = pipeExits[type].map(dir => {
@@ -1144,15 +1156,29 @@ class HexPipesGame {
                     return dirs[(idx + rot) % 4];
                 });
 
-                // Check if this pipe provides all needed connections
-                const hasAll = needs.every(n => exits.includes(n));
-                if (hasAll) {
+                // Check exact match
+                if (connections.length === exits.length &&
+                    connections.every(c => exits.includes(c))) {
                     return { type, rotation: rot };
                 }
             }
         }
 
-        // Fallback to T-junction which has most exits
+        // Find pipe that has all needed connections (may have extras)
+        for (let type = 2; type >= 0; type--) { // Prefer simpler pipes
+            for (let rot = 0; rot < 4; rot++) {
+                const exits = pipeExits[type].map(dir => {
+                    const idx = dirs.indexOf(dir);
+                    return dirs[(idx + rot) % 4];
+                });
+
+                if (connections.every(c => exits.includes(c))) {
+                    return { type, rotation: rot };
+                }
+            }
+        }
+
+        // Emergency fallback
         return { type: 2, rotation: 0 };
     }
 

@@ -930,10 +930,12 @@ const Shop = {
         // Use NPCSystem to spawn - it handles its own customer generation
         if (typeof NPCSystem !== 'undefined') {
             const npc = NPCSystem.trySpawn();
-            if (npc) {
+            if (npc && !npc.silent) {
+                // Only announce if they're actually staying (not leaving immediately)
                 this.addText('The door chimes. A customer walks in.', 'narrator');
             }
             // If trySpawn returns null (full or door blocked), no message
+            // If npc.silent is true, they're leaving immediately (no browse spots)
         }
     },
 
