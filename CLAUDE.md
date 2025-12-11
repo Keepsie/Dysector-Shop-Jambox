@@ -54,7 +54,7 @@ Dysector Guides/        - Design docs (HTML)
 
 ## Problem Types & Repair Methods
 - **Dive Required**: Virus, Data Corruption, Crashes, Data Recovery
-- **Workbench OK**: System Slowdown, System Cleanup
+- **Workbench OK**: System Slowdown, System Cleanup, Overheating (dust), Driver Issues, Failed Updates, Slow Boot
 
 ## Day Flow
 1. **MORNING** (frozen time) - Prep at Dive OS, check calendar, pay bills

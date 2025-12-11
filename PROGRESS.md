@@ -1,6 +1,74 @@
 # DYSECTOR Shop Prototype - Progress
 
-## Current Version: v5
+## Current Version: v6
+
+---
+
+## Session 6 - Dec 11, 2024
+
+### What We Built
+
+**Full Gameplay Loop Complete**
+- SERVICE → REPAIR → PICKUP loop now fully functional
+- Pickup customers spawn for completed jobs with "P" intent marker
+- Remaining payment collected on pickup, job moves to completed history
+- Reputation bonus (+0.15) on successful pickup
+
+**NPC System Improvements**
+- Fixed oscillation bug (NPCs getting stuck moving back/forth) with sidestep memory
+- Fixed shelf/display item removal - items now removed when NPC picks them up, not at checkout
+- Added `returnItemToInventory()` for NPCs that leave without buying
+- Silent flag for NPCs that leave immediately (no browse spots) - no false door chimes
+- BUY customers properly browse → pick item → go to counter → pay → leave
+
+**Service Interface UX Overhaul**
+- Auto-selects recommended deadline based on urgency and job type
+- Randomized threshold (2-3 jobs per day) before moving to next day
+- Market rate now displayed in cyan (was hard-to-read grey)
+- Shows "DUE: [date] (X days)" for clarity
+- Removed "PROTOTYPE" text from canvas
+
+**Problem Types Expansion**
+- Added 4 new workbench problem types: Overheating (dust), Driver Issues, Failed Updates, Slow Boot
+- Weighted generation: 60% workbench, 40% dive (was heavily skewed to dives)
+- Minigame mapping: each problem type maps to specific minigame (dust→pipes, driver→memory, etc.)
+
+**Calendar Improvements**
+- Job count display changed from "2J" to "🔧2" for clarity
+- Dive summary popup now properly closeable (fixed button styling)
+- Days spread jobs across calendar (2-3 per day before moving to next)
+
+**Economy Balance**
+- Starting cash lowered to $1,500
+- License purchase simplified for prototype (auto-pass test if player has bits)
+- Quick stock now randomizes items and quantities (2-7 per slot, 95-110% price variance)
+
+**Hex Pipes Minigame Rewrite**
+- Complete rewrite with BFS pathfinding for guaranteed solvable puzzles
+- Randomized start/end positions (was always same spots)
+- Still needs game design work to be "fun" - mechanically works but needs iteration
+
+### Files Changed
+- `js/npcSystem.js` - PICKUP intent, sidestep memory, silent flag, item removal fix
+- `js/shop.js` - checkForPickups(), triggerPickupDialogue(), spawn rate boost, silent check
+- `js/shopMap.js` - PICKUP intent handling, intent letter display
+- `js/serviceInterface.js` - auto-select deadline, improved display, randomized threshold
+- `js/gameState.js` - new problem types, weighted selection, starting cash
+- `js/probe.js` - minigame mapping, pipe game BFS rewrite
+- `js/calendar.js` - job count display, dive popup fix
+- `js/inventorySystem.js` - quickStockAll randomization
+- `js/shopOS.js` - license purchase simplification
+
+### What's Working Now
+- **Complete shop loop**: Customer → Negotiate → Job → Calendar → Repair (Dive/Workbench) → Pickup → Payment
+- Balanced problem type distribution (more workbench jobs)
+- Service interface requires minimal clicks (auto-selects smart defaults)
+- NPC movement smooth without oscillation
+- Inventory properly depletes when customers buy
+
+### Known Issues / Future Work
+- Minigames need game design iteration to be engaging (pipes especially)
+- Minigame-to-problem mapping works but games need fun factor
 
 ---
 
