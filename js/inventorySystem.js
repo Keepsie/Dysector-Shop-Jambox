@@ -344,67 +344,129 @@ const InventorySystem = {
         }
     },
 
-    // Give starter inventory
+    // Give starter inventory - now empty, player buys from wholesale
     giveStarterInventory() {
-        this.backstock = [
-            { itemId: 'cable_usb', quantity: 10 },
-            { itemId: 'cable_hdmi', quantity: 5 },
-            { itemId: 'adapter_usbc', quantity: 5 },
-            { itemId: 'mouse_basic', quantity: 5 },
-            { itemId: 'keyboard_basic', quantity: 3 },
-            { itemId: 'flash_16gb', quantity: 8 },
-            { itemId: 'thermal_paste', quantity: 5 },
-            { itemId: 'cleaning_kit', quantity: 3 },
-        ];
-        console.log('[INVENTORY] Gave starter inventory');
+        // Start with nothing - player must buy from Supplier
+        this.backstock = [];
+        console.log('[INVENTORY] Starting with empty backstock - buy from Supplier!');
     },
 
-    // Quick stock all shelves and tables with random items at random prices (debug/testing)
+    // Quick stock shelves - buys items if needed, then places them
     quickStockAll() {
-        // Refill backstock first
-        for (const item of this.ITEMS) {
-            const existing = this.backstock.find(b => b.itemId === item.id);
-            if (existing) {
-                existing.quantity = Math.max(existing.quantity, 10);
-            } else {
-                this.backstock.push({ itemId: item.id, quantity: 10 });
-            }
+        // Count how many shelf slots need filling
+        let slotsToFill = 0;
+        for (const shelf of Object.values(this.shelves)) {
+            slotsToFill += shelf.maxSlots - shelf.items.length;
+        }
+        // Count empty display tables
+        let tablesToFill = 0;
+        for (const table of Object.values(this.displayTables)) {
+            if (!table.item) tablesToFill++;
         }
 
-        // Stock all shelves
-        for (const [key, shelf] of Object.entries(this.shelves)) {
-            if (shelf.items.length < shelf.maxSlots) {
-                // Pick random items
-                const availableItems = this.ITEMS.filter(i =>
-                    !shelf.items.some(s => s.itemId === i.id)
-                );
+        if (slotsToFill === 0 && tablesToFill === 0) {
+            if (typeof Shop !== 'undefined') {
+                Shop.addText('[SYSTEM] All shelves and tables already stocked!', 'system');
+            }
+            return;
+        }
 
-                while (shelf.items.length < shelf.maxSlots && availableItems.length > 0) {
-                    const idx = Math.floor(Math.random() * availableItems.length);
-                    const item = availableItems.splice(idx, 1)[0];
+        // Calculate what we need to buy
+        // Each shelf slot gets ~3 items, each table gets ~2
+        const itemsNeeded = (slotsToFill * 3) + (tablesToFill * 2);
 
-                    // Random price: 90% to 130% of market
-                    const priceMultiplier = 0.9 + Math.random() * 0.4;
-                    const price = Math.round(item.marketPrice * priceMultiplier);
-                    const qty = 2 + Math.floor(Math.random() * 5);
+        // Check what's in backstock already
+        const currentBackstock = this.backstock.reduce((sum, b) => sum + b.quantity, 0);
+        const toBuy = Math.max(0, itemsNeeded - currentBackstock);
 
-                    shelf.items.push({ itemId: item.id, quantity: qty, price: price });
+        let totalCost = 0;
+        let itemsBought = 0;
+
+        // Buy a variety of items if needed
+        if (toBuy > 0) {
+            // Pick random cheap items to buy
+            const cheapItems = [...this.ITEMS].sort((a, b) => a.costPrice - b.costPrice);
+            let remaining = toBuy;
+
+            for (const item of cheapItems) {
+                if (remaining <= 0) break;
+
+                const buyQty = Math.min(remaining, 5); // Buy up to 5 of each
+                const cost = item.costPrice * buyQty;
+
+                if (canAfford(cost)) {
+                    spendCash(cost);
+                    this.addToBackstock(item.id, buyQty);
+                    totalCost += cost;
+                    itemsBought += buyQty;
+                    remaining -= buyQty;
                 }
             }
-        }
 
-        // Stock all display tables
-        for (const [key, table] of Object.entries(this.displayTables)) {
-            if (!table.item) {
-                const item = this.ITEMS[Math.floor(Math.random() * this.ITEMS.length)];
-                const priceMultiplier = 0.9 + Math.random() * 0.4;
-                const price = Math.round(item.marketPrice * priceMultiplier);
-                const qty = 1 + Math.floor(Math.random() * 3);
-
-                table.item = { itemId: item.id, quantity: qty, price: price };
+            if (itemsBought === 0 && currentBackstock === 0) {
+                if (typeof Shop !== 'undefined') {
+                    Shop.addText('[ERROR] Not enough cash to buy inventory!', 'error');
+                }
+                return;
             }
         }
 
-        console.log('[INVENTORY] Quick stocked all shelves and tables');
+        // Now place items from backstock
+        let itemsPlaced = 0;
+
+        // Stock shelves from backstock
+        for (const [key, shelf] of Object.entries(this.shelves)) {
+            if (shelf.items.length >= shelf.maxSlots) continue;
+
+            for (const bs of this.backstock) {
+                if (bs.quantity <= 0) continue;
+                if (shelf.items.some(s => s.itemId === bs.itemId)) continue;
+                if (shelf.items.length >= shelf.maxSlots) break;
+
+                const itemData = this.getItem(bs.itemId);
+                if (!itemData) continue;
+
+                const toPlace = Math.min(bs.quantity, 3);
+                const price = itemData.marketPrice;
+
+                shelf.items.push({ itemId: bs.itemId, quantity: toPlace, price: price });
+                bs.quantity -= toPlace;
+                itemsPlaced += toPlace;
+            }
+        }
+
+        // Stock display tables from backstock
+        for (const [key, table] of Object.entries(this.displayTables)) {
+            if (table.item) continue;
+
+            for (const bs of this.backstock) {
+                if (bs.quantity <= 0) continue;
+
+                const itemData = this.getItem(bs.itemId);
+                if (!itemData) continue;
+
+                const toPlace = Math.min(bs.quantity, 2);
+                const price = itemData.marketPrice;
+
+                table.item = { itemId: bs.itemId, quantity: toPlace, price: price };
+                bs.quantity -= toPlace;
+                itemsPlaced += toPlace;
+                break;
+            }
+        }
+
+        // Clean up empty backstock entries
+        this.backstock = this.backstock.filter(b => b.quantity > 0);
+
+        // Report what happened
+        if (typeof Shop !== 'undefined') {
+            if (totalCost > 0) {
+                Shop.addText(`[SYSTEM] Bought ${itemsBought} items for $${totalCost}, placed ${itemsPlaced} on shelves.`, 'system');
+            } else if (itemsPlaced > 0) {
+                Shop.addText(`[SYSTEM] Placed ${itemsPlaced} items from backstock.`, 'system');
+            }
+        }
+
+        console.log(`[INVENTORY] Quick stock: bought ${itemsBought} ($${totalCost}), placed ${itemsPlaced}`);
     }
 };

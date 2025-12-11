@@ -194,11 +194,11 @@ const ServiceInterface = {
         // Customer's max they'll pay (varies by urgency)
         let maxWillPay;
         if (urgency.id === 'desperate') {
-            maxWillPay = this.marketRate * (1.4 + Math.random() * 0.3);  // 140-170% of market
+            maxWillPay = this.marketRate * (1.5 + Math.random() * 0.4);  // 150-190% of market - will pay a lot!
         } else if (urgency.id === 'normal') {
-            maxWillPay = this.marketRate * (1.1 + Math.random() * 0.2);  // 110-130% of market
+            maxWillPay = this.marketRate * (1.2 + Math.random() * 0.3);  // 120-150% of market - reasonable markup ok
         } else {
-            maxWillPay = this.marketRate * (0.9 + Math.random() * 0.2);  // 90-110% of market
+            maxWillPay = this.marketRate * (1.0 + Math.random() * 0.2);  // 100-120% of market - want fair price
         }
 
         // Check deadline compatibility

@@ -55,66 +55,105 @@ const ShopOS = {
         this.currentApp = null;
     },
 
-    // Supplier App
+    // Supplier App - Wholesale inventory purchasing
     renderSupplier() {
-        this.windowContent.innerHTML = `
-            <div class="supplier-section">
-                <div class="supplier-header">LIQUIDATION PALLETS</div>
-                <div class="supplier-item">
-                    <div class="supplier-item-info">
-                        <div class="supplier-item-name">Small Pallet</div>
-                        <div class="supplier-item-desc">3-5 mystery devices, assorted condition</div>
-                    </div>
-                    <div class="supplier-item-price">$300</div>
-                    <button class="supplier-buy-btn" data-item="pallet-small" data-cost="300">BUY</button>
-                </div>
-                <div class="supplier-item">
-                    <div class="supplier-item-info">
-                        <div class="supplier-item-name">Medium Pallet</div>
-                        <div class="supplier-item-desc">6-10 mystery devices, better odds</div>
-                    </div>
-                    <div class="supplier-item-price">$600</div>
-                    <button class="supplier-buy-btn" data-item="pallet-medium" data-cost="600">BUY</button>
-                </div>
-                <div class="supplier-item">
-                    <div class="supplier-item-info">
-                        <div class="supplier-item-name">Premium Pallet</div>
-                        <div class="supplier-item-desc">8-12 devices, guaranteed B+ grades</div>
-                    </div>
-                    <div class="supplier-item-price">$1,200</div>
-                    <button class="supplier-buy-btn" data-item="pallet-premium" data-cost="1200">BUY</button>
-                </div>
-            </div>
+        // Get items from InventorySystem, grouped by category
+        const items = typeof InventorySystem !== 'undefined' ? InventorySystem.ITEMS : [];
+        const categories = {};
 
+        for (const item of items) {
+            if (!categories[item.category]) {
+                categories[item.category] = [];
+            }
+            categories[item.category].push(item);
+        }
+
+        // Category display names
+        const categoryNames = {
+            'cables': 'CABLES',
+            'adapters': 'ADAPTERS',
+            'peripherals': 'PERIPHERALS',
+            'audio': 'AUDIO',
+            'storage': 'STORAGE',
+            'components': 'COMPONENTS',
+            'supplies': 'SUPPLIES'
+        };
+
+        let html = `
             <div class="supplier-section">
-                <div class="supplier-header">SUPPLIES</div>
-                <div class="supplier-item">
-                    <div class="supplier-item-info">
-                        <div class="supplier-item-name">Empty Case (x5)</div>
-                        <div class="supplier-item-desc">For packaging software to sell</div>
-                    </div>
-                    <div class="supplier-item-price">$50</div>
-                    <button class="supplier-buy-btn" data-item="cases" data-cost="50">BUY</button>
-                </div>
-                <div class="supplier-item">
-                    <div class="supplier-item-info">
-                        <div class="supplier-item-name">Stim Drink</div>
-                        <div class="supplier-item-desc">Emergency dive charge (+1 dive)</div>
-                    </div>
-                    <div class="supplier-item-price">$75</div>
-                    <button class="supplier-buy-btn" data-item="stim" data-cost="75">BUY</button>
+                <div class="supplier-header">YOUR BACKSTOCK</div>
+                <div class="backstock-summary" style="padding: 8px; color: var(--text-dim); font-size: 11px;">
+                    ${this.getBackstockSummary()}
                 </div>
             </div>
         `;
 
+        // Render each category
+        for (const [catId, catItems] of Object.entries(categories)) {
+            html += `<div class="supplier-section">
+                <div class="supplier-header">${categoryNames[catId] || catId.toUpperCase()}</div>`;
+
+            for (const item of catItems) {
+                const inStock = typeof InventorySystem !== 'undefined'
+                    ? InventorySystem.getBackstockQuantity(item.id)
+                    : 0;
+
+                html += `
+                    <div class="supplier-item">
+                        <div class="supplier-item-info">
+                            <div class="supplier-item-name">${item.name}</div>
+                            <div class="supplier-item-desc">Sell for ~$${item.marketPrice} | In stock: ${inStock}</div>
+                        </div>
+                        <div class="supplier-item-price">$${item.costPrice}</div>
+                        <button class="supplier-buy-btn" data-item-id="${item.id}" data-cost="${item.costPrice}">BUY</button>
+                        <button class="supplier-buy-btn" data-item-id="${item.id}" data-cost="${item.costPrice * 5}" data-qty="5">x5</button>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+        }
+
+        this.windowContent.innerHTML = html;
+
         // Bind buy buttons
         this.windowContent.querySelectorAll('.supplier-buy-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                const item = btn.dataset.item;
+                const itemId = btn.dataset.itemId;
                 const cost = parseInt(btn.dataset.cost);
-                this.buyItem(item, cost);
+                const qty = parseInt(btn.dataset.qty) || 1;
+                this.buyWholesaleItem(itemId, cost, qty);
             });
         });
+    },
+
+    getBackstockSummary() {
+        if (typeof InventorySystem === 'undefined') return 'No inventory system';
+
+        const backstock = InventorySystem.backstock;
+        if (!backstock || backstock.length === 0) {
+            return 'Backstock empty - buy items to stock your shelves!';
+        }
+
+        const totalItems = backstock.reduce((sum, b) => sum + b.quantity, 0);
+        const totalTypes = backstock.length;
+        return `${totalItems} items (${totalTypes} types) in backstock`;
+    },
+
+    buyWholesaleItem(itemId, cost, qty) {
+        if (!canAfford(cost)) {
+            alert('Not enough cash!');
+            return;
+        }
+
+        spendCash(cost);
+
+        if (typeof InventorySystem !== 'undefined') {
+            InventorySystem.addToBackstock(itemId, qty);
+        }
+
+        // Refresh the view
+        this.renderSupplier();
     },
 
     buyItem(item, cost) {
