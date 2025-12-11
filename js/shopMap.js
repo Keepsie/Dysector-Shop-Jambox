@@ -170,7 +170,21 @@ const ShopMap = {
             return;
         }
 
+        if (this.quickFillBtn && x >= this.quickFillBtn.x && x <= this.quickFillBtn.x + this.quickFillBtn.width &&
+            y >= this.quickFillBtn.y && y <= this.quickFillBtn.y + this.quickFillBtn.height) {
+            this.quickFillShop();
+            return;
+        }
+
         const tile = this.getTileAt(e);
+
+        // Handle furniture placement mode
+        if (typeof FurnitureSystem !== 'undefined' && FurnitureSystem.placementMode) {
+            if (FurnitureSystem.placeAt(tile.x, tile.y)) {
+                this.showTileInfo(this.map[tile.y][tile.x], tile.x, tile.y);
+            }
+            return;
+        }
 
         // Check if clicked on an NPC
         const npc = NPCSystem.getNPCAt(tile.x, tile.y);
@@ -497,12 +511,19 @@ const ShopMap = {
                     this.tileSize - 2
                 );
 
-                // Draw label on waiting tiles
+                // Draw label on tiles (shelves, tables, wait areas)
                 if (label) {
-                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                    ctx.font = 'bold 10px monospace';
+                    // Use contrasting colors based on tile type
+                    if (tile === T.SHELF) {
+                        ctx.fillStyle = '#fff';  // White on gold shelf
+                    } else if (tile === T.TABLE) {
+                        ctx.fillStyle = '#fff';  // White on magenta table
+                    } else {
+                        ctx.fillStyle = 'rgba(255,255,255,0.5)';  // Dim for wait areas
+                    }
+                    ctx.font = 'bold 12px monospace';
                     ctx.textAlign = 'center';
-                    ctx.fillText(label, x * this.tileSize + this.tileSize / 2, y * this.tileSize + this.tileSize / 2 + 3);
+                    ctx.fillText(label, x * this.tileSize + this.tileSize / 2, y * this.tileSize + this.tileSize / 2 + 4);
                 }
             }
         }
@@ -598,13 +619,42 @@ const ShopMap = {
         ctx.textAlign = 'center';
         ctx.fillText(isPaused ? 'PLAY' : 'PAUSE', this.pauseBtn.x + btnWidth/2, this.pauseBtn.y + 15);
 
-        // Quick stock button (debug/testing)
+        // Quick stock button
         this.quickStockBtn = { x: btnX, y: 32, width: btnWidth, height: btnHeight };
         ctx.fillStyle = '#9b59b6';
         ctx.fillRect(this.quickStockBtn.x, this.quickStockBtn.y, this.quickStockBtn.width, this.quickStockBtn.height);
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 9px monospace';
         ctx.fillText('Q.STOCK', this.quickStockBtn.x + btnWidth/2, this.quickStockBtn.y + 15);
+
+        // Quick fill shop button
+        this.quickFillBtn = { x: btnX, y: 59, width: btnWidth, height: btnHeight };
+        ctx.fillStyle = '#e67e22';
+        ctx.fillRect(this.quickFillBtn.x, this.quickFillBtn.y, this.quickFillBtn.width, this.quickFillBtn.height);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText('Q.FILL', this.quickFillBtn.x + btnWidth/2, this.quickFillBtn.y + 15);
+
+        // Furniture placement mode indicator
+        if (typeof FurnitureSystem !== 'undefined' && FurnitureSystem.placementMode) {
+            ctx.fillStyle = 'rgba(230, 126, 34, 0.8)';
+            ctx.fillRect(5, 5, 150, 25);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 10px monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText(`PLACING: ${FurnitureSystem.selectedFurniture.toUpperCase()}`, 10, 20);
+
+            // Highlight valid placement tiles
+            const T = this.TILES;
+            for (let y = 0; y < this.gridHeight; y++) {
+                for (let x = 0; x < this.gridWidth; x++) {
+                    if (FurnitureSystem.canPlaceAt(x, y)) {
+                        ctx.fillStyle = 'rgba(46, 204, 113, 0.3)';
+                        ctx.fillRect(x * this.tileSize + 2, y * this.tileSize + 2, this.tileSize - 4, this.tileSize - 4);
+                    }
+                }
+            }
+        }
 
         // Paused overlay
         if (isPaused) {
@@ -633,6 +683,12 @@ const ShopMap = {
     quickStock() {
         if (typeof InventorySystem !== 'undefined') {
             InventorySystem.quickStockAll();
+        }
+    },
+
+    quickFillShop() {
+        if (typeof FurnitureSystem !== 'undefined') {
+            FurnitureSystem.quickFillShop();
         }
     },
 

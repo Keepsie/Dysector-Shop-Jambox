@@ -2,7 +2,7 @@
 
 const SaveSystem = {
     SAVE_KEY: 'dysector_shop_save',
-    VERSION: 5,  // Bumped for path-safe shelf placement
+    VERSION: 6,  // Bumped for empty shop start + furniture system
 
     // Default new game state
     getDefaultState() {
@@ -149,6 +149,16 @@ const SaveSystem = {
             oldSave.shop.layout = null;
         }
 
+        // Version 6: Empty shop start + furniture system
+        if (oldSave.version < 6) {
+            console.log('[SAVE] Regenerating shop layout for v6 (empty start + furniture)');
+            oldSave.shop.layout = null;
+            // Add furniture inventory if missing
+            if (!oldSave.furnitureInventory) {
+                oldSave.furnitureInventory = { shelf: 1, displayTable: 0, counter: 0 };
+            }
+        }
+
         oldSave.version = this.VERSION;
         return oldSave;
     },
@@ -218,6 +228,7 @@ const SaveSystem = {
 
             inventory: GameState.inventory || {},
             workbench: GameState.workbenchSlots,
+            furnitureInventory: GameState.furnitureInventory || { shelf: 1, displayTable: 0, counter: 0 },
 
             stats: GameState.stats || {},
             bills: GameState.bills,
@@ -251,6 +262,7 @@ const SaveSystem = {
 
         GameState.inventory = saveData.inventory;
         GameState.workbenchSlots = saveData.workbench;
+        GameState.furnitureInventory = saveData.furnitureInventory || { shelf: 1, displayTable: 0, counter: 0 };
 
         GameState.stats = saveData.stats;
         GameState.bills = saveData.bills;

@@ -53,6 +53,19 @@ const GameState = {
         accessories: []
     },
 
+    // Shop furniture inventory (owned but not placed)
+    furnitureInventory: {
+        shelf: 1,        // Start with 1 free shelf
+        displayTable: 0,
+        counter: 0,      // Extra counter sections
+    },
+
+    // Furniture prices
+    furniturePrices: {
+        shelf: 150,
+        displayTable: 250,
+    },
+
     // Active jobs (customer devices being repaired)
     activeJobs: [],
 

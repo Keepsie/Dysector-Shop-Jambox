@@ -38,6 +38,7 @@ const ShopOS = {
             'bills': { title: 'BILLS & EXPENSES', render: () => this.renderBills() },
             'bank': { title: 'SYNC BANK', render: () => this.renderBank() },
             'reviews': { title: 'SHOP REVIEWS', render: () => this.renderReviews() },
+            'furniture': { title: 'FURNITURE SHOP', render: () => this.renderFurniture() },
             'null-sector': { title: '???_CONNECTION', render: () => this.renderNullSector() }
         };
 
@@ -335,6 +336,103 @@ const ShopOS = {
         }
 
         this.windowContent.innerHTML = html;
+    },
+
+    // Furniture App
+    renderFurniture() {
+        const inv = GameState.furnitureInventory;
+        const prices = GameState.furniturePrices;
+
+        let html = `
+            <div class="supplier-section">
+                <div class="supplier-header">YOUR FURNITURE INVENTORY</div>
+                <div class="furniture-inventory">
+        `;
+
+        // Show owned furniture with place buttons
+        if (inv.shelf > 0) {
+            html += `
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name">Shelf</div>
+                        <div class="supplier-item-desc">You own: ${inv.shelf}</div>
+                    </div>
+                    <button class="supplier-buy-btn" data-furniture="shelf">PLACE</button>
+                </div>
+            `;
+        }
+        if (inv.displayTable > 0) {
+            html += `
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name">Display Table</div>
+                        <div class="supplier-item-desc">You own: ${inv.displayTable}</div>
+                    </div>
+                    <button class="supplier-buy-btn" data-furniture="displayTable">PLACE</button>
+                </div>
+            `;
+        }
+        if (inv.shelf === 0 && inv.displayTable === 0) {
+            html += `<div class="empty-state">No furniture in inventory. Buy some below!</div>`;
+        }
+
+        html += `
+                </div>
+            </div>
+
+            <div class="supplier-section">
+                <div class="supplier-header">BUY FURNITURE</div>
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name">Shelf</div>
+                        <div class="supplier-item-desc">Display and sell items to customers</div>
+                    </div>
+                    <div class="supplier-item-price">$${prices.shelf}</div>
+                    <button class="supplier-buy-btn" data-buy="shelf" data-cost="${prices.shelf}">BUY</button>
+                </div>
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name">Display Table</div>
+                        <div class="supplier-item-desc">Showcase featured items (2x2 size)</div>
+                    </div>
+                    <div class="supplier-item-price">$${prices.displayTable}</div>
+                    <button class="supplier-buy-btn" data-buy="displayTable" data-cost="${prices.displayTable}">BUY</button>
+                </div>
+            </div>
+
+            <div style="padding: 12px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 11px;">
+                Tip: Click PLACE then click on an empty floor tile in your shop to place furniture.
+            </div>
+        `;
+
+        this.windowContent.innerHTML = html;
+
+        // Bind place buttons
+        this.windowContent.querySelectorAll('[data-furniture]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const furnitureType = btn.dataset.furniture;
+                if (typeof FurnitureSystem !== 'undefined') {
+                    FurnitureSystem.startPlacement(furnitureType);
+                    this.closeWindow();
+                    // Switch to shop tab to see placement
+                    document.querySelector('[data-tab="shop"]')?.click();
+                }
+            });
+        });
+
+        // Bind buy buttons
+        this.windowContent.querySelectorAll('[data-buy]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const furnitureType = btn.dataset.buy;
+                if (typeof FurnitureSystem !== 'undefined') {
+                    if (FurnitureSystem.buyFurniture(furnitureType)) {
+                        this.renderFurniture(); // Refresh
+                    } else {
+                        alert('Not enough cash!');
+                    }
+                }
+            });
+        });
     },
 
     // Null Sector App (secret/grey market)

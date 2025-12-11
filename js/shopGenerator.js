@@ -39,7 +39,7 @@ const ShopGenerator = {
     },
 
     // Main generation function
-    generate(seed, width = 20, height = 14) {
+    generate(seed, width = 20, height = 14, startEmpty = true) {
         this.initRandom(seed);
 
         const map = this.createEmptyMap(width, height);
@@ -50,14 +50,19 @@ const ShopGenerator = {
         this.buildDivider(map, width, height);
         this.buildDoor(map, width, height);
 
-        // Place counters
+        // Place counters (always present - part of the shop structure)
         this.placeServiceCounter(map, width, height);
         this.placePOSCounter(map, width, height);
 
-        // Place furniture
-        this.placeDisplayTables(map, width, height);
+        // Workbenches are in back room (always present)
         this.placeWorkbenches(map, width, height);
-        this.placeShelves(map, width, height);
+
+        // Only place furniture if not starting empty
+        // Player will place shelves and tables themselves
+        if (!startEmpty) {
+            this.placeDisplayTables(map, width, height);
+            this.placeShelves(map, width, height);
+        }
 
         return map;
     },

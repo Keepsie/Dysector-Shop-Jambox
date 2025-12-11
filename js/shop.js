@@ -492,6 +492,15 @@ const Shop = {
             case 'go_shop_os':
                 document.querySelector('[data-tab="shop-os"]')?.click();
                 break;
+            case 'place_furniture':
+                // Open furniture shop in Shop OS
+                document.querySelector('[data-tab="shop-os"]')?.click();
+                setTimeout(() => {
+                    if (typeof ShopOS !== 'undefined') {
+                        ShopOS.openApp('furniture');
+                    }
+                }, 100);
+                break;
             case 'sleep':
                 this.goToSleep();
                 break;
@@ -540,7 +549,7 @@ const Shop = {
         this.addText('Morning prep time. Shop opens when you\'re ready.', 'narrator');
         this.setOptions([
             { label: 'Open shop for business', action: 'open_shop', class: 'success' },
-            { label: 'Check Dive loadout', action: 'go_dive_os' },
+            { label: 'Place furniture', action: 'place_furniture' },
             { label: 'Check calendar', action: 'go_calendar' },
             { label: 'Shop PC (orders, bills)', action: 'go_shop_os' }
         ]);
@@ -667,27 +676,13 @@ const Shop = {
             return;
         }
 
-        // Dive option
-        if (GameState.divesRemaining > 0 && GameState.workbenchSlots.some(s => s !== null)) {
-            if (canDive.allowed) {
-                options.push({ label: `Dive into device (${GameState.divesRemaining} charges)`, action: 'dive', class: 'primary' });
-            } else {
-                options.push({ label: `Dive (${canDive.reason})`, action: 'dive', class: 'disabled', disabled: true });
-            }
-        }
-
-        // Workbench
-        if (GameState.workbenchSlots.some(s => s !== null)) {
-            options.push({ label: 'Work at bench (scan/repair)', action: 'workbench' });
-        }
-
-        // Other tabs
-        options.push({ label: 'Prep dive loadout', action: 'go_dive_os' });
-        options.push({ label: 'Shop PC', action: 'go_shop_os' });
+        // Shop-focused closed options
+        options.push({ label: 'Shop PC (bills, furniture, orders)', action: 'go_shop_os' });
+        options.push({ label: 'Place furniture', action: 'place_furniture' });
 
         // Sleep
         if (fatigueLevel === 'critical' || fatigueLevel === 'exhausted') {
-            options.push({ label: 'Go to sleep (end day)', action: 'success' });
+            options.push({ label: 'Go to sleep (end day)', action: 'sleep', class: 'warning' });
         } else {
             options.push({ label: 'Go to sleep (end day)', action: 'sleep' });
         }
