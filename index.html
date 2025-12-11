@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/shop-os.css">
     <link rel="stylesheet" href="css/dive-os.css">
     <link rel="stylesheet" href="css/calendar.css">
+    <link rel="stylesheet" href="css/probe.css">
 </head>
 <body>
     <div class="app-container">
@@ -62,10 +63,9 @@
                 <span class="tab-icon">#</span>
                 <span class="tab-label">CALENDAR</span>
             </button>
-            <button class="main-tab disabled" data-tab="probe">
+            <button class="main-tab" data-tab="probe">
                 <span class="tab-icon">*</span>
                 <span class="tab-label">PROBE</span>
-                <span class="tab-locked">SOON</span>
             </button>
         </nav>
 
@@ -588,12 +588,70 @@
                 </div>
             </section>
 
-            <!-- PROBE TAB (Placeholder) -->
+            <!-- PROBE TAB - Workbench Minigames -->
             <section id="probe" class="tab-panel">
-                <div class="placeholder-container">
-                    <div class="placeholder-icon">*</div>
-                    <div class="placeholder-title">PROBE SYSTEM</div>
-                    <div class="placeholder-text">Coming soon. Build out the shop loop first.</div>
+                <div class="probe-layout">
+                    <!-- Left: Game Canvas -->
+                    <div class="probe-canvas-area">
+                        <canvas id="probe-canvas" width="500" height="500"></canvas>
+                        <div id="probe-status" class="probe-status">Select a minigame to begin</div>
+                    </div>
+
+                    <!-- Right: Sidebar -->
+                    <div class="probe-sidebar">
+                        <div class="probe-section">
+                            <div class="probe-section-header">MINIGAMES</div>
+                            <div class="probe-game-list">
+                                <button class="probe-game-btn" data-game="memory">
+                                    <span class="probe-game-icon">▦</span>
+                                    <span class="probe-game-name">MEMORY MATCH</span>
+                                    <span class="probe-game-desc">Data Recovery</span>
+                                </button>
+                                <button class="probe-game-btn" data-game="launch">
+                                    <span class="probe-game-icon">◎</span>
+                                    <span class="probe-game-name">PROBE LAUNCH</span>
+                                    <span class="probe-game-desc">Diagnostic Scan</span>
+                                </button>
+                                <button class="probe-game-btn" data-game="pipes">
+                                    <span class="probe-game-icon">⬡</span>
+                                    <span class="probe-game-name">HEX PIPES</span>
+                                    <span class="probe-game-desc">Bypass Routing</span>
+                                </button>
+                                <button class="probe-game-btn" data-game="packet">
+                                    <span class="probe-game-icon">◉</span>
+                                    <span class="probe-game-name">PACKET HUNT</span>
+                                    <span class="probe-game-desc">Hacking Access</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="probe-section">
+                            <div class="probe-section-header">DIFFICULTY</div>
+                            <div class="probe-difficulty">
+                                <button class="probe-diff-btn active" data-diff="easy">EASY</button>
+                                <button class="probe-diff-btn" data-diff="medium">MED</button>
+                                <button class="probe-diff-btn" data-diff="hard">HARD</button>
+                            </div>
+                        </div>
+
+                        <div class="probe-section">
+                            <div class="probe-section-header">STATS</div>
+                            <div class="probe-stats">
+                                <div class="probe-stat-row">
+                                    <span>Games Won:</span>
+                                    <span id="probe-wins">0</span>
+                                </div>
+                                <div class="probe-stat-row">
+                                    <span>Games Lost:</span>
+                                    <span id="probe-losses">0</span>
+                                </div>
+                                <div class="probe-stat-row">
+                                    <span>Current Streak:</span>
+                                    <span id="probe-streak">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -616,6 +674,7 @@
     <script src="js/shopOS.js"></script>
     <script src="js/diveOS.js"></script>
     <script src="js/calendar.js"></script>
+    <script src="js/probe.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
