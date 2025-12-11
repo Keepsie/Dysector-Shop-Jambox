@@ -120,7 +120,8 @@ const NPCSystem = {
             }
         }
 
-        // SERVICE or fallback: go browse at tables then to counter
+        // ALL customers (including SERVICE) should browse first before going to counter
+        // This makes the shop feel more alive and gives player time to notice them
         if (this.positions.browseSpots && this.positions.browseSpots.length > 0) {
             const availableSpots = this.positions.browseSpots.filter(spot =>
                 !this.npcs.some(other =>
@@ -137,7 +138,34 @@ const NPCSystem = {
             }
         }
 
-        // Fallback: go directly to counter
+        // Also check for shelf/table browse spots for SERVICE customers who want to look around
+        if (npc.intent === this.INTENT.SERVICE) {
+            const shelfSpots = this.getShelfBrowseSpots();
+            const tableSpots = this.getDisplayTableBrowseSpots();
+            const allBrowseSpots = [...shelfSpots, ...tableSpots];
+
+            if (allBrowseSpots.length > 0) {
+                // Pick a random spot - SERVICE customers just browse, don't pick items
+                const availableSpots = allBrowseSpots.filter(spot =>
+                    !this.npcs.some(other =>
+                        other.id !== npc.id &&
+                        other.targetSpot &&
+                        other.targetSpot.x === spot.x &&
+                        other.targetSpot.y === spot.y
+                    )
+                );
+
+                if (availableSpots.length > 0) {
+                    npc.targetSpot = availableSpots[Math.floor(Math.random() * availableSpots.length)];
+                    // SERVICE customers don't pick items, they just browse then go to counter
+                    npc.browsingShelf = false;
+                    npc.browsingTable = false;
+                    return;
+                }
+            }
+        }
+
+        // Fallback: go directly to counter (only if no browse spots available at all)
         this.setCounterTarget(npc);
     },
 

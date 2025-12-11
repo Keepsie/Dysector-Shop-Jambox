@@ -213,28 +213,27 @@ const Shop = {
             // Wrong change
             const diff = result.difference / 100;  // Convert back to dollars
             if (diff > 0) {
-                // Gave too much change
-                this.addText(`[ERROR] Gave ${formatMoney(Math.abs(diff))} too much in change!`, 'error');
-                this.addText('Customer happily takes the extra money.', 'narrator');
+                // Gave too much change - customer's gain, your loss
+                this.addText(`[OOPS] Gave ${formatMoney(Math.abs(diff))} too much in change!`, 'warning');
+                this.addText('Customer happily pockets the extra. Your mistake, your loss.', 'narrator');
 
-                // Still complete sale but lose the difference
+                // Still complete sale but lose the difference from your pocket
                 const actualEarnings = this.currentSale.price - Math.abs(diff);
                 GameState.cash += actualEarnings;
 
-                // Rep hit
-                GameState.reputation = Math.max(0, (GameState.reputation || 50) - 2);
-                this.addText('[-2 Reputation]', 'error');
+                // NO rep hit - customer got extra money, they're happy!
+                // Just a financial mistake on your part
             } else {
-                // Gave too little change
+                // Gave too little change - shortchanging the customer
                 this.addText(`[ERROR] Shorted customer ${formatMoney(Math.abs(diff))}!`, 'error');
                 this.addText('"Hey, this isn\'t right!" The customer is annoyed.', 'customer');
 
-                // Still get the sale but bigger rep hit
+                // Still get the sale but rep hit for being dishonest/sloppy
                 GameState.cash += this.currentSale.price;
 
-                // Bigger rep hit for shortchanging
-                GameState.reputation = Math.max(0, (GameState.reputation || 50) - 5);
-                this.addText('[-5 Reputation]', 'error');
+                // Rep hit for shortchanging - customers don't like being cheated
+                GameState.reputation = Math.max(0, (GameState.reputation || 0) - 0.3);
+                this.addText('[-0.3 Reputation]', 'error');
             }
 
             GameState.stats = GameState.stats || {};
@@ -823,13 +822,24 @@ const Shop = {
                 ShopMap.customers.length >= ShopMap.maxCustomers) return;
 
             // Random chance of customer based on reputation
-            // 0 stars = very few customers, 5 stars = busy shop
+            // New shops (0 stars) still need customers to build reputation!
             const hourProgress = (GameState.currentHour - GameState.businessHoursStart) /
                                 (GameState.businessHoursEnd - GameState.businessHoursStart);
             const reputation = GameState.reputation || 0;
-            // Base 5% + up to 25% from reputation (0-5 stars)
-            const baseChance = 0.05 + (reputation / 5) * 0.25;
-            const timeModifier = hourProgress < 0.5 ? 1.2 : 0.8; // Busier in morning
+
+            // Base 20% chance even with 0 reputation - new shops need foot traffic
+            // Up to 45% with max reputation (5 stars)
+            const baseChance = 0.20 + (reputation / 5) * 0.25;
+
+            // Time modifiers: busier in morning and around lunch
+            let timeModifier = 1.0;
+            if (hourProgress < 0.3) {
+                timeModifier = 1.3; // Morning rush
+            } else if (hourProgress > 0.4 && hourProgress < 0.6) {
+                timeModifier = 1.2; // Lunch rush
+            } else if (hourProgress > 0.8) {
+                timeModifier = 0.7; // Evening slowdown
+            }
 
             if (Math.random() < baseChance * timeModifier) {
                 this.spawnCustomerOnMap();

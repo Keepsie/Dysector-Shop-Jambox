@@ -73,8 +73,9 @@ const ServiceInterface = {
 
         // Initial dialogue - customer describes problem
         this.addDialogue('customer', `"${job.problemDesc}"`);
+        const repairMethod = job.problem?.needsDive ? 'DIVE REQUIRED' : 'WORKBENCH';
         this.addDialogue('system', `[${job.device} - ${job.problemType}]`);
-        this.addDialogue('system', `[Market rate: $${this.marketRate}]`);
+        this.addDialogue('system', `[Repair: ${repairMethod}] [Market rate: $${this.marketRate}]`);
 
         console.log('[SERVICE] Started service for:', npc.data.name, job);
     },
@@ -378,6 +379,15 @@ const ServiceInterface = {
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 14px monospace';
         ctx.fillText(this.currentJob.problemType.toUpperCase(), L.dialogue.x + 10, L.dialogue.y + 38);
+
+        // Repair method badge (DIVE or WORKBENCH)
+        const needsDive = this.currentJob.problem?.needsDive;
+        const methodText = needsDive ? 'DIVE' : 'BENCH';
+        const methodColor = needsDive ? '#e74c3c' : '#2ecc71';
+        const problemWidth = ctx.measureText(this.currentJob.problemType.toUpperCase()).width;
+        ctx.fillStyle = methodColor;
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText(`[${methodText}]`, L.dialogue.x + 20 + problemWidth, L.dialogue.y + 38);
 
         // Device and urgency on next line
         ctx.fillStyle = '#888';
