@@ -12,6 +12,17 @@ const ShopOS = {
         this.windowContent = document.getElementById('window-content');
 
         this.bindEvents();
+        this.updateSecretApps();
+    },
+
+    // Show/hide secret apps based on license level
+    updateSecretApps() {
+        const nullsecIcon = document.getElementById('nullsec-icon');
+        if (nullsecIcon) {
+            // Show Null_Sector when player has C license or higher
+            const hasAccess = GameState.licenses.c || GameState.licenses.b || GameState.licenses.a;
+            nullsecIcon.style.display = hasAccess ? '' : 'none';
+        }
     },
 
     bindEvents() {
@@ -33,12 +44,13 @@ const ShopOS = {
         this.currentApp = appName;
 
         const apps = {
-            'supplier': { title: 'SYNC SUPPLIER', render: () => this.renderSupplier() },
+            'furniture': { title: 'FURNITURE SHOP', render: () => this.renderFurniture() },
+            'supplier': { title: 'WHOLESALE SUPPLIER', render: () => this.renderSupplier() },
+            'liquidation': { title: 'LIQUIDATION PALLETS', render: () => this.renderLiquidation() },
             'licenses': { title: 'LICENSE MANAGER', render: () => this.renderLicenses() },
             'bills': { title: 'BILLS & EXPENSES', render: () => this.renderBills() },
             'bank': { title: 'SYNC BANK', render: () => this.renderBank() },
             'reviews': { title: 'SHOP REVIEWS', render: () => this.renderReviews() },
-            'furniture': { title: 'FURNITURE SHOP', render: () => this.renderFurniture() },
             'null-sector': { title: '???_CONNECTION', render: () => this.renderNullSector() }
         };
 
@@ -154,6 +166,71 @@ const ShopOS = {
 
         // Refresh the view
         this.renderSupplier();
+    },
+
+    // Liquidation Pallets App - mystery device boxes
+    renderLiquidation() {
+        this.windowContent.innerHTML = `
+            <div class="supplier-section">
+                <div class="supplier-header">MYSTERY PALLETS</div>
+                <div style="padding: 8px; color: var(--text-dim); font-size: 11px; margin-bottom: 10px;">
+                    Buy pallets of mystery devices. Fix them up and resell, or use for parts!
+                </div>
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name">Small Pallet</div>
+                        <div class="supplier-item-desc">3-5 mystery devices, assorted condition</div>
+                    </div>
+                    <div class="supplier-item-price">$300</div>
+                    <button class="supplier-buy-btn" data-item="pallet-small" data-cost="300">BUY</button>
+                </div>
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name">Medium Pallet</div>
+                        <div class="supplier-item-desc">6-10 mystery devices, better odds</div>
+                    </div>
+                    <div class="supplier-item-price">$600</div>
+                    <button class="supplier-buy-btn" data-item="pallet-medium" data-cost="600">BUY</button>
+                </div>
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name">Premium Pallet</div>
+                        <div class="supplier-item-desc">8-12 devices, guaranteed B+ grades</div>
+                    </div>
+                    <div class="supplier-item-price">$1,200</div>
+                    <button class="supplier-buy-btn" data-item="pallet-premium" data-cost="1200">BUY</button>
+                </div>
+            </div>
+
+            <div class="supplier-section">
+                <div class="supplier-header">SUPPLIES</div>
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name">Empty Case (x5)</div>
+                        <div class="supplier-item-desc">For packaging software to sell</div>
+                    </div>
+                    <div class="supplier-item-price">$50</div>
+                    <button class="supplier-buy-btn" data-item="cases" data-cost="50">BUY</button>
+                </div>
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name">Stim Drink</div>
+                        <div class="supplier-item-desc">Emergency dive charge (+1 dive)</div>
+                    </div>
+                    <div class="supplier-item-price">$75</div>
+                    <button class="supplier-buy-btn" data-item="stim" data-cost="75">BUY</button>
+                </div>
+            </div>
+        `;
+
+        // Bind buy buttons
+        this.windowContent.querySelectorAll('.supplier-buy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const item = btn.dataset.item;
+                const cost = parseInt(btn.dataset.cost);
+                this.buyItem(item, cost);
+            });
+        });
     },
 
     buyItem(item, cost) {
@@ -280,6 +357,7 @@ const ShopOS = {
             GameState.licenses[licenseId] = true;
             alert(`${licenseId.toUpperCase()}-License acquired! You can now repair ${licenseId.toUpperCase()}-grade devices.`);
             this.renderLicenses();
+            this.updateSecretApps();  // Check if Null_Sector should appear
         }
     },
 
