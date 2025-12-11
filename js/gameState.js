@@ -55,6 +55,13 @@ const GameState = {
         a: false
     },
 
+    // License tests passed (need to pass test before buying license)
+    testsPassed: {
+        c: false,
+        b: false,
+        a: false
+    },
+
     // Inventory
     inventory: {
         devices: [],

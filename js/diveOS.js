@@ -36,6 +36,7 @@ const DiveOS = {
     init() {
         this.bindEvents();
         this.updateDisplays();
+        this.updateTestCards();
     },
 
     bindEvents() {
@@ -201,15 +202,31 @@ const DiveOS = {
 
     takeTest(testLevel) {
         const costs = {
-            'c': 100,
-            'b': 250,
-            'a': 500
+            'c': 5000,
+            'b': 15000,
+            'a': 50000
         };
 
         const cost = costs[testLevel];
         if (!cost) return;
 
+        // Already passed?
+        if (GameState.testsPassed[testLevel]) {
+            alert(`You've already passed the ${testLevel.toUpperCase()}-License test!\n\nGo to Shop OS > Licenses to purchase with cash.`);
+            return;
+        }
+
+        // Already have license?
+        if (GameState.licenses[testLevel]) {
+            alert(`You already own the ${testLevel.toUpperCase()}-License!`);
+            return;
+        }
+
         // Check prerequisites
+        if (testLevel === 'c' && !GameState.licenses.e) {
+            alert('You need E-License first!');
+            return;
+        }
         if (testLevel === 'b' && !GameState.licenses.c) {
             alert('You need C-License first!');
             return;
@@ -220,7 +237,7 @@ const DiveOS = {
         }
 
         if (GameState.bits < cost) {
-            alert('Not enough bits for test fee!');
+            alert(`Not enough bits for test fee!\n\nNeed: ${cost} bits\nHave: ${GameState.bits} bits`);
             return;
         }
 
@@ -229,12 +246,61 @@ const DiveOS = {
 
         if (passed) {
             spendBits(cost);
+            GameState.testsPassed[testLevel] = true;
 
-            // Mark as ready for license purchase (still need cash at Shop OS)
             alert(`Test PASSED! You've proven your skill.\n\nNow visit Shop OS > Licenses to purchase your ${testLevel.toUpperCase()}-License with cash.`);
         }
 
         this.updateDisplays();
+        this.updateTestCards();
+    },
+
+    updateTestCards() {
+        document.querySelectorAll('.test-card').forEach(card => {
+            const level = card.dataset.test;
+            const btn = card.querySelector('.test-btn');
+
+            // Check if test passed
+            if (GameState.testsPassed[level]) {
+                card.classList.remove('locked');
+                card.classList.add('passed');
+                if (btn) {
+                    btn.textContent = 'PASSED ✓';
+                    btn.disabled = true;
+                }
+                return;
+            }
+
+            // Check if license already owned
+            if (GameState.licenses[level]) {
+                card.classList.remove('locked');
+                card.classList.add('owned');
+                if (btn) {
+                    btn.textContent = 'OWNED';
+                    btn.disabled = true;
+                }
+                return;
+            }
+
+            // Check prerequisites
+            let canTake = true;
+            if (level === 'b' && !GameState.licenses.c) canTake = false;
+            if (level === 'a' && !GameState.licenses.b) canTake = false;
+
+            if (canTake) {
+                card.classList.remove('locked');
+                if (btn) {
+                    btn.textContent = 'TAKE TEST';
+                    btn.disabled = false;
+                }
+            } else {
+                card.classList.add('locked');
+                if (btn) {
+                    btn.textContent = 'LOCKED';
+                    btn.disabled = true;
+                }
+            }
+        });
     },
 
     updateDisplays() {

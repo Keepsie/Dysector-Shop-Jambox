@@ -51,6 +51,7 @@ const ShopOS = {
             'bills': { title: 'BILLS & EXPENSES', render: () => this.renderBills() },
             'bank': { title: 'SYNC BANK', render: () => this.renderBank() },
             'reviews': { title: 'SHOP REVIEWS', render: () => this.renderReviews() },
+            'hire': { title: 'HIRE STAFF', render: () => this.renderHire() },
             'null-sector': { title: '???_CONNECTION', render: () => this.renderNullSector() }
         };
 
@@ -391,22 +392,41 @@ const ShopOS = {
     // Licenses App
     renderLicenses() {
         const licenses = [
-            { id: 'e', name: 'E-License', desc: 'Entry-level device certification', cashCost: 0, bitsCost: 0, owned: GameState.licenses.e },
-            { id: 'c', name: 'C-License', desc: 'Common device certification', cashCost: 1500, bitsCost: 5000, owned: GameState.licenses.c },
-            { id: 'b', name: 'B-License', desc: 'Business-grade device certification', cashCost: 4000, bitsCost: 15000, owned: GameState.licenses.b },
-            { id: 'a', name: 'A-License', desc: 'Premium device certification', cashCost: 10000, bitsCost: 50000, owned: GameState.licenses.a }
+            { id: 'e', name: 'E-License', desc: 'Entry-level device certification', cashCost: 0, owned: GameState.licenses.e },
+            { id: 'c', name: 'C-License', desc: 'Common device certification', cashCost: 1500, owned: GameState.licenses.c },
+            { id: 'b', name: 'B-License', desc: 'Business-grade device certification', cashCost: 4000, owned: GameState.licenses.b },
+            { id: 'a', name: 'A-License', desc: 'Premium device certification', cashCost: 10000, owned: GameState.licenses.a }
         ];
 
-        let html = '';
+        let html = `
+            <div style="padding: 10px; margin-bottom: 15px; background: var(--bg-light); border: 1px solid var(--border); font-size: 11px; color: var(--text-dim);">
+                <strong style="color: var(--cyan);">How Licenses Work:</strong><br>
+                1. Pass the skill test at Dive OS (costs bits)<br>
+                2. Purchase the license here (costs cash)
+            </div>
+        `;
+
         licenses.forEach(lic => {
-            const canBuy = !lic.owned && canAfford(lic.cashCost) && GameState.bits >= lic.bitsCost;
-            const prevOwned = lic.id === 'e' || GameState.licenses[String.fromCharCode(lic.id.charCodeAt(0) + 1)] !== false;
+            const testPassed = lic.id === 'e' || GameState.testsPassed[lic.id];
+            const canBuy = !lic.owned && testPassed && canAfford(lic.cashCost);
+
+            let statusText = 'OWNED';
+            let statusClass = 'owned';
+            if (!lic.owned) {
+                if (testPassed) {
+                    statusText = 'TEST PASSED';
+                    statusClass = 'passed';
+                } else {
+                    statusText = 'NEED TEST';
+                    statusClass = 'locked';
+                }
+            }
 
             html += `
                 <div class="license-card">
                     <div class="license-header">
                         <span class="license-name grade-${lic.id}">${lic.name}</span>
-                        <span class="license-status ${lic.owned ? 'owned' : 'locked'}">${lic.owned ? 'OWNED' : 'LOCKED'}</span>
+                        <span class="license-status ${statusClass}">${statusText}</span>
                     </div>
                     <div class="license-desc">${lic.desc}</div>
                     ${!lic.owned ? `
@@ -415,13 +435,14 @@ const ShopOS = {
                                 <span class="label">Cash: </span>
                                 <span class="value cash">${formatMoney(lic.cashCost)}</span>
                             </div>
+                            ${!testPassed ? `
                             <div class="license-cost">
-                                <span class="label">Test Fee: </span>
-                                <span class="value bits">${lic.bitsCost} bits</span>
+                                <span class="label" style="color: var(--gold);">⚠ Pass test at Dive OS first</span>
                             </div>
+                            ` : ''}
                         </div>
                         <button class="license-btn" data-license="${lic.id}" ${!canBuy ? 'disabled' : ''}>
-                            ${canBuy ? 'TAKE TEST & PURCHASE' : 'INSUFFICIENT FUNDS'}
+                            ${lic.owned ? 'OWNED' : !testPassed ? 'NEED TEST (Dive OS)' : canBuy ? 'PURCHASE LICENSE' : 'NOT ENOUGH CASH'}
                         </button>
                     ` : ''}
                 </div>
@@ -439,21 +460,35 @@ const ShopOS = {
     },
 
     purchaseLicense(licenseId) {
-        // Licenses should be major milestones - bits come from kills so they add up
         const costs = {
-            'c': { cash: 1500, bits: 5000 },    // First upgrade - several dives worth
-            'b': { cash: 4000, bits: 15000 },   // Mid-game goal
-            'a': { cash: 10000, bits: 50000 }   // Late game achievement
+            'c': 1500,
+            'b': 4000,
+            'a': 10000
         };
 
         const cost = costs[licenseId];
         if (!cost) return;
 
-        if (spendCash(cost.cash) && spendBits(cost.bits)) {
-            GameState.licenses[licenseId] = true;
-            alert(`${licenseId.toUpperCase()}-License acquired! You can now repair ${licenseId.toUpperCase()}-grade devices.`);
-            this.renderLicenses();
-            this.updateSecretApps();  // Check if Null_Sector should appear
+        // Must have passed the test at Dive OS first
+        if (!GameState.testsPassed[licenseId]) {
+            alert(`You need to pass the ${licenseId.toUpperCase()}-License test first!\n\nGo to Dive OS > Tests to take the skill test.`);
+            return;
+        }
+
+        if (!canAfford(cost)) {
+            alert(`Not enough cash!\n\nNeed: ${formatMoney(cost)}\nHave: ${formatMoney(GameState.cash)}`);
+            return;
+        }
+
+        spendCash(cost);
+        GameState.licenses[licenseId] = true;
+        alert(`${licenseId.toUpperCase()}-License acquired!\n\nYou can now repair ${licenseId.toUpperCase()}-grade devices and access new inventory.`);
+        this.renderLicenses();
+        this.updateSecretApps();
+
+        // Update Dive OS test cards if it exists
+        if (typeof DiveOS !== 'undefined') {
+            DiveOS.updateTestCards();
         }
     },
 
@@ -646,6 +681,40 @@ const ShopOS = {
                 }
             });
         });
+    },
+
+    // Hire Staff App (placeholder)
+    renderHire() {
+        this.windowContent.innerHTML = `
+            <div style="padding: 20px; text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 20px;">👤</div>
+                <div style="color: var(--cyan); font-family: var(--font-display); font-size: 18px; margin-bottom: 15px;">
+                    STAFF HIRING
+                </div>
+                <div style="color: var(--text-dim); font-size: 13px; margin-bottom: 20px; line-height: 1.6;">
+                    Hire employees to help run your shop.<br>
+                    Staff can handle repairs, man the counter, or dive for you.
+                </div>
+
+                <div style="background: var(--bg-light); border: 1px solid var(--border); padding: 15px; margin-bottom: 15px; text-align: left;">
+                    <div style="color: var(--gold); font-size: 12px; margin-bottom: 10px;">COMING SOON</div>
+                    <div style="color: var(--text-dim); font-size: 11px; line-height: 1.5;">
+                        • <strong>Counter Staff</strong> - Handle sales while you repair<br>
+                        • <strong>Repair Tech</strong> - Work on workbench jobs<br>
+                        • <strong>Diver</strong> - Send them into devices (success varies by skill)
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-light); border: 1px solid var(--border); padding: 15px; text-align: left;">
+                    <div style="color: var(--text-dim); font-size: 11px; line-height: 1.5;">
+                        <strong style="color: var(--cyan);">Hire Divers:</strong><br>
+                        When you can't dive yourself, send hired staff.<br>
+                        Their success rate depends on gear and experience.<br>
+                        Lower than your own skill, but frees up your time.
+                    </div>
+                </div>
+            </div>
+        `;
     },
 
     // Null Sector App (secret/grey market)

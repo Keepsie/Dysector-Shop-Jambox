@@ -1,6 +1,59 @@
 # DYSECTOR Shop Prototype - Progress
 
-## Current Version: v0.1
+## Current Version: v5
+
+---
+
+## Session 5 - Dec 11, 2024
+
+### What We Built
+
+**Probe Minigames (Complete)**
+- 4 fully functional minigames for workbench repairs:
+  - **Memory Match** - Card matching with preview phase (shows all cards first, then flips)
+  - **Probe Launch** - Peggle-style with pegs, breakable walls (HP system), obstacles, aim-then-fire
+  - **Hex Pipes** - Rotate tiles to connect path, CONNECT button to verify (limited attempts)
+  - **Packet Hunt** - Two-phase (detect anomaly, then hunt all), lives system (wrong clicks cost lives)
+- Difficulty scales with device grade (E/C=easy, B=medium, A=hard)
+- Job list in sidebar shows pending workbench repairs with deadline colors
+- Click job → random game starts → win = job complete + bits
+
+**Calendar → Probe Connection**
+- Calendar job popup now enforces repair method:
+  - **needsDive: true** (Virus, Corruption, Crashes, Recovery) → Dive only button
+  - **needsDive: false** (Slowdown, Cleanup) → Workbench (highlighted) + Dive as "overkill"
+- Workbench button switches to Probe tab and auto-starts the job
+
+**License System Overhaul**
+- Split into two steps:
+  1. **Dive OS Tests** - Pay BITS to take skill test (5k/15k/50k)
+  2. **Shop OS Licenses** - Pay CASH to purchase license (1.5k/4k/10k)
+- `GameState.testsPassed` tracks passed tests
+- Dive OS shows PASSED ✓ when test complete
+- Shop OS shows "NEED TEST" until test passed, then allows cash purchase
+- Both UIs stay in sync
+
+**Shop OS: Hire Staff (Placeholder)**
+- New icon added to Shop OS
+- Placeholder content explaining future staff system:
+  - Counter Staff - handle sales
+  - Repair Tech - workbench jobs
+  - Diver - send on dives (lower success rate than player)
+
+### Files Changed
+- `js/probe.js` - Complete rewrite with 4 games + job system
+- `js/calendar.js` - Job popup enforces dive/workbench, connects to Probe
+- `js/diveOS.js` - License tests set testsPassed flag, updateTestCards()
+- `js/shopOS.js` - Licenses check testsPassed, Hire app added
+- `js/gameState.js` - Added testsPassed object
+- `index.html` - Probe tab HTML, Hire icon, test costs updated
+- `css/probe.css` - Job list styling
+
+### What's Working Now
+- Full repair loop: Customer → Job → Calendar → Workbench/Dive → Complete → Payment
+- Probe minigames properly gate workbench repairs
+- License progression requires both bits (test) and cash (purchase)
+- All 5 tabs functional with interconnected systems
 
 ---
 
