@@ -981,8 +981,8 @@ class HexPipesGame {
     }
 
     init(difficulty) {
-        const sizes = { easy: { w: 4, h: 4 }, medium: { w: 5, h: 5 }, hard: { w: 6, h: 6 } };
-        const attempts = { easy: 5, medium: 3, hard: 2 };
+        const sizes = { easy: { w: 4, h: 3 }, medium: { w: 5, h: 4 }, hard: { w: 6, h: 5 } };
+        const attempts = { easy: 10, medium: 6, hard: 4 };
         const size = sizes[difficulty];
 
         this.gridW = size.w;
@@ -990,29 +990,170 @@ class HexPipesGame {
         this.attempts = 0;
         this.maxAttempts = attempts[difficulty];
 
-        // Pipe types: 0=straight, 1=corner, 2=t-junction, 3=cross
-        // Each has rotation 0-3 (90 degree increments)
+        // Start and end positions
+        this.startPos = { x: 0, y: Math.floor(this.gridH / 2) };
+        this.endPos = { x: this.gridW - 1, y: Math.floor(this.gridH / 2) };
+
+        // Generate a solvable puzzle by:
+        // 1. Create a valid path from start to end
+        // 2. Set correct pipe types along path
+        // 3. Randomize rotations (player must fix them)
+        this.generateSolvablePuzzle();
+
+        this.system.setStatus(`HEX PIPES | Click tiles to rotate | Connect I/O to END (${this.maxAttempts} attempts)`);
+        this.draw();
+    }
+
+    generateSolvablePuzzle() {
+        // Initialize empty grid
         this.grid = [];
         for (let y = 0; y < this.gridH; y++) {
             this.grid[y] = [];
             for (let x = 0; x < this.gridW; x++) {
-                this.grid[y][x] = {
-                    type: Math.floor(Math.random() * 3), // 0-2
-                    rotation: Math.floor(Math.random() * 4)
-                };
+                this.grid[y][x] = { type: 0, rotation: 0, needsConnection: [] };
             }
         }
 
-        // Start and end
-        this.startPos = { x: 0, y: Math.floor(this.gridH / 2) };
-        this.endPos = { x: this.gridW - 1, y: Math.floor(this.gridH / 2) };
+        // Generate a random path from start to end
+        const path = this.generatePath();
+        this.solutionPath = path;
 
-        // Force start/end to be connectable
-        this.grid[this.startPos.y][this.startPos.x] = { type: 0, rotation: 0 };
-        this.grid[this.endPos.y][this.endPos.x] = { type: 0, rotation: 0 };
+        // For each cell in path, determine what connections it needs
+        for (let i = 0; i < path.length; i++) {
+            const curr = path[i];
+            const prev = path[i - 1];
+            const next = path[i + 1];
 
-        this.system.setStatus(`HEX PIPES | Click tiles to rotate | Press CONNECT when ready (${this.maxAttempts} attempts)`);
-        this.draw();
+            const needs = [];
+
+            // Connection to previous cell
+            if (prev) {
+                if (prev.x < curr.x) needs.push('left');
+                if (prev.x > curr.x) needs.push('right');
+                if (prev.y < curr.y) needs.push('up');
+                if (prev.y > curr.y) needs.push('down');
+            } else {
+                // Start cell - needs left connection (entry point)
+                needs.push('left');
+            }
+
+            // Connection to next cell
+            if (next) {
+                if (next.x < curr.x) needs.push('left');
+                if (next.x > curr.x) needs.push('right');
+                if (next.y < curr.y) needs.push('up');
+                if (next.y > curr.y) needs.push('down');
+            } else {
+                // End cell - needs right connection (exit point)
+                needs.push('right');
+            }
+
+            // Find a pipe type and rotation that provides these connections
+            const { type, rotation } = this.findPipeFor(needs);
+            this.grid[curr.y][curr.x] = {
+                type: type,
+                rotation: rotation,
+                solution: rotation  // Store solution for debugging
+            };
+        }
+
+        // Fill non-path cells with random pipes
+        for (let y = 0; y < this.gridH; y++) {
+            for (let x = 0; x < this.gridW; x++) {
+                if (!path.some(p => p.x === x && p.y === y)) {
+                    this.grid[y][x] = {
+                        type: Math.floor(Math.random() * 3),
+                        rotation: Math.floor(Math.random() * 4)
+                    };
+                }
+            }
+        }
+
+        // Now scramble all rotations (player must solve)
+        for (let y = 0; y < this.gridH; y++) {
+            for (let x = 0; x < this.gridW; x++) {
+                // Random rotation offset (1-3 so it's different from solution)
+                const scramble = 1 + Math.floor(Math.random() * 3);
+                this.grid[y][x].rotation = (this.grid[y][x].rotation + scramble) % 4;
+            }
+        }
+    }
+
+    generatePath() {
+        // Simple path generation: go right, sometimes go up/down
+        const path = [];
+        let x = this.startPos.x;
+        let y = this.startPos.y;
+
+        path.push({ x, y });
+
+        while (x < this.endPos.x) {
+            // Decide next move
+            const canGoUp = y > 0 && !path.some(p => p.x === x && p.y === y - 1);
+            const canGoDown = y < this.gridH - 1 && !path.some(p => p.x === x && p.y === y + 1);
+            const mustGoRight = x === this.endPos.x - 1; // Must reach end
+
+            let move;
+            if (mustGoRight || Math.random() < 0.6) {
+                // Go right
+                x++;
+                move = { x, y };
+            } else if (canGoUp && (!canGoDown || Math.random() < 0.5)) {
+                // Go up then right
+                y--;
+                path.push({ x, y });
+                x++;
+                move = { x, y };
+            } else if (canGoDown) {
+                // Go down then right
+                y++;
+                path.push({ x, y });
+                x++;
+                move = { x, y };
+            } else {
+                // Just go right
+                x++;
+                move = { x, y };
+            }
+
+            path.push(move);
+        }
+
+        return path;
+    }
+
+    findPipeFor(needs) {
+        // Pipe types and their base exits:
+        // 0: straight - left, right
+        // 1: corner - left, up
+        // 2: t-junction - left, right, up
+
+        const pipeExits = {
+            0: ['left', 'right'],
+            1: ['left', 'up'],
+            2: ['left', 'right', 'up']
+        };
+
+        const dirs = ['up', 'right', 'down', 'left'];
+
+        // Try each pipe type and rotation
+        for (let type = 0; type < 3; type++) {
+            for (let rot = 0; rot < 4; rot++) {
+                const exits = pipeExits[type].map(dir => {
+                    const idx = dirs.indexOf(dir);
+                    return dirs[(idx + rot) % 4];
+                });
+
+                // Check if this pipe provides all needed connections
+                const hasAll = needs.every(n => exits.includes(n));
+                if (hasAll) {
+                    return { type, rotation: rot };
+                }
+            }
+        }
+
+        // Fallback to T-junction which has most exits
+        return { type: 2, rotation: 0 };
     }
 
     draw() {
@@ -1118,41 +1259,56 @@ class HexPipesGame {
         ctx.restore();
     }
 
-    // Simple connection check (just checks if there's a path)
+    // Check if there's a valid connection from start to end
     checkConnection() {
-        // Simplified - just check if rotations align
-        // Real implementation would trace the path
         const visited = new Set();
-        return this.tracePath(this.startPos.x, this.startPos.y, 'right', visited);
+        this.connectedCells = new Set();  // Track which cells are part of the path
+        const result = this.tracePath(this.startPos.x, this.startPos.y, 'left', visited);
+        return result;
     }
 
-    tracePath(x, y, fromDir, visited) {
+    tracePath(x, y, entryDir, visited) {
+        // entryDir = the direction we ENTERED this cell from (e.g., 'left' means we came from the left)
+
+        if (x < 0 || x >= this.gridW || y < 0 || y >= this.gridH) return false;
+
         const key = `${x},${y}`;
         if (visited.has(key)) return false;
-        visited.add(key);
-
-        if (x === this.endPos.x && y === this.endPos.y) return true;
-        if (x < 0 || x >= this.gridW || y < 0 || y >= this.gridH) return false;
 
         const cell = this.grid[y][x];
         const exits = this.getExits(cell.type, cell.rotation);
 
-        // Check each exit
-        for (const exit of exits) {
-            if (exit === 'left' && fromDir !== 'right') continue;
-            if (exit === 'right' && fromDir !== 'left') continue;
-            if (exit === 'up' && fromDir !== 'down') continue;
-            if (exit === 'down' && fromDir !== 'up') continue;
-
-            let nx = x, ny = y, nextFrom = '';
-            if (exit === 'left') { nx--; nextFrom = 'right'; }
-            if (exit === 'right') { nx++; nextFrom = 'left'; }
-            if (exit === 'up') { ny--; nextFrom = 'down'; }
-            if (exit === 'down') { ny++; nextFrom = 'up'; }
-
-            if (this.tracePath(nx, ny, nextFrom, visited)) return true;
+        // Check if this cell has an opening facing the direction we came from
+        // If we entered from 'left', the cell needs a 'left' exit to receive us
+        if (!exits.includes(entryDir)) {
+            return false;  // Cell doesn't have an opening where we're trying to enter
         }
 
+        // We successfully entered this cell
+        visited.add(key);
+        this.connectedCells.add(key);
+
+        // Check if we reached the end
+        if (x === this.endPos.x && y === this.endPos.y) {
+            // Make sure end cell has a 'right' exit (the exit point)
+            return exits.includes('right');
+        }
+
+        // Try all other exits (not the one we came from)
+        for (const exit of exits) {
+            if (exit === entryDir) continue;  // Don't go back the way we came
+
+            let nx = x, ny = y, nextEntry = '';
+            if (exit === 'left') { nx--; nextEntry = 'right'; }  // Moving left means we enter next cell from right
+            if (exit === 'right') { nx++; nextEntry = 'left'; }
+            if (exit === 'up') { ny--; nextEntry = 'down'; }
+            if (exit === 'down') { ny++; nextEntry = 'up'; }
+
+            if (this.tracePath(nx, ny, nextEntry, visited)) return true;
+        }
+
+        // Dead end - remove from connected
+        this.connectedCells.delete(key);
         return false;
     }
 
@@ -1164,8 +1320,8 @@ class HexPipesGame {
         };
 
         const exits = baseExits[type] || [];
+        const dirs = ['up', 'right', 'down', 'left'];
         const rotated = exits.map(dir => {
-            const dirs = ['up', 'right', 'down', 'left'];
             const idx = dirs.indexOf(dir);
             return dirs[(idx + rotation) % 4];
         });
@@ -1174,8 +1330,7 @@ class HexPipesGame {
     }
 
     isOnPath(x, y) {
-        // Simplified
-        return false;
+        return this.connectedCells && this.connectedCells.has(`${x},${y}`);
     }
 
     handleClick(mx, my) {

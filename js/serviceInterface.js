@@ -71,6 +71,9 @@ const ServiceInterface = {
         // Build calendar days
         this.buildCalendar();
 
+        // Auto-select recommended deadline based on urgency and job type
+        this.autoSelectDeadline();
+
         // Initial dialogue - customer describes problem
         this.addDialogue('customer', `"${job.problemDesc}"`);
         const repairMethod = job.problem?.needsDive ? 'DIVE REQUIRED' : 'WORKBENCH';
@@ -159,6 +162,51 @@ const ServiceInterface = {
                 totalCharges: totalCharges,
                 available: !isToday || currentHour < 18,
             });
+        }
+    },
+
+    // Auto-select a recommended deadline based on job urgency and type
+    autoSelectDeadline() {
+        const job = this.currentJob;
+        const urgency = job.urgency?.id || 'normal';
+        const needsDive = job.problem?.needsDive;
+
+        // Base days needed:
+        // - Workbench jobs: 1-2 days
+        // - Dive jobs: 2-3 days (need to prepare)
+        let recommendedDaysOut = needsDive ? 2 : 1;
+
+        // Adjust by urgency:
+        // - desperate: they want it ASAP
+        // - normal: standard timing
+        // - flexible: no rush, can take longer
+        if (urgency === 'desperate') {
+            recommendedDaysOut = Math.max(1, recommendedDaysOut - 1);
+        } else if (urgency === 'flexible') {
+            recommendedDaysOut += 2;
+        }
+
+        // Find the best available day
+        // Prefer days with fewer existing jobs
+        const availableDays = this.calendarDays.filter(d => d.available && d.daysOut >= recommendedDaysOut);
+
+        if (availableDays.length > 0) {
+            // Sort by: fewer existing jobs first, then by date
+            availableDays.sort((a, b) => {
+                if (a.existingJobs !== b.existingJobs) {
+                    return a.existingJobs - b.existingJobs;
+                }
+                return a.daysOut - b.daysOut;
+            });
+
+            // Pick the first one (best option)
+            this.selectedDeadline = availableDays[0];
+        } else {
+            // Fallback: first available day
+            const firstAvailable = this.calendarDays.find(d => d.available);
+            if (firstAvailable) {
+                this.selectedDeadline = firstAvailable;
+            }
         }
     },
 

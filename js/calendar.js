@@ -321,7 +321,7 @@ const Calendar = {
                     </div>
                 `}
 
-                <button id="dive-continue-btn" style="width: 100%; padding: 10px; background: var(--primary); border: none; color: var(--bg-dark); font-weight: bold; cursor: pointer; border-radius: 4px;">
+                <button id="dive-continue-btn" style="width: 100%; padding: 12px; background: #4ecdc4; border: none; color: #0a0a0c; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 14px; font-family: 'Orbitron', monospace;">
                     CONTINUE
                 </button>
             </div>
@@ -341,10 +341,25 @@ const Calendar = {
             }
         }
 
-        document.getElementById('dive-continue-btn').addEventListener('click', () => {
-            overlay.remove();
-            this.render();  // Refresh calendar
-            updateDisplays();  // Refresh header displays
+        // Bind button click - use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+            const btn = document.getElementById('dive-continue-btn');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    overlay.remove();
+                    this.render();  // Refresh calendar
+                    updateDisplays();  // Refresh header displays
+                });
+            }
+        }, 0);
+
+        // Also allow clicking overlay background to close
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+                this.render();
+                updateDisplays();
+            }
         });
     },
 
