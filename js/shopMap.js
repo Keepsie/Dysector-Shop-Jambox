@@ -394,6 +394,8 @@ const ShopMap = {
                     Shop.triggerServiceDialogue(npc);
                 } else if (npc.intent === NPCSystem.INTENT.BUY) {
                     Shop.triggerSaleDialogue(npc);
+                } else if (npc.intent === NPCSystem.INTENT.PICKUP) {
+                    Shop.triggerPickupDialogue(npc);
                 }
             }
         }
@@ -577,14 +579,15 @@ const ShopMap = {
             }
 
             // Intent indicator (small letter inside block)
-            // Only show S/B once intent is revealed (they head to counter)
+            // Only show S/B/P once intent is revealed (they head to counter)
             ctx.fillStyle = '#000';
             ctx.font = 'bold 9px monospace';
             ctx.textAlign = 'center';
             let intentLetter = '?';  // Unknown by default
             if (npc.intentRevealed) {
                 intentLetter = npc.intent === NPCSystem.INTENT.SERVICE ? 'S' :
-                               npc.intent === NPCSystem.INTENT.BUY ? 'B' : '?';
+                               npc.intent === NPCSystem.INTENT.BUY ? 'B' :
+                               npc.intent === NPCSystem.INTENT.PICKUP ? 'P' : '?';
             }
             ctx.fillText(intentLetter, npc.x * this.tileSize + this.tileSize / 2, npc.y * this.tileSize + this.tileSize / 2 + 3);
         }

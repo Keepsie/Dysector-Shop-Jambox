@@ -466,13 +466,27 @@ const ShopOS = {
             'a': 10000
         };
 
+        const testCosts = {
+            'c': 5000,
+            'b': 15000,
+            'a': 50000
+        };
+
         const cost = costs[licenseId];
+        const testCost = testCosts[licenseId];
         if (!cost) return;
 
-        // Must have passed the test at Dive OS first
+        // PROTOTYPE: Auto-pass the test if player has enough bits
+        // In real game this is done via Dive OS skill tests
         if (!GameState.testsPassed[licenseId]) {
-            alert(`You need to pass the ${licenseId.toUpperCase()}-License test first!\n\nGo to Dive OS > Tests to take the skill test.`);
-            return;
+            if (GameState.bits >= testCost) {
+                GameState.bits -= testCost;
+                GameState.testsPassed[licenseId] = true;
+                console.log(`[PROTOTYPE] Auto-passed ${licenseId.toUpperCase()}-License test for ${testCost} bits`);
+            } else {
+                alert(`Need ${testCost} bits to take the test!\n\nHave: ${GameState.bits} bits\n\n(In real game, this is a skill test in Dive OS)`);
+                return;
+            }
         }
 
         if (!canAfford(cost)) {
@@ -485,6 +499,7 @@ const ShopOS = {
         alert(`${licenseId.toUpperCase()}-License acquired!\n\nYou can now repair ${licenseId.toUpperCase()}-grade devices and access new inventory.`);
         this.renderLicenses();
         this.updateSecretApps();
+        updateDisplays();
 
         // Update Dive OS test cards if it exists
         if (typeof DiveOS !== 'undefined') {

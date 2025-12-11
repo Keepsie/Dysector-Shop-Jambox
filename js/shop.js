@@ -149,6 +149,77 @@ const Shop = {
         }
     },
 
+    // Called when player interacts with PICKUP customer
+    triggerPickupDialogue(npc) {
+        if (this.interactionState !== 'idle') return;
+
+        const job = npc.pickupJob;
+        if (!job) {
+            this.addText('[ERROR] No job found for pickup.', 'error');
+            this.finishInteraction(false);
+            return;
+        }
+
+        this.currentNPC = npc;
+        this.currentCustomer = npc.data;
+        this.interactionState = 'pickup';
+
+        const deviceName = job.device?.fullName || 'device';
+        const remainingPayment = job.remainingPayment || 0;
+
+        this.addText(`${job.customer} approaches the counter.`, 'narrator');
+        this.addText(`"Hi, I'm here to pick up my ${job.device?.typeName || 'device'}."`, 'customer');
+
+        if (remainingPayment > 0) {
+            this.addText(`[PICKUP] ${deviceName} - Remaining balance: $${remainingPayment}`, 'system');
+            this.addText(`"That'll be $${remainingPayment} for the remaining balance."`, 'player');
+            this.addText(`"Sure thing!"`, 'customer');
+
+            // Add remaining payment
+            GameState.cash = (GameState.cash || 0) + remainingPayment;
+            this.addText(`[+$${remainingPayment}]`, 'success');
+        } else {
+            this.addText(`[PICKUP] ${deviceName} - Fully paid`, 'system');
+        }
+
+        // Complete the job
+        this.addText(`"Here's your ${job.device?.typeName || 'device'}, all fixed up!"`, 'player');
+
+        // Pick a happy response
+        const happyResponses = [
+            "Thanks so much! You're a lifesaver!",
+            "Awesome, it works perfectly now!",
+            "Great service, I'll definitely be back!",
+            "Wow, that was fast! Thanks!",
+            "Perfect! You really know your stuff."
+        ];
+        const response = happyResponses[Math.floor(Math.random() * happyResponses.length)];
+        this.addText(`"${response}"`, 'customer');
+
+        // Remove job from active jobs, add to completed
+        GameState.activeJobs = GameState.activeJobs.filter(j => j.id !== job.id);
+        GameState.completedJobs = GameState.completedJobs || [];
+        GameState.completedJobs.push({
+            ...job,
+            completedDay: GameState.currentDay,
+            totalEarned: job.price
+        });
+
+        // Track stats
+        GameState.stats = GameState.stats || {};
+        GameState.stats.jobsCompleted = (GameState.stats.jobsCompleted || 0) + 1;
+        GameState.stats.totalEarnings = (GameState.stats.totalEarnings || 0) + (remainingPayment || 0);
+
+        // Small reputation boost for completed jobs
+        GameState.reputation = Math.min(5, (GameState.reputation || 0) + 0.15);
+        this.addText('[+0.15 Reputation]', 'success');
+
+        this.addText(`[JOB COMPLETE] ${deviceName}`, 'success');
+
+        updateDisplays();
+        this.finishInteraction(true);
+    },
+
     // Called when player interacts with BUY customer - go straight to register
     triggerSaleDialogue(npc) {
         if (this.interactionState !== 'idle') return;
@@ -849,6 +920,9 @@ const Shop = {
             if (Math.random() < baseChance * timeModifier) {
                 this.spawnCustomerOnMap();
             }
+
+            // Also check if any completed jobs need pickup
+            this.checkForPickups();
         }, 2500); // Check every 2.5 real seconds
     },
 
@@ -860,6 +934,34 @@ const Shop = {
                 this.addText('The door chimes. A customer walks in.', 'narrator');
             }
             // If trySpawn returns null (full or door blocked), no message
+        }
+    },
+
+    // Check for completed jobs that need customer pickup
+    checkForPickups() {
+        if (typeof NPCSystem === 'undefined') return;
+
+        // Find completed jobs that haven't been picked up yet
+        const completedJobs = (GameState.activeJobs || []).filter(job =>
+            job.status === 'complete' && !job.pickupSpawned
+        );
+
+        if (completedJobs.length === 0) return;
+
+        // Random chance for a pickup customer to arrive (higher than regular)
+        // The more completed jobs waiting, the higher the chance
+        const pickupChance = 0.15 + (completedJobs.length * 0.1);
+
+        if (Math.random() < pickupChance) {
+            // Pick a random completed job
+            const job = completedJobs[Math.floor(Math.random() * completedJobs.length)];
+
+            // Try to spawn a pickup NPC
+            const npc = NPCSystem.spawnPickupNPC(job);
+            if (npc) {
+                job.pickupSpawned = true;  // Mark so we don't spawn multiple
+                this.addText(`The door chimes. ${job.customer} returns for their ${job.device?.typeName || 'device'}.`, 'narrator');
+            }
         }
     },
 

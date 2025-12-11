@@ -70,9 +70,11 @@ const ServiceInterface = {
 
         // Build calendar days
         this.buildCalendar();
+        console.log('[SERVICE] Built calendar with', this.calendarDays.length, 'days');
 
         // Auto-select recommended deadline based on urgency and job type
         this.autoSelectDeadline();
+        console.log('[SERVICE] Selected deadline:', this.selectedDeadline);
 
         // Initial dialogue - customer describes problem
         this.addDialogue('customer', `"${job.problemDesc}"`);
@@ -168,12 +170,12 @@ const ServiceInterface = {
     // Auto-select a recommended deadline based on job urgency and type
     autoSelectDeadline() {
         const job = this.currentJob;
-        const urgency = job.urgency?.id || 'normal';
-        const needsDive = job.problem?.needsDive;
+        const urgency = job?.urgency?.id || 'normal';
+        const needsDive = job?.problem?.needsDive;
 
         // Base days needed:
-        // - Workbench jobs: 1-2 days
-        // - Dive jobs: 2-3 days (need to prepare)
+        // - Workbench jobs: 1 day (tomorrow)
+        // - Dive jobs: 2 days (need to prepare)
         let recommendedDaysOut = needsDive ? 2 : 1;
 
         // Adjust by urgency:
@@ -181,33 +183,38 @@ const ServiceInterface = {
         // - normal: standard timing
         // - flexible: no rush, can take longer
         if (urgency === 'desperate') {
-            recommendedDaysOut = Math.max(1, recommendedDaysOut - 1);
+            recommendedDaysOut = 1; // Tomorrow at earliest
         } else if (urgency === 'flexible') {
             recommendedDaysOut += 2;
         }
 
-        // Find the best available day
-        // Prefer days with fewer existing jobs
-        const availableDays = this.calendarDays.filter(d => d.available && d.daysOut >= recommendedDaysOut);
+        // Get all available days
+        const allAvailable = this.calendarDays.filter(d => d.available);
 
-        if (availableDays.length > 0) {
-            // Sort by: fewer existing jobs first, then by date
-            availableDays.sort((a, b) => {
-                if (a.existingJobs !== b.existingJobs) {
-                    return a.existingJobs - b.existingJobs;
-                }
-                return a.daysOut - b.daysOut;
-            });
-
-            // Pick the first one (best option)
-            this.selectedDeadline = availableDays[0];
-        } else {
-            // Fallback: first available day
-            const firstAvailable = this.calendarDays.find(d => d.available);
-            if (firstAvailable) {
-                this.selectedDeadline = firstAvailable;
-            }
+        if (allAvailable.length === 0) {
+            console.log('[SERVICE] No available days!');
+            return;
         }
+
+        // Find days at or after recommended time
+        let candidates = allAvailable.filter(d => d.daysOut >= recommendedDaysOut);
+
+        // If no candidates at recommended time, just use all available
+        if (candidates.length === 0) {
+            candidates = allAvailable;
+        }
+
+        // Sort by: fewer existing jobs first, then by date
+        candidates.sort((a, b) => {
+            if (a.existingJobs !== b.existingJobs) {
+                return a.existingJobs - b.existingJobs;
+            }
+            return a.daysOut - b.daysOut;
+        });
+
+        // Pick the first one (best option)
+        this.selectedDeadline = candidates[0];
+        console.log('[SERVICE] Auto-selected deadline:', this.selectedDeadline?.label);
     },
 
     addDialogue(type, text) {

@@ -11,6 +11,7 @@ const NPCSystem = {
         BROWSE: 'browse',      // Just looking
         BUY: 'buy',            // Wants to buy something
         SERVICE: 'service',    // Needs device repaired
+        PICKUP: 'pickup',      // Picking up completed repair
     },
 
     // NPC states
@@ -100,6 +101,7 @@ const NPCSystem = {
             case this.INTENT.SERVICE: return '#ff6b35';   // Orange - needs help
             case this.INTENT.BUY: return '#4ecdc4';       // Teal - buying
             case this.INTENT.BROWSE: return '#95a5a6';    // Gray - browsing
+            case this.INTENT.PICKUP: return '#9b59b6';    // Purple - picking up
             default: return '#ff6b35';
         }
     },
@@ -110,6 +112,13 @@ const NPCSystem = {
         if (npc.intent === this.INTENT.SERVICE) {
             this.setCounterTarget(npc);
             npc.intentRevealed = true;  // They're obviously here for service
+            return;
+        }
+
+        // PICKUP customers go straight to counter - they're here for their repaired device
+        if (npc.intent === this.INTENT.PICKUP) {
+            this.setCounterTarget(npc);
+            npc.intentRevealed = true;
             return;
         }
 
@@ -229,6 +238,9 @@ const NPCSystem = {
 
         if (npc.intent === this.INTENT.SERVICE) {
             spots = this.positions.serviceWaitSpots;
+        } else if (npc.intent === this.INTENT.PICKUP) {
+            // Pickup customers go to service counter (where they dropped off)
+            spots = this.positions.serviceWaitSpots;
         } else if (npc.intent === this.INTENT.BUY) {
             spots = this.positions.posWaitSpots;
         } else {
@@ -281,6 +293,60 @@ const NPCSystem = {
         if (doorBlocked) return null;
 
         const npc = this.generateNPC();
+        this.npcs.push(npc);
+        return npc;
+    },
+
+    // Spawn a pickup NPC for a specific completed job
+    spawnPickupNPC(job) {
+        if (this.npcs.length >= this.maxNPCs) return null;
+        if (!this.positions?.door) return null;
+
+        // Check if door is clear
+        const doorBlocked = this.npcs.some(npc =>
+            Math.abs(npc.x - this.positions.door.x) < 2 &&
+            Math.abs(npc.y - this.positions.door.y) < 2
+        );
+
+        if (doorBlocked) return null;
+
+        const npc = {
+            id: Date.now() + Math.random(),
+            data: {
+                name: job.customer,
+                device: job.device,
+                urgency: { id: 'normal' },
+            },
+            intent: this.INTENT.PICKUP,
+            intentRevealed: true,
+            pickupJob: job,  // Reference to the job they're picking up
+            state: this.STATE.ENTERING,
+
+            // Position
+            x: this.positions.door?.x || 10,
+            y: this.positions.door?.y || 12,
+
+            // Movement
+            targetSpot: null,
+            path: [],
+            moveTimer: 0,
+            moveSpeed: 250 + Math.random() * 150,
+            lastX: -1,
+            lastY: -1,
+            stuckCount: 0,
+            totalStuckTime: 0,
+
+            // Behavior
+            browseTime: 0,
+            maxBrowseTime: 2000,
+            patience: 100,
+            patienceDecay: 0.3,  // Patient - they're happy their device is ready!
+
+            // Visual
+            color: this.getIntentColor(this.INTENT.PICKUP),
+        };
+
+        this.setInitialTarget(npc);
         this.npcs.push(npc);
         return npc;
     },
