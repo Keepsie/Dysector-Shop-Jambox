@@ -2,7 +2,7 @@
 
 const GameState = {
     // Resources
-    cash: 2500,
+    cash: 1500,
     bits: 0,  // Start with 0 - earn from diving/combat
     divesRemaining: 2,
     divesMax: 2,

@@ -204,17 +204,21 @@ const ServiceInterface = {
             candidates = allAvailable;
         }
 
-        // Sort by: fewer existing jobs first, then by date
-        candidates.sort((a, b) => {
-            if (a.existingJobs !== b.existingJobs) {
-                return a.existingJobs - b.existingJobs;
-            }
-            return a.daysOut - b.daysOut;
-        });
+        // Sort by date first (prefer sooner)
+        candidates.sort((a, b) => a.daysOut - b.daysOut);
 
-        // Pick the first one (best option)
-        this.selectedDeadline = candidates[0];
-        console.log('[SERVICE] Auto-selected deadline:', this.selectedDeadline?.label);
+        // Find first day that isn't too busy
+        // Randomize the threshold (2-3) so it feels more natural
+        const maxJobsPerDay = Math.random() < 0.5 ? 2 : 3;
+        let selected = candidates.find(d => d.existingJobs < maxJobsPerDay);
+
+        // If all days are busy, just pick the soonest
+        if (!selected) {
+            selected = candidates[0];
+        }
+
+        this.selectedDeadline = selected;
+        console.log('[SERVICE] Auto-selected deadline:', this.selectedDeadline?.label, 'jobs:', this.selectedDeadline?.existingJobs);
     },
 
     addDialogue(type, text) {
@@ -451,7 +455,7 @@ const ServiceInterface = {
         ctx.fillText(`[${methodText}]`, L.dialogue.x + 20 + problemWidth, L.dialogue.y + 38);
 
         // Device and urgency on next line
-        ctx.fillStyle = '#888';
+        ctx.fillStyle = '#fff';
         ctx.font = '11px monospace';
         ctx.fillText(this.currentJob.device, L.dialogue.x + 10, L.dialogue.y + 54);
 
@@ -463,8 +467,20 @@ const ServiceInterface = {
         const deviceWidth = ctx.measureText(this.currentJob.device).width;
         ctx.fillText(urgency, L.dialogue.x + 20 + deviceWidth, L.dialogue.y + 54);
 
+        // Market rate and deadline - key info at a glance
+        ctx.fillStyle = '#4ecdc4';
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText(`MARKET: $${this.marketRate}`, L.dialogue.x + 10, L.dialogue.y + 70);
+
+        // Deadline info
+        if (this.selectedDeadline) {
+            const daysText = this.selectedDeadline.daysOut === 1 ? '1 day' : `${this.selectedDeadline.daysOut} days`;
+            ctx.fillStyle = '#9b59b6';
+            ctx.fillText(`DUE: ${this.selectedDeadline.label} (${daysText})`, L.dialogue.x + 120, L.dialogue.y + 70);
+        }
+
         // Dialogue lines
-        let lineY = L.dialogue.y + 75;
+        let lineY = L.dialogue.y + 88;
         ctx.font = '11px monospace';
         for (const line of this.dialogueLines) {
             ctx.fillStyle = line.type === 'customer' ? '#f1c40f' :
@@ -500,24 +516,25 @@ const ServiceInterface = {
         ctx.textAlign = 'left';
         ctx.fillText('YOUR QUOTE', L.pricing.x + 10, L.pricing.y + 18);
 
-        // Market rate reference
-        ctx.fillStyle = '#888';
-        ctx.font = '10px monospace';
-        ctx.fillText(`Market rate: $${this.marketRate}`, L.pricing.x + 10, L.pricing.y + 36);
+        // Market rate reference - make it visible!
+        ctx.fillStyle = '#4ecdc4';
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText(`MARKET: $${this.marketRate}`, L.pricing.x + 110, L.pricing.y + 18);
 
         // Our price display
         ctx.fillStyle = '#0d0d1a';
-        ctx.fillRect(L.pricing.x + 10, L.pricing.y + 45, 80, 32);
+        ctx.fillRect(L.pricing.x + 10, L.pricing.y + 32, 80, 32);
 
-        const profit = this.ourPrice - this.marketRate;
-        ctx.fillStyle = profit >= 0 ? '#2ecc71' : '#e74c3c';
+        // Service is all profit - show price vs market for risk assessment
+        const aboveMarket = this.ourPrice - this.marketRate;
+        ctx.fillStyle = aboveMarket >= 0 ? '#2ecc71' : '#e74c3c';
         ctx.font = 'bold 18px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(`$${this.ourPrice}`, L.pricing.x + 50, L.pricing.y + 68);
+        ctx.fillText(`$${this.ourPrice}`, L.pricing.x + 50, L.pricing.y + 55);
 
         // +/- buttons
-        const priceMinusBtn = { x: L.pricing.x + 100, y: L.pricing.y + 45, width: 30, height: 32, action: 'price_minus' };
-        const pricePlusBtn = { x: L.pricing.x + 135, y: L.pricing.y + 45, width: 30, height: 32, action: 'price_plus' };
+        const priceMinusBtn = { x: L.pricing.x + 100, y: L.pricing.y + 32, width: 30, height: 32, action: 'price_minus' };
+        const pricePlusBtn = { x: L.pricing.x + 135, y: L.pricing.y + 32, width: 30, height: 32, action: 'price_plus' };
         this.buttons.push(priceMinusBtn, pricePlusBtn);
 
         ctx.fillStyle = '#e74c3c';
@@ -530,8 +547,22 @@ const ServiceInterface = {
         ctx.fillText('-', priceMinusBtn.x + 15, priceMinusBtn.y + 22);
         ctx.fillText('+', pricePlusBtn.x + 15, pricePlusBtn.y + 22);
 
+        // Profit display - service is ALL profit, show the full amount
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#2ecc71';
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText(`PROFIT: $${this.ourPrice}`, L.pricing.x + 175, L.pricing.y + 55);
+
+        // Show if above/below market
+        if (aboveMarket !== 0) {
+            ctx.fillStyle = aboveMarket > 0 ? '#f39c12' : '#e74c3c';
+            ctx.font = '9px monospace';
+            const marketText = aboveMarket > 0 ? `+$${aboveMarket} above market` : `$${aboveMarket} below market`;
+            ctx.fillText(marketText, L.pricing.x + 175, L.pricing.y + 68);
+        }
+
         // Quick price buttons
-        const btnY = L.pricing.y + 85;
+        const btnY = L.pricing.y + 72;
         const p10Btn = { x: L.pricing.x + 10, y: btnY, width: 50, height: 22, action: 'price_10' };
         const p20Btn = { x: L.pricing.x + 65, y: btnY, width: 50, height: 22, action: 'price_20' };
         const p30Btn = { x: L.pricing.x + 120, y: btnY, width: 50, height: 22, action: 'price_30' };
@@ -549,28 +580,35 @@ const ServiceInterface = {
         ctx.fillText('+20%', p20Btn.x + 25, p20Btn.y + 15);
         ctx.fillText('+30%', p30Btn.x + 25, p30Btn.y + 15);
 
-        // Profit/margin display
+        // Selected deadline display with days info
         ctx.textAlign = 'left';
-        ctx.fillStyle = profit >= 0 ? '#2ecc71' : '#e74c3c';
-        ctx.font = '10px monospace';
-        const profitText = profit >= 0 ? `+$${profit} profit` : `-$${-profit} loss`;
-        ctx.fillText(profitText, L.pricing.x + 180, L.pricing.y + 68);
-
-        // Selected deadline display
         ctx.fillStyle = '#9b59b6';
         ctx.font = 'bold 11px monospace';
-        ctx.fillText('DEADLINE:', L.pricing.x + 10, L.pricing.y + 125);
+        ctx.fillText('DEADLINE:', L.pricing.x + 10, L.pricing.y + 115);
 
-        ctx.fillStyle = this.selectedDeadline ? '#fff' : '#666';
-        ctx.font = '11px monospace';
-        ctx.fillText(this.selectedDeadline ? this.selectedDeadline.label : '(select from calendar)', L.pricing.x + 90, L.pricing.y + 125);
+        if (this.selectedDeadline) {
+            // Show the day label
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 11px monospace';
+            ctx.fillText(this.selectedDeadline.label, L.pricing.x + 90, L.pricing.y + 115);
+
+            // Show days from now
+            const daysText = this.selectedDeadline.daysOut === 1 ? '(1 day)' : `(${this.selectedDeadline.daysOut} days)`;
+            ctx.fillStyle = '#9b59b6';
+            ctx.font = '10px monospace';
+            ctx.fillText(daysText, L.pricing.x + 90 + ctx.measureText(this.selectedDeadline.label).width + 8, L.pricing.y + 115);
+        } else {
+            ctx.fillStyle = '#666';
+            ctx.font = '11px monospace';
+            ctx.fillText('(select from calendar)', L.pricing.x + 90, L.pricing.y + 115);
+        }
 
         // Down payment preview
         if (this.selectedDeadline) {
             const downPayment = Math.ceil(this.ourPrice / 2);
             ctx.fillStyle = '#f39c12';
             ctx.font = '10px monospace';
-            ctx.fillText(`Half down: $${downPayment}`, L.pricing.x + 10, L.pricing.y + 145);
+            ctx.fillText(`Down payment: $${downPayment}`, L.pricing.x + 10, L.pricing.y + 135);
         }
 
         // === ACTIONS AREA ===
