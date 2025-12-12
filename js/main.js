@@ -68,6 +68,15 @@ document.addEventListener('keydown', (e) => {
 
 // Initialize when DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+    // Try to load existing save first
+    if (typeof SaveSystem !== 'undefined' && SaveSystem.hasSave()) {
+        const saveData = SaveSystem.load();
+        if (saveData) {
+            console.log('[MAIN] Loading saved game from Day', saveData.time?.day || 1);
+            SaveSystem.deserializeToGameState(saveData);
+        }
+    }
+
     Main.init();
     updateDisplays();
 

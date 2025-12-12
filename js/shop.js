@@ -722,8 +722,8 @@ const Shop = {
         const options = [];
 
         // First check if there are still customers waiting (shop just closed)
-        const waitingService = NPCSystem.getWaitingAtService();
-        const waitingPOS = NPCSystem.getWaitingAtPOS();
+        const waitingService = typeof NPCSystem !== 'undefined' ? NPCSystem.getWaitingAtService() : [];
+        const waitingPOS = typeof NPCSystem !== 'undefined' ? NPCSystem.getWaitingAtPOS() : [];
 
         if (waitingService.length > 0 || waitingPOS.length > 0) {
             this.addText('[Finishing up with remaining customers...]', 'system');
@@ -747,6 +747,8 @@ const Shop = {
             }
 
             options.push({ label: 'Send them away (close up)', action: 'clear_remaining', class: 'danger' });
+            // Also show End Day option even with customers waiting
+            options.push({ label: 'END DAY (go to sleep)', action: 'end_day', class: 'warning' });
             this.setOptions(options);
             return;
         }
@@ -755,11 +757,11 @@ const Shop = {
         options.push({ label: 'Shop PC (bills, furniture, orders)', action: 'go_shop_os' });
         options.push({ label: 'Place furniture', action: 'place_furniture' });
 
-        // Sleep
+        // Sleep - make it more prominent with END DAY label
         if (fatigueLevel === 'critical' || fatigueLevel === 'exhausted') {
-            options.push({ label: 'Go to sleep (end day)', action: 'sleep', class: 'warning' });
+            options.push({ label: 'END DAY (go to sleep)', action: 'end_day', class: 'warning' });
         } else {
-            options.push({ label: 'Go to sleep (end day)', action: 'sleep' });
+            options.push({ label: 'END DAY (go to sleep)', action: 'end_day', class: 'success' });
         }
 
         this.setOptions(options);
@@ -859,16 +861,19 @@ const Shop = {
         overlay.innerHTML = summaryHtml;
         document.body.appendChild(overlay);
 
-        // Continue button
-        document.getElementById('sleep-continue-btn').addEventListener('click', () => {
-            overlay.remove();
-            this.resetDailyStats();
-            this.addText('', 'narrator');
-            this.addText('You head to bed. Tomorrow is another day...', 'narrator');
-            setTimeout(() => {
-                FatigueSystem.sleep();
-            }, 500);
-        });
+        // Continue button - use Shop reference directly to avoid 'this' binding issues
+        const continueBtn = document.getElementById('sleep-continue-btn');
+        if (continueBtn) {
+            continueBtn.addEventListener('click', () => {
+                overlay.remove();
+                Shop.resetDailyStats();
+                Shop.addText('', 'narrator');
+                Shop.addText('You head to bed. Tomorrow is another day...', 'narrator');
+                setTimeout(() => {
+                    FatigueSystem.sleep();
+                }, 500);
+            });
+        }
     },
 
     resetDailyStats() {
