@@ -403,6 +403,58 @@
     color: var(--gold);
 }
 
+/* Bill urgency states */
+.bill-item.warning {
+    border-color: var(--gold-dim);
+    background: rgba(212, 168, 67, 0.1);
+}
+
+.bill-item.warning .bill-due {
+    color: var(--gold);
+    font-weight: bold;
+}
+
+.bill-item.urgent {
+    border-color: var(--gold);
+    background: rgba(212, 168, 67, 0.15);
+    animation: bill-pulse 1.5s infinite;
+}
+
+.bill-item.urgent .bill-due {
+    color: var(--gold);
+    font-weight: bold;
+}
+
+.bill-item.overdue {
+    border-color: var(--red);
+    background: rgba(231, 76, 60, 0.15);
+    animation: bill-pulse 0.8s infinite;
+}
+
+.bill-item.overdue .bill-due {
+    color: var(--red);
+    font-weight: bold;
+}
+
+.bill-item.cant-afford .bill-amount {
+    color: var(--red);
+}
+
+.bill-item.cant-afford::after {
+    content: "Can't afford!";
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--red);
+    grid-column: 1 / -1;
+    text-align: center;
+    margin-top: 4px;
+}
+
+@keyframes bill-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
 /* ========================================
    PLANNING MODE
 ======================================== */

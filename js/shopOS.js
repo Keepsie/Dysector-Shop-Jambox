@@ -52,7 +52,8 @@ const ShopOS = {
             'bank': { title: 'SYNC BANK', render: () => this.renderBank() },
             'reviews': { title: 'SHOP REVIEWS', render: () => this.renderReviews() },
             'hire': { title: 'HIRE STAFF', render: () => this.renderHire() },
-            'null-sector': { title: '???_CONNECTION', render: () => this.renderNullSector() }
+            'null-sector': { title: '???_CONNECTION', render: () => this.renderNullSector() },
+            'inventory': { title: 'INVENTORY', render: () => this.renderInventory() }
         };
 
         const app = apps[appName];
@@ -772,6 +773,131 @@ const ShopOS = {
                 </div>
             </div>
         `;
+    },
+
+    // Inventory App - shows devices from mystery boxes and supplies
+    renderInventory() {
+        const inv = GameState.inventory;
+        const devices = inv.devices || [];
+        const stims = inv.stims || 0;
+        const cases = inv.cases || 0;
+
+        let html = `
+            <div class="supplier-section">
+                <div class="supplier-header">SUPPLIES</div>
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name">Stim Drinks</div>
+                        <div class="supplier-item-desc">Emergency dive charge (+1 dive when used)</div>
+                    </div>
+                    <div class="supplier-item-price">x${stims}</div>
+                    ${stims > 0 ? `<button class="supplier-buy-btn" id="use-stim-btn">USE</button>` : `<span style="color: var(--text-dim);">NONE</span>`}
+                </div>
+                <div class="supplier-item">
+                    <div class="supplier-item-info">
+                        <div class="supplier-item-name">Empty Cases</div>
+                        <div class="supplier-item-desc">For packaging software to sell</div>
+                    </div>
+                    <div class="supplier-item-price">x${cases}</div>
+                </div>
+            </div>
+
+            <div class="supplier-section">
+                <div class="supplier-header">DEVICES FROM PALLETS (${devices.length})</div>
+        `;
+
+        if (devices.length === 0) {
+            html += `<div class="empty-state">No devices in inventory. Buy pallets from Liquidation!</div>`;
+        } else {
+            for (let i = 0; i < devices.length; i++) {
+                const d = devices[i];
+                const gradeColor = d.grade === 'a' ? 'gold' : d.grade === 'b' ? 'blue' : d.grade === 'c' ? 'green' : 'text-secondary';
+                html += `
+                    <div class="supplier-item">
+                        <div class="supplier-item-info">
+                            <div class="supplier-item-name">${d.fullName}</div>
+                            <div class="supplier-item-desc">Health: ${d.health}% | ${d.problems.length > 0 ? 'Has issues' : 'Working'}</div>
+                        </div>
+                        <div class="supplier-item-price" style="color: var(--${gradeColor})">${d.grade.toUpperCase()}-GRADE</div>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="supplier-buy-btn" data-device-idx="${i}" data-action="sell">SELL</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        html += `</div>`;
+
+        this.windowContent.innerHTML = html;
+
+        // Bind USE STIM button
+        const useStimBtn = document.getElementById('use-stim-btn');
+        if (useStimBtn) {
+            useStimBtn.addEventListener('click', () => {
+                this.useStim();
+            });
+        }
+
+        // Bind device action buttons
+        this.windowContent.querySelectorAll('[data-device-idx]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.deviceIdx);
+                const action = btn.dataset.action;
+                if (action === 'sell') {
+                    this.sellDevice(idx);
+                }
+            });
+        });
+    },
+
+    useStim() {
+        if (GameState.inventory.stims <= 0) {
+            alert('No stims available!');
+            return;
+        }
+
+        if (GameState.divesRemaining >= GameState.divesMax) {
+            alert('Already at max dive charges!');
+            return;
+        }
+
+        GameState.inventory.stims--;
+        GameState.divesRemaining = Math.min(GameState.divesMax + 1, GameState.divesRemaining + 1);
+        // Allow going 1 over max with stim
+        if (GameState.divesRemaining > GameState.divesMax) {
+            GameState.divesMax = GameState.divesRemaining; // Temporarily raise max
+        }
+
+        updateDisplays();
+        alert(`Stim used! Dive charges: ${GameState.divesRemaining}/${GameState.divesMax}`);
+        this.renderInventory();
+
+        if (typeof Shop !== 'undefined') {
+            Shop.addText('[STIM] +1 dive charge added.', 'success');
+        }
+    },
+
+    sellDevice(idx) {
+        const devices = GameState.inventory.devices;
+        if (idx < 0 || idx >= devices.length) return;
+
+        const device = devices[idx];
+        // Sell price based on grade and health
+        const gradeMultiplier = { 'e': 0.3, 'c': 0.5, 'b': 0.7, 'a': 0.9 };
+        const baseValue = device.baseValue || 100;
+        const healthMod = device.health / 100;
+        const sellPrice = Math.round(baseValue * (gradeMultiplier[device.grade] || 0.3) * healthMod);
+
+        if (confirm(`Sell ${device.fullName} for $${sellPrice}?`)) {
+            devices.splice(idx, 1);
+            earnCash(sellPrice);
+            this.renderInventory();
+
+            if (typeof Shop !== 'undefined') {
+                Shop.addText(`[SOLD] ${device.fullName} for $${sellPrice}`, 'success');
+            }
+        }
     }
 };
 

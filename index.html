@@ -42,6 +42,14 @@
                     <span class="stat-label">DAY</span>
                     <span class="stat-value" id="display-day">MON 1</span>
                 </div>
+                <div class="header-stat rep-stat">
+                    <span class="stat-label">REPUTATION</span>
+                    <div class="rep-bar-container">
+                        <div class="rep-bar" id="rep-bar"></div>
+                        <span class="rep-value" id="display-rep">0.0</span>
+                    </div>
+                    <span class="rep-stars" id="display-stars">☆☆☆☆☆</span>
+                </div>
             </div>
         </header>
 
@@ -66,6 +74,10 @@
             <button class="main-tab" data-tab="probe">
                 <span class="tab-icon">*</span>
                 <span class="tab-label">PROBE</span>
+            </button>
+            <button class="main-tab" data-tab="dev">
+                <span class="tab-icon">⚙</span>
+                <span class="tab-label">DEV</span>
             </button>
         </nav>
 
@@ -180,6 +192,10 @@
                         <div class="os-icon" data-app="hire">
                             <div class="icon-graphic">👤</div>
                             <div class="icon-label">Hire</div>
+                        </div>
+                        <div class="os-icon" data-app="inventory">
+                            <div class="icon-graphic">INV</div>
+                            <div class="icon-label">Inventory</div>
                         </div>
                         <div class="os-icon" data-app="null-sector" id="nullsec-icon" style="display: none;">
                             <div class="icon-graphic glitch">???</div>
@@ -631,6 +647,146 @@
                 </div>
             </section>
 
+            <!-- DEV TAB - Playtest Settings -->
+            <section id="dev" class="tab-panel">
+                <div class="dev-container">
+                    <div class="dev-header">
+                        <h2>PLAYTEST SETTINGS</h2>
+                        <p>Adjust values to find the sweet spot. Changes apply immediately.</p>
+                    </div>
+
+                    <div class="dev-grid">
+                        <!-- Customer Flow -->
+                        <div class="dev-section">
+                            <div class="dev-section-header">CUSTOMER FLOW</div>
+                            <div class="dev-setting">
+                                <label>Walk-in Frequency (seconds)</label>
+                                <div class="dev-slider-row">
+                                    <input type="range" id="dev-walkin-freq" min="1" max="10" value="5" step="0.5">
+                                    <span class="dev-value" id="dev-walkin-freq-val">5s</span>
+                                </div>
+                            </div>
+                            <div class="dev-setting">
+                                <label>Base Customer Chance (%)</label>
+                                <div class="dev-slider-row">
+                                    <input type="range" id="dev-customer-chance" min="5" max="50" value="12" step="1">
+                                    <span class="dev-value" id="dev-customer-chance-val">12%</span>
+                                </div>
+                            </div>
+                            <div class="dev-setting">
+                                <label>Dive-Required Jobs (%)</label>
+                                <div class="dev-slider-row">
+                                    <input type="range" id="dev-dive-pct" min="0" max="100" value="40" step="10">
+                                    <span class="dev-value" id="dev-dive-pct-val">40%</span>
+                                </div>
+                            </div>
+                            <div class="dev-setting">
+                                <label>Desperate Customer (%)</label>
+                                <div class="dev-slider-row">
+                                    <input type="range" id="dev-desperate-pct" min="0" max="50" value="15" step="5">
+                                    <span class="dev-value" id="dev-desperate-pct-val">15%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Economy -->
+                        <div class="dev-section">
+                            <div class="dev-section-header">ECONOMY</div>
+                            <div class="dev-setting">
+                                <label>Bit Multiplier</label>
+                                <div class="dev-slider-row">
+                                    <input type="range" id="dev-bit-mult" min="0.5" max="5" value="1.5" step="0.5">
+                                    <span class="dev-value" id="dev-bit-mult-val">1.5x</span>
+                                </div>
+                            </div>
+                            <div class="dev-setting">
+                                <label>Cash Multiplier</label>
+                                <div class="dev-slider-row">
+                                    <input type="range" id="dev-cash-mult" min="0.5" max="5" value="1" step="0.5">
+                                    <span class="dev-value" id="dev-cash-mult-val">1.0x</span>
+                                </div>
+                            </div>
+                            <div class="dev-setting">
+                                <label>Bill Amount (%)</label>
+                                <div class="dev-slider-row">
+                                    <input type="range" id="dev-bill-pct" min="50" max="200" value="100" step="25">
+                                    <span class="dev-value" id="dev-bill-pct-val">100%</span>
+                                </div>
+                            </div>
+                            <div class="dev-setting">
+                                <label>Starting Cash</label>
+                                <div class="dev-slider-row">
+                                    <input type="range" id="dev-start-cash" min="500" max="10000" value="1500" step="500">
+                                    <span class="dev-value" id="dev-start-cash-val">$1500</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dive System -->
+                        <div class="dev-section">
+                            <div class="dev-section-header">DIVE SYSTEM</div>
+                            <div class="dev-setting">
+                                <label>Daily Dive Charges</label>
+                                <div class="dev-slider-row">
+                                    <input type="range" id="dev-dive-charges" min="1" max="5" value="2" step="1">
+                                    <span class="dev-value" id="dev-dive-charges-val">2</span>
+                                </div>
+                            </div>
+                            <div class="dev-setting">
+                                <label>Deadline Buffer (days)</label>
+                                <div class="dev-slider-row">
+                                    <input type="range" id="dev-deadline-buffer" min="0" max="3" value="1" step="1">
+                                    <span class="dev-value" id="dev-deadline-buffer-val">+1</span>
+                                </div>
+                            </div>
+                            <div class="dev-setting">
+                                <label>Dive Success Rate (%)</label>
+                                <div class="dev-slider-row">
+                                    <input type="range" id="dev-dive-success" min="50" max="100" value="80" step="5">
+                                    <span class="dev-value" id="dev-dive-success-val">80%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Debug Cheats -->
+                        <div class="dev-section">
+                            <div class="dev-section-header">DEBUG CHEATS</div>
+                            <div class="dev-buttons">
+                                <button class="dev-btn" id="dev-add-cash">+$500 Cash</button>
+                                <button class="dev-btn" id="dev-add-bits">+500 Bits</button>
+                                <button class="dev-btn" id="dev-add-dive">+1 Dive</button>
+                                <button class="dev-btn" id="dev-skip-day">Skip to Next Day</button>
+                                <button class="dev-btn" id="dev-spawn-customer">Spawn Customer</button>
+                                <button class="dev-btn" id="dev-complete-jobs">Complete All Jobs</button>
+                                <button class="dev-btn danger" id="dev-reset-game">Reset Game</button>
+                            </div>
+                            <div class="dev-toggles">
+                                <label class="dev-toggle">
+                                    <input type="checkbox" id="dev-infinite-money">
+                                    <span>Infinite Money</span>
+                                </label>
+                                <label class="dev-toggle">
+                                    <input type="checkbox" id="dev-infinite-dives">
+                                    <span>Infinite Dives</span>
+                                </label>
+                                <label class="dev-toggle">
+                                    <input type="checkbox" id="dev-no-fatigue">
+                                    <span>No Fatigue</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current State Display -->
+                    <div class="dev-state">
+                        <div class="dev-section-header">CURRENT STATE</div>
+                        <div class="dev-state-grid" id="dev-state-display">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
         </main>
     </div>
 
@@ -651,6 +807,7 @@
     <script src="js/diveOS.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/probe.js"></script>
+    <script src="js/devSettings.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

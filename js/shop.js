@@ -135,6 +135,7 @@ const Shop = {
 
             // Add down payment to cash
             GameState.cash = (GameState.cash || 0) + result.downPayment;
+            GameState.dailyStats.moneyEarned += result.downPayment;
 
             this.addText(`[JOB ACCEPTED] ${job.device.fullName} - Due Day ${result.deadline}`, 'success');
             this.addText(`[DOWN PAYMENT] +$${result.downPayment} (remaining: $${job.remainingPayment})`, 'success');
@@ -177,10 +178,16 @@ const Shop = {
 
             // Add remaining payment
             GameState.cash = (GameState.cash || 0) + remainingPayment;
+            GameState.dailyStats.moneyEarned += remainingPayment;
             this.addText(`[+$${remainingPayment}]`, 'success');
         } else {
             this.addText(`[PICKUP] ${deviceName} - Fully paid`, 'system');
         }
+
+        // Track service completion
+        GameState.dailyStats.servicesCompleted++;
+        GameState.dailyStats.customersServed++;
+        GameState.dailyStats.goodTransactions++;
 
         // Complete the job
         this.addText(`"Here's your ${job.device?.typeName || 'device'}, all fixed up!"`, 'player');
@@ -217,6 +224,13 @@ const Shop = {
         this.addText(`[JOB COMPLETE] ${deviceName}`, 'success');
 
         updateDisplays();
+        this.updateJobsDisplay();
+
+        // Update calendar to remove completed job
+        if (typeof Calendar !== 'undefined') {
+            Calendar.render();
+        }
+
         this.finishInteraction(true);
     },
 
@@ -893,6 +907,9 @@ const Shop = {
     // ========================================
 
     startCustomerSpawning() {
+        // Get spawn frequency from dev settings (default 2.5 seconds)
+        const spawnInterval = (typeof DevSettings !== 'undefined' ? DevSettings.get('walkinFrequency') : 2.5) * 1000;
+
         // Check for customers periodically during open hours
         this.customerSpawnTimer = setInterval(() => {
             if (!GameState.shopOpen || GameState.timePaused) return;
@@ -908,9 +925,10 @@ const Shop = {
                                 (GameState.businessHoursEnd - GameState.businessHoursStart);
             const reputation = GameState.reputation || 0;
 
-            // Base 20% chance even with 0 reputation - new shops need foot traffic
-            // Up to 45% with max reputation (5 stars)
-            const baseChance = 0.20 + (reputation / 5) * 0.25;
+            // Get base chance from dev settings (default 20%)
+            const devBaseChance = (typeof DevSettings !== 'undefined' ? DevSettings.get('customerChance') : 20) / 100;
+            // Add reputation bonus (up to +25% at 5 stars)
+            const baseChance = devBaseChance + (reputation / 5) * 0.25;
 
             // Time modifiers: busier in morning and around lunch
             let timeModifier = 1.0;
@@ -928,7 +946,7 @@ const Shop = {
 
             // Also check if any completed jobs need pickup
             this.checkForPickups();
-        }, 2500); // Check every 2.5 real seconds
+        }, spawnInterval);
     },
 
     spawnCustomerOnMap() {
@@ -1329,12 +1347,25 @@ const Shop = {
         const jobsList = document.getElementById('active-jobs');
         if (!jobsList) return;
 
+        const capacity = GameState.jobCapacity || 3;
+        const currentJobs = GameState.activeJobs.length;
+
+        // Add capacity indicator
+        let capacityHtml = '';
+        if (currentJobs >= capacity) {
+            capacityHtml = `<div class="job-capacity full">[${currentJobs}/${capacity}] FULL</div>`;
+        } else if (currentJobs >= capacity - 1) {
+            capacityHtml = `<div class="job-capacity warning">[${currentJobs}/${capacity}] ALMOST FULL</div>`;
+        } else {
+            capacityHtml = `<div class="job-capacity">[${currentJobs}/${capacity}]</div>`;
+        }
+
         if (GameState.activeJobs.length === 0) {
-            jobsList.innerHTML = '<div class="empty-state">No active jobs</div>';
+            jobsList.innerHTML = capacityHtml + '<div class="empty-state">No active jobs</div>';
             return;
         }
 
-        jobsList.innerHTML = '';
+        jobsList.innerHTML = capacityHtml;
         GameState.activeJobs.forEach(job => {
             const daysLeft = job.deadline - GameState.currentDay;
             let deadlineClass = 'safe';

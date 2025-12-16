@@ -232,6 +232,7 @@ const SaveSystem = {
 
             stats: GameState.stats || {},
             bills: GameState.bills,
+            devSettings: GameState.devSettings || null,
         };
     },
 
@@ -266,6 +267,7 @@ const SaveSystem = {
 
         GameState.stats = saveData.stats;
         GameState.bills = saveData.bills;
+        GameState.devSettings = saveData.devSettings || null;
     },
 };
 

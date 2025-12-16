@@ -177,8 +177,16 @@ const ProbeSystem = {
         // Award some bits for workbench repair (less than dive)
         const deviceGrade = job.device?.grade || 'e';
         const bitsByGrade = { 'e': 30, 'c': 75, 'b': 150, 'a': 300 };
-        const bitsEarned = bitsByGrade[deviceGrade] || 30;
-        GameState.bits += bitsEarned;
+        const baseBits = bitsByGrade[deviceGrade] || 30;
+        // Use earnBits to apply multiplier from dev settings
+        if (typeof earnBits === 'function') {
+            earnBits(baseBits);
+        } else {
+            GameState.bits += baseBits;
+        }
+        // Calculate what was actually earned (for display)
+        const bitMultiplier = typeof DevSettings !== 'undefined' ? DevSettings.get('bitMultiplier') : 1;
+        const bitsEarned = Math.round(baseBits * bitMultiplier);
 
         // Show completion popup
         this.showRepairComplete(job, bitsEarned);

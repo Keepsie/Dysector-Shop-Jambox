@@ -407,6 +407,17 @@
     color: var(--green);
 }
 
+.option-btn.warning {
+    border-color: var(--gold-dim);
+    color: var(--gold);
+    background: rgba(212, 168, 67, 0.1);
+}
+
+.option-btn.warning:hover {
+    border-color: var(--gold);
+    background: rgba(212, 168, 67, 0.2);
+}
+
 /* Negotiation-specific options */
 .option-btn.negotiate {
     border-color: var(--gold-dim);
@@ -532,6 +543,31 @@
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-secondary);
+}
+
+/* Job capacity indicator */
+.job-capacity {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 4px;
+    margin-bottom: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+}
+
+.job-capacity.warning {
+    color: var(--gold);
+    border-color: var(--gold-dim);
+    background: rgba(212, 168, 67, 0.1);
+}
+
+.job-capacity.full {
+    color: var(--red);
+    border-color: var(--red-dim);
+    background: rgba(231, 76, 60, 0.1);
+    animation: pulse 1.5s infinite;
 }
 
 /* ========================================

@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(find:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(node --check:*)",
+      "Bash(for f in js/*.js)",
+      "Bash(do echo \"Checking $f...\")",
+      "Bash(echo:*)",
+      "Bash(done)"
     ]
   }
 }

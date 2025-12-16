@@ -68,29 +68,34 @@ document.addEventListener('keydown', (e) => {
 
 // Initialize when DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Try to load existing save first
-    if (typeof SaveSystem !== 'undefined' && SaveSystem.hasSave()) {
-        const saveData = SaveSystem.load();
-        if (saveData) {
-            console.log('[MAIN] Loading saved game from Day', saveData.time?.day || 1);
-            SaveSystem.deserializeToGameState(saveData);
-        }
-    }
-
-    Main.init();
-    updateDisplays();
-
-    // Update version display from SaveSystem
-    const versionElement = document.getElementById('header-version');
-    if (versionElement && typeof SaveSystem !== 'undefined') {
-        versionElement.textContent = `SHOP PROTOTYPE v${SaveSystem.VERSION}`;
-    }
-
-    // Restart button with confirmation
+    // ALWAYS bind restart button first - this must work even if everything else breaks
     document.getElementById('restart-btn')?.addEventListener('click', () => {
         if (confirm('⚠️ RESTART GAME?\n\nThis will DELETE all save data and start fresh.\n\nAre you sure?')) {
             localStorage.removeItem('dysector_shop_save');
             location.reload();
         }
     });
+
+    try {
+        // Try to load existing save first
+        if (typeof SaveSystem !== 'undefined' && SaveSystem.hasSave()) {
+            const saveData = SaveSystem.load();
+            if (saveData) {
+                console.log('[MAIN] Loading saved game from Day', saveData.time?.day || 1);
+                SaveSystem.deserializeToGameState(saveData);
+            }
+        }
+
+        Main.init();
+        updateDisplays();
+
+        // Update version display from SaveSystem
+        const versionElement = document.getElementById('header-version');
+        if (versionElement && typeof SaveSystem !== 'undefined') {
+            versionElement.textContent = `SHOP PROTOTYPE v${SaveSystem.VERSION}`;
+        }
+    } catch (e) {
+        console.error('[MAIN] Initialization error:', e);
+        alert('Game initialization error. Try clicking RESTART to clear save data.\n\nError: ' + e.message);
+    }
 });

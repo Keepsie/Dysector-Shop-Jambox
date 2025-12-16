@@ -35,6 +35,7 @@ const GameState = {
     customersToday: 0,
     totalRepairs: 0,
     reputation: 0, // out of 5 - start at 0, build it up!
+    jobCapacity: 3, // Max concurrent jobs (upgradeable)
 
     // Daily tracking (reset each day)
     dailyStats: {
@@ -235,18 +236,19 @@ function generateProblem(device) {
         availableProblems = availableProblems.filter(p => p.severity !== 'hard');
     }
 
-    // Weight selection: 60% workbench, 40% dive (workbench issues are more common)
+    // Get dive-required percentage from dev settings (default 40%)
+    const diveRequiredPct = (typeof DevSettings !== 'undefined' ? DevSettings.get('diveRequiredPct') : 40) / 100;
     const workbenchProblems = availableProblems.filter(p => !p.needsDive);
     const diveProblems = availableProblems.filter(p => p.needsDive);
 
     let problem;
     if (workbenchProblems.length > 0 && diveProblems.length > 0) {
-        // Weighted selection
-        if (Math.random() < 0.6) {
-            // 60% chance workbench
+        // Weighted selection based on dev settings
+        if (Math.random() >= diveRequiredPct) {
+            // Workbench problem
             problem = workbenchProblems[Math.floor(Math.random() * workbenchProblems.length)];
         } else {
-            // 40% chance dive
+            // Dive problem
             problem = diveProblems[Math.floor(Math.random() * diveProblems.length)];
         }
     } else {
@@ -259,7 +261,22 @@ function generateProblem(device) {
 
 function generateCustomer() {
     const name = generateCustomerName();
-    const urgency = UrgencyTypes[Math.floor(Math.random() * UrgencyTypes.length)];
+
+    // Get desperate percentage from dev settings (default 20%)
+    const desperatePct = (typeof DevSettings !== 'undefined' ? DevSettings.get('desperatePct') : 20) / 100;
+
+    // Weighted urgency selection based on dev settings
+    let urgency;
+    const roll = Math.random();
+    if (roll < desperatePct) {
+        urgency = UrgencyTypes.find(u => u.id === 'desperate');
+    } else if (roll < desperatePct + 0.4) {
+        urgency = UrgencyTypes.find(u => u.id === 'normal');
+    } else {
+        urgency = UrgencyTypes.find(u => u.id === 'flexible');
+    }
+    // Fallback if not found
+    if (!urgency) urgency = UrgencyTypes[Math.floor(Math.random() * UrgencyTypes.length)];
 
     // Generate device with grade based on player's licenses
     let maxGrade = 'e';
@@ -284,8 +301,9 @@ function generateCustomer() {
     const difficultyMultiplier = problem.severity === 'easy' ? 0.8 : problem.severity === 'hard' ? 1.3 : 1.0;
     const repairPrice = Math.round(basePrice * difficultyMultiplier * urgency.payMultiplier);
 
-    // Desired deadline (in days from now)
-    const desiredDeadline = Math.max(1, urgency.patience + Math.floor(Math.random() * 2) - 1);
+    // Desired deadline (in days from now) + deadline buffer from dev settings
+    const deadlineBuffer = typeof DevSettings !== 'undefined' ? DevSettings.get('deadlineBuffer') : 0;
+    const desiredDeadline = Math.max(1, urgency.patience + Math.floor(Math.random() * 2) - 1 + deadlineBuffer);
 
     return {
         id: Date.now() + Math.random(),
@@ -412,6 +430,9 @@ const FatigueSystem = {
     },
 
     add(amount, reason) {
+        // Check no fatigue cheat
+        if (GameState.devSettings?.noFatigue) return;
+
         const oldFatigue = GameState.fatigue;
         GameState.fatigue = Math.min(GameState.fatigueMax, GameState.fatigue + amount);
 
@@ -457,10 +478,14 @@ const FatigueSystem = {
 
     canDive() {
         // Can dive if not too fatigued and have charges
-        if (GameState.fatigue + this.costs.dive >= GameState.fatigueCollapse) {
+        // Check dev cheats
+        const infiniteDives = GameState.devSettings?.infiniteDives;
+        const noFatigue = GameState.devSettings?.noFatigue;
+
+        if (!noFatigue && GameState.fatigue + this.costs.dive >= GameState.fatigueCollapse) {
             return { allowed: false, reason: 'Too exhausted to dive safely.' };
         }
-        if (GameState.divesRemaining <= 0) {
+        if (!infiniteDives && GameState.divesRemaining <= 0) {
             return { allowed: false, reason: 'No dive charges remaining.' };
         }
         if (GameState.shopOpen) {
@@ -484,10 +509,17 @@ function formatMoney(amount) {
 }
 
 function canAfford(amount) {
+    // Check infinite money cheat
+    if (GameState.devSettings?.infiniteMoney) return true;
     return GameState.cash >= amount;
 }
 
 function spendCash(amount) {
+    // Check infinite money cheat
+    if (GameState.devSettings?.infiniteMoney) {
+        updateDisplays();
+        return true;
+    }
     if (canAfford(amount)) {
         GameState.cash -= amount;
         GameState.dailyStats.moneySpent += amount;
@@ -498,12 +530,20 @@ function spendCash(amount) {
 }
 
 function earnCash(amount) {
-    GameState.cash += amount;
-    GameState.dailyStats.moneyEarned += amount;
+    // Apply cash multiplier from dev settings
+    const multiplier = typeof DevSettings !== 'undefined' ? DevSettings.get('cashMultiplier') : 1;
+    const adjustedAmount = Math.round(amount * multiplier);
+    GameState.cash += adjustedAmount;
+    GameState.dailyStats.moneyEarned += adjustedAmount;
     updateDisplays();
 }
 
 function spendBits(amount) {
+    // Check infinite money cheat
+    if (GameState.devSettings?.infiniteMoney) {
+        updateDisplays();
+        return true;
+    }
     if (GameState.bits >= amount) {
         GameState.bits -= amount;
         updateDisplays();
@@ -513,11 +553,19 @@ function spendBits(amount) {
 }
 
 function earnBits(amount) {
-    GameState.bits += amount;
+    // Apply bit multiplier from dev settings
+    const multiplier = typeof DevSettings !== 'undefined' ? DevSettings.get('bitMultiplier') : 1;
+    const adjustedAmount = Math.round(amount * multiplier);
+    GameState.bits += adjustedAmount;
     updateDisplays();
 }
 
 function useDive() {
+    // Check infinite dives cheat
+    if (GameState.devSettings?.infiniteDives) {
+        updateDisplays();
+        return true;
+    }
     if (GameState.divesRemaining > 0) {
         GameState.divesRemaining--;
         updateDisplays();
@@ -546,7 +594,12 @@ function advanceDay() {
     GameState.currentDayName = GameState.dayNames[(GameState.currentDay - 1) % 7];
     GameState.currentHour = 8; // Wake up at 8 AM
     GameState.currentMinute = 0;
+
+    // Apply daily dive charges from dev settings
+    const dailyDiveCharges = typeof DevSettings !== 'undefined' ? DevSettings.get('dailyDiveCharges') : 2;
+    GameState.divesMax = dailyDiveCharges;
     GameState.divesRemaining = GameState.divesMax;
+
     GameState.customersToday = 0;
     GameState.shopOpen = false;
     GameState.timeRunning = false;
@@ -555,6 +608,11 @@ function advanceDay() {
 
     // Check for missed deadlines
     checkDeadlines();
+
+    // Check if new week started (every 7 days) - reset bills
+    if ((GameState.currentDay - 1) % 7 === 0 && GameState.currentDay > 1) {
+        resetWeeklyBills();
+    }
 
     // Check for bills due
     checkBillsDue();
@@ -567,7 +625,24 @@ function advanceDay() {
     }
 }
 
+function resetWeeklyBills() {
+    // Calculate the end of the current week (next Sunday)
+    const currentWeek = Math.ceil(GameState.currentDay / 7);
+    const weekEndDay = currentWeek * 7;
+
+    // Reset all bills for the new week
+    GameState.bills = [
+        { name: 'Rent', amount: 500, dueDay: weekEndDay, paid: false },
+        { name: 'Utilities', amount: 100, dueDay: weekEndDay, paid: false }
+    ];
+
+    if (typeof Shop !== 'undefined') {
+        Shop.addText(`[NEW WEEK] Week ${currentWeek} bills generated. Due: Day ${weekEndDay}`, 'system');
+    }
+}
+
 function checkBillsDue() {
+    if (!GameState.bills) return;
     GameState.bills.forEach(bill => {
         if (!bill.paid && bill.dueDay === GameState.currentDay) {
             if (typeof Shop !== 'undefined') {
@@ -607,10 +682,12 @@ const DiveSimulator = {
         // Use dive charge
         GameState.divesRemaining--;
 
-        // Calculate success chance
-        const baseDifficulty = this.difficultyMods[device.grade] || 0.7;
+        // Calculate success chance - use dev settings if available
+        const baseSuccessRate = (typeof DevSettings !== 'undefined' ? DevSettings.get('diveSuccessRate') : 70) / 100;
+        const difficultyMod = this.difficultyMods[device.grade] || 0.7;
         const healthMod = device.health / 100; // Lower health = harder
-        const successChance = baseDifficulty * (0.5 + healthMod * 0.5);
+        // Blend base rate with difficulty/health mods
+        const successChance = baseSuccessRate * difficultyMod * (0.7 + healthMod * 0.3);
 
         const roll = Math.random();
         const success = roll < successChance;
@@ -715,11 +792,29 @@ const DiveSimulator = {
 };
 
 function checkDeadlines() {
+    if (!GameState.activeJobs) return;
     GameState.activeJobs.forEach(job => {
-        if (job.deadline <= GameState.currentDay && job.status !== 'complete') {
+        if (job.deadline < GameState.currentDay && job.status !== 'complete' && job.status !== 'overdue') {
             // Missed deadline!
             job.status = 'overdue';
-            // Could add reputation penalty here
+
+            // Apply reputation penalty
+            let reputationPenalty = 0.3;
+
+            // Desperate customers = 2x penalty
+            if (job.urgency?.id === 'desperate') {
+                reputationPenalty = 0.6;
+            }
+
+            GameState.reputation = Math.max(0, (GameState.reputation || 0) - reputationPenalty);
+            if (GameState.dailyStats) GameState.dailyStats.badTransactions++;
+
+            // Log the missed deadline
+            if (typeof Shop !== 'undefined') {
+                const urgencyText = job.urgency?.id === 'desperate' ? ' (DESPERATE - 2x penalty!)' : '';
+                Shop.addText(`[OVERDUE] ${job.customer}'s ${job.device?.typeName || 'device'} missed deadline!${urgencyText}`, 'error');
+                Shop.addText(`Reputation: -${reputationPenalty.toFixed(1)} stars`, 'error');
+            }
         }
     });
 }
@@ -776,6 +871,25 @@ function updateDisplays() {
     // Update customers today
     const customersToday = document.getElementById('customers-today');
     if (customersToday) customersToday.textContent = GameState.customersToday;
+
+    // Update reputation bar
+    const repBar = document.getElementById('rep-bar');
+    const repValue = document.getElementById('display-rep');
+    const repStars = document.getElementById('display-stars');
+    if (repBar && repValue && repStars) {
+        const rep = GameState.reputation || 0;
+        const pct = (rep / 5) * 100;
+        repBar.style.width = `${pct}%`;
+        repValue.textContent = rep.toFixed(1);
+
+        // Generate stars display
+        const fullStars = Math.floor(rep);
+        const partialStar = rep % 1 >= 0.5;
+        let starsText = '★'.repeat(fullStars);
+        if (partialStar && fullStars < 5) starsText += '⯨';
+        starsText += '☆'.repeat(5 - fullStars - (partialStar ? 1 : 0));
+        repStars.textContent = starsText;
+    }
 
     // Update dive bits display on Dive OS tab
     const diveBits = document.getElementById('dive-bits');

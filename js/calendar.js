@@ -367,20 +367,40 @@ const Calendar = {
         const container = document.querySelector('.bills-preview');
         if (!container) return;
 
-        const unpaidBills = GameState.bills.filter(b => !b.paid);
+        const bills = GameState.bills || [];
+        const unpaidBills = bills.filter(b => !b.paid);
 
         if (unpaidBills.length === 0) {
             container.innerHTML = '<div class="empty-state">All bills paid!</div>';
             return;
         }
 
-        container.innerHTML = unpaidBills.map(bill => `
-            <div class="bill-item">
-                <span class="bill-name">${bill.name}</span>
-                <span class="bill-due">Day ${bill.dueDay}</span>
-                <span class="bill-amount">${formatMoney(bill.amount)}</span>
-            </div>
-        `).join('');
+        container.innerHTML = unpaidBills.map(bill => {
+            const daysUntilDue = bill.dueDay - GameState.currentDay;
+            let urgencyClass = '';
+            let urgencyText = `Day ${bill.dueDay}`;
+
+            if (daysUntilDue <= 0) {
+                urgencyClass = 'overdue';
+                urgencyText = 'OVERDUE!';
+            } else if (daysUntilDue === 1) {
+                urgencyClass = 'urgent';
+                urgencyText = 'TOMORROW!';
+            } else if (daysUntilDue <= 2) {
+                urgencyClass = 'warning';
+                urgencyText = `${daysUntilDue} DAYS`;
+            }
+
+            const canAffordClass = GameState.cash >= bill.amount ? '' : 'cant-afford';
+
+            return `
+                <div class="bill-item ${urgencyClass} ${canAffordClass}">
+                    <span class="bill-name">${bill.name}</span>
+                    <span class="bill-due">${urgencyText}</span>
+                    <span class="bill-amount">${formatMoney(bill.amount)}</span>
+                </div>
+            `;
+        }).join('');
     },
 
     // Calculate capacity for a day (simplified)
