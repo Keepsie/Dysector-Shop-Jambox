@@ -822,6 +822,10 @@ const Shop = {
             <div style="background: var(--bg-dark); border: 2px solid var(--primary); padding: 20px; border-radius: 8px; max-width: 350px; margin: 20px auto; font-family: var(--font-mono);">
                 <h2 style="color: var(--primary); margin: 0 0 15px 0; text-align: center;">DAY ${GameState.currentDay} SUMMARY</h2>
 
+                <button id="sleep-continue-btn" style="display: block !important; width: 100%; margin-bottom: 20px; padding: 15px; background: #00fff5 !important; border: 2px solid #00fff5 !important; color: #0a0a0a !important; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 16px; font-family: monospace; text-transform: uppercase; letter-spacing: 1px;">
+                    CONTINUE TO NEXT DAY
+                </button>
+
                 <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">
                     <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                         <span style="color: var(--text-dim);">Money Earned:</span>
@@ -861,10 +865,6 @@ const Shop = {
                         ${repArrow} ${Math.abs(repChange).toFixed(2)} (${newRep.toFixed(2)}/5.00)
                     </div>
                 </div>
-
-                <button id="sleep-continue-btn" style="width: 100%; margin-top: 20px; padding: 10px; background: var(--primary); border: none; color: var(--bg-dark); font-weight: bold; cursor: pointer; border-radius: 4px;">
-                    CONTINUE TO NEXT DAY
-                </button>
             </div>
         `;
 
