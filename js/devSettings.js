@@ -20,11 +20,15 @@ const DevSettings = {
     },
 
     init() {
+        console.log('[DEV] DevSettings.init() starting...');
+
         // Initialize settings in GameState if not present or incomplete
         if (!GameState.devSettings || typeof GameState.devSettings !== 'object') {
+            console.log('[DEV] Creating new devSettings from defaults');
             GameState.devSettings = { ...this.defaults };
         } else {
             // Merge with defaults in case save is missing new keys
+            console.log('[DEV] Merging existing devSettings with defaults');
             GameState.devSettings = { ...this.defaults, ...GameState.devSettings };
         }
 
@@ -35,6 +39,8 @@ const DevSettings = {
 
         // Update state display periodically
         setInterval(() => this.updateStateDisplay(), 1000);
+
+        console.log('[DEV] DevSettings.init() complete. Settings:', GameState.devSettings);
     },
 
     bindSliders() {
@@ -58,12 +64,17 @@ const DevSettings = {
 
             if (!input || !display) return;
 
-            // Set initial value from GameState
-            input.value = GameState.devSettings[slider.key];
-            this.updateSliderDisplay(slider, input.value, display);
+            // Set initial value from GameState (with fallback to defaults)
+            const initialValue = GameState.devSettings[slider.key] ?? this.defaults[slider.key] ?? 0;
+            input.value = initialValue;
+            this.updateSliderDisplay(slider, initialValue, display);
 
             // Bind change event
             input.addEventListener('input', () => {
+                // Ensure devSettings exists
+                if (!GameState.devSettings) {
+                    GameState.devSettings = { ...this.defaults };
+                }
                 const value = parseFloat(input.value);
                 GameState.devSettings[slider.key] = value;
                 this.updateSliderDisplay(slider, value, display);
@@ -75,13 +86,19 @@ const DevSettings = {
     updateSliderDisplay(slider, value, display) {
         const prefix = slider.prefix || '';
         const suffix = slider.suffix || '';
-        const formatted = slider.decimals > 0 ? value.toFixed(slider.decimals) : Math.round(value);
+        const numValue = parseFloat(value) || 0;
+        const formatted = slider.decimals > 0 ? numValue.toFixed(slider.decimals) : Math.round(numValue);
         display.textContent = prefix + formatted + suffix;
     },
 
     bindButtons() {
+        console.log('[DEV] Binding buttons...');
+
         // Add Cash
-        document.getElementById('dev-add-cash')?.addEventListener('click', () => {
+        const addCashBtn = document.getElementById('dev-add-cash');
+        console.log('[DEV] dev-add-cash button:', addCashBtn ? 'found' : 'NOT FOUND');
+        addCashBtn?.addEventListener('click', () => {
+            console.log('[DEV] +$500 clicked, current cash:', GameState.cash);
             GameState.cash += 500;
             updateDisplays();
             if (typeof Shop !== 'undefined') {
@@ -161,36 +178,61 @@ const DevSettings = {
     },
 
     bindToggles() {
-        // Infinite Money
-        document.getElementById('dev-infinite-money')?.addEventListener('change', (e) => {
-            GameState.devSettings.infiniteMoney = e.target.checked;
-            if (e.target.checked) {
-                GameState.cash = 999999;
-                updateDisplays();
+        // Ensure devSettings exists for all toggles
+        const ensureSettings = () => {
+            if (!GameState.devSettings) {
+                GameState.devSettings = { ...this.defaults };
             }
-        });
+        };
+
+        // Infinite Money
+        const infiniteMoneyToggle = document.getElementById('dev-infinite-money');
+        if (infiniteMoneyToggle) {
+            infiniteMoneyToggle.checked = GameState.devSettings?.infiniteMoney || false;
+            infiniteMoneyToggle.addEventListener('change', (e) => {
+                ensureSettings();
+                GameState.devSettings.infiniteMoney = e.target.checked;
+                if (e.target.checked) {
+                    GameState.cash = 999999;
+                    updateDisplays();
+                }
+            });
+        }
 
         // Infinite Dives
-        document.getElementById('dev-infinite-dives')?.addEventListener('change', (e) => {
-            GameState.devSettings.infiniteDives = e.target.checked;
-            if (e.target.checked) {
-                GameState.divesRemaining = 99;
-                GameState.divesMax = 99;
-                updateDisplays();
-            }
-        });
+        const infiniteDivesToggle = document.getElementById('dev-infinite-dives');
+        if (infiniteDivesToggle) {
+            infiniteDivesToggle.checked = GameState.devSettings?.infiniteDives || false;
+            infiniteDivesToggle.addEventListener('change', (e) => {
+                ensureSettings();
+                GameState.devSettings.infiniteDives = e.target.checked;
+                if (e.target.checked) {
+                    GameState.divesRemaining = 99;
+                    GameState.divesMax = 99;
+                    updateDisplays();
+                }
+            });
+        }
 
         // No Fatigue
-        document.getElementById('dev-no-fatigue')?.addEventListener('change', (e) => {
-            GameState.devSettings.noFatigue = e.target.checked;
-            if (e.target.checked) {
-                GameState.fatigue = 0;
-                updateDisplays();
-            }
-        });
+        const noFatigueToggle = document.getElementById('dev-no-fatigue');
+        if (noFatigueToggle) {
+            noFatigueToggle.checked = GameState.devSettings?.noFatigue || false;
+            noFatigueToggle.addEventListener('change', (e) => {
+                ensureSettings();
+                GameState.devSettings.noFatigue = e.target.checked;
+                if (e.target.checked) {
+                    GameState.fatigue = 0;
+                    updateDisplays();
+                }
+            });
+        }
     },
 
     applySettings() {
+        if (!GameState.devSettings) {
+            GameState.devSettings = { ...this.defaults };
+        }
         const s = GameState.devSettings;
 
         // Apply dive charges setting
@@ -244,7 +286,5 @@ const DevSettings = {
     }
 };
 
-// Initialize when DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-    DevSettings.init();
-});
+// Note: DevSettings.init() is called by main.js after save loading
+// to ensure correct initialization order

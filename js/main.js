@@ -89,6 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
         Main.init();
         updateDisplays();
 
+        // Initialize DevSettings AFTER save is loaded
+        if (typeof DevSettings !== 'undefined') {
+            DevSettings.init();
+        }
+
         // Update version display from SaveSystem
         const versionElement = document.getElementById('header-version');
         if (versionElement && typeof SaveSystem !== 'undefined') {

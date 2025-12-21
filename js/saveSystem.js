@@ -2,7 +2,7 @@
 
 const SaveSystem = {
     SAVE_KEY: 'dysector_shop_save',
-    VERSION: 6,  // Bumped for empty shop start + furniture system
+    VERSION: 7,  // Bumped for devSettings fix
 
     // Default new game state
     getDefaultState() {
@@ -159,6 +159,12 @@ const SaveSystem = {
             }
         }
 
+        // Version 7: DevSettings fix - ensure devSettings exists
+        if (oldSave.version < 7) {
+            console.log('[SAVE] Adding devSettings for v7');
+            oldSave.devSettings = null;  // Will be initialized by DevSettings.init()
+        }
+
         oldSave.version = this.VERSION;
         return oldSave;
     },
@@ -267,7 +273,10 @@ const SaveSystem = {
 
         GameState.stats = saveData.stats;
         GameState.bills = saveData.bills;
-        GameState.devSettings = saveData.devSettings || null;
+        // Merge saved devSettings with existing defaults (don't overwrite with null)
+        if (saveData.devSettings) {
+            GameState.devSettings = { ...GameState.devSettings, ...saveData.devSettings };
+        }
     },
 };
 
